@@ -1,0 +1,64 @@
+[build-system]
+requires = ['setuptools>=61', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'PySC2-Compat'
+version = '4.0.0'
+description = 'Starcraft II environment and library for training agents.'
+readme = 'README.md'
+requires-python = '>=3.10'
+license = { text = 'Apache License, Version 2.0' }
+keywords = ['StarCraft', 'AI']
+authors = [{ name = 'DeepMind', email = 'pysc2@deepmind.com' }]
+urls = { Homepage = 'https://github.com/deepmind/pysc2' }
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Environment :: Console',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: Apache Software License',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: MacOS :: MacOS X',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
+    'Topic :: Scientific/Engineering :: Artificial Intelligence',
+]
+dependencies = [
+    'absl-py>=1.0.0',
+    'deepdiff',
+    'dm_env',
+    'mpyq',
+    'numpy>=1.21',
+    'portpicker>=1.2.0',
+    'protobuf>=3.19.1,<4',
+    'requests',
+    's2clientprotocol>=4.10.1.75800.0',
+    's2protocol',
+    'websocket-client',
+]
+
+[project.scripts]
+pysc2_agent = 'pysc2.bin.agent:entry_point'
+pysc2_play = 'pysc2.bin.play:entry_point'
+pysc2_replay_info = 'pysc2.bin.replay_info:entry_point'
+
+[project.optional-dependencies]
+render = [
+    'pygame',
+    'sk-video',
+]
+
+[tool.setuptools]
+packages = [
+    'pysc2',
+    'pysc2.agents',
+    'pysc2.bin',
+    'pysc2.env',
+    'pysc2.lib',
+    'pysc2.maps',
+    'pysc2.run_configs',
+]

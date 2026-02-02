@@ -53,7 +53,7 @@ You can reach us at [pysc2@deepmind.com](mailto:pysc2@deepmind.com).
 The easiest way to get PySC2 is to use pip:
 
 ```shell
-$ pip install pysc2
+$ pip install pysc2-compat
 ```
 
 That will install the `pysc2` package along with all the required dependencies.
@@ -77,7 +77,7 @@ or from a local clone of the git repo:
 
 ```shell
 $ git clone https://github.com/deepmind/pysc2.git
-$ pip install --upgrade pysc2/
+$ pip install --upgrade pysc2-compat/
 ```
 
 ## Get StarCraft II
