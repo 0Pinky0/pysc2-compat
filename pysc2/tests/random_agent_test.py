@@ -26,11 +26,11 @@ from pysc2.tests import utils
 class TestRandomAgent(parameterized.TestCase, utils.TestCase):
 
     @parameterized.named_parameters(
-        ("features", sc2_env.AgentInterfaceFormat(
+        ('features', sc2_env.AgentInterfaceFormat(
             feature_dimensions=sc2_env.Dimensions(screen=84, minimap=64))),
-        ("rgb", sc2_env.AgentInterfaceFormat(
+        ('rgb', sc2_env.AgentInterfaceFormat(
             rgb_dimensions=sc2_env.Dimensions(screen=128, minimap=64))),
-        ("all", sc2_env.AgentInterfaceFormat(
+        ('all', sc2_env.AgentInterfaceFormat(
             feature_dimensions=sc2_env.Dimensions(screen=84, minimap=64),
             rgb_dimensions=sc2_env.Dimensions(screen=128, minimap=64),
             action_space=sc2_env.ActionSpace.FEATURES,
@@ -41,7 +41,7 @@ class TestRandomAgent(parameterized.TestCase, utils.TestCase):
         steps = 250
         step_mul = 8
         with sc2_env.SC2Env(
-                map_name=["Simple64", "Simple96"],
+                map_name=['Simple64', 'Simple96'],
                 players=[sc2_env.Agent([sc2_env.Race.random, sc2_env.Race.terran]),
                          sc2_env.Bot([sc2_env.Race.zerg, sc2_env.Race.protoss],
                                      sc2_env.Difficulty.easy,
@@ -55,5 +55,5 @@ class TestRandomAgent(parameterized.TestCase, utils.TestCase):
         self.assertEqual(agent.steps, steps)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

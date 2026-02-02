@@ -19,22 +19,22 @@ from pysc2.lib import units
 def get_printable_unit_types():
     """Generate the list of printable unit type characters."""
     types = {
-        units.Protoss.Assimilator: "a",
-        units.Protoss.Probe: "p",
-        units.Protoss.Stalker: "s",
-        units.Terran.SCV: "s",
-        units.Terran.Marine: "m",
-        units.Terran.SupplyDepot: "D",
-        units.Terran.SupplyDepotLowered: "D",
+        units.Protoss.Assimilator: 'a',
+        units.Protoss.Probe: 'p',
+        units.Protoss.Stalker: 's',
+        units.Terran.SCV: 's',
+        units.Terran.Marine: 'm',
+        units.Terran.SupplyDepot: 'D',
+        units.Terran.SupplyDepotLowered: 'D',
     }
 
     substrings = {
-        "MineralField": "$",
-        "VespeneGeyser": "&",
-        "Collapsible": "@",
-        "Debris": "@",
-        "Destructible": "@",
-        "Rock": "@",
+        'MineralField': '$',
+        'VespeneGeyser': '&',
+        'Collapsible': '@',
+        'Debris': '@',
+        'Destructible': '@',
+        'Rock': '@',
     }
     for name, unit_type in units.Neutral.__members__.items():
         for substring, char in substrings.items():
@@ -51,15 +51,15 @@ def get_printable_unit_types():
 
 _printable_unit_types = get_printable_unit_types()
 
-VISIBILITY = "#+."  # Fogged, seen, visible.
-PLAYER_RELATIVE = ".SANE"  # self, allied, neutral, enemy.
+VISIBILITY = '#+.'  # Fogged, seen, visible.
+PLAYER_RELATIVE = '.SANE'  # self, allied, neutral, enemy.
 
 
 def _summary(obs, view, width):
-    s = " %s: p%s; step: %s; money: %s, %s; food: %s/%s " % (
+    s = ' %s: p%s; step: %s; money: %s, %s; food: %s/%s ' % (
         view, obs.player.player_id, obs.game_loop[0], obs.player.minerals,
         obs.player.vespene, obs.player.food_used, obs.player.food_cap)
-    return s.center(max(len(s) + 6, width), "-")
+    return s.center(max(len(s) + 6, width), '-')
 
 
 def screen(obs):
@@ -68,7 +68,7 @@ def screen(obs):
     selected = obs.feature_screen.selected
     visibility = obs.feature_screen.visibility_map
     max_y, max_x = unit_type.shape
-    out = _summary(obs, "screen", max_y * 2) + "\n"
+    out = _summary(obs, 'screen', max_y * 2) + '\n'
     for y in range(max_y):
         started = False
         for x in range(max_x):
@@ -76,19 +76,19 @@ def screen(obs):
             u = unit_type[y, x]
             v = visibility[y, x]
             if started and not s:
-                out += ")"
+                out += ')'
             elif not started and s:
-                out += "("
+                out += '('
             else:
-                out += " "
+                out += ' '
             if u:
                 out += _printable_unit_types.get(u, str(u))
             else:
                 out += VISIBILITY[v]
             started = s
         if started:
-            out += ")"
-        out += "\n"
+            out += ')'
+        out += '\n'
     return out
 
 
@@ -98,7 +98,7 @@ def minimap(obs):
     selected = obs.feature_minimap.selected
     visibility = obs.feature_minimap.visibility_map
     max_y, max_x = visibility.shape
-    out = _summary(obs, "minimap", max_y * 2) + "\n"
+    out = _summary(obs, 'minimap', max_y * 2) + '\n'
     for y in range(max_y):
         started = False
         for x in range(max_x):
@@ -106,17 +106,17 @@ def minimap(obs):
             p = player[y, x]
             v = visibility[y, x]
             if started and not s:
-                out += ")"
+                out += ')'
             elif not started and s:
-                out += "("
+                out += '('
             else:
-                out += " "
+                out += ' '
             if v:
                 out += PLAYER_RELATIVE[p]
             else:
                 out += VISIBILITY[v]
             started = s
         if started:
-            out += ")"
-        out += "\n"
+            out += ')'
+        out += '\n'
     return out

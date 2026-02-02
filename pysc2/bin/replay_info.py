@@ -32,31 +32,31 @@ def _replay_index(replay_dir):
     """Output information for a directory of replays."""
     run_config = run_configs.get()
     replay_dir = run_config.abs_replay_path(replay_dir)
-    print("Checking:", replay_dir)
+    print('Checking:', replay_dir)
     replay_paths = list(run_config.replay_paths(replay_dir))
-    print("Found %s replays" % len(replay_paths))
+    print('Found %s replays' % len(replay_paths))
 
     if not replay_paths:
         return
 
     data = run_config.replay_data(replay_paths[0])
     ver = replay.get_replay_version(data)
-    FLAGS.set_default("sc2_version", ver.game_version)
+    FLAGS.set_default('sc2_version', ver.game_version)
     run_config = run_configs.get()  # In case the version changed.
-    print("Launching version:", run_config.version.game_version)
+    print('Launching version:', run_config.version.game_version)
     with run_config.start(want_rgb=False) as controller:
-        print("-" * 60)
-        print(",".join((
-            "filename",
-            "version",
-            "map_name",
-            "game_duration_loops",
-            "players",
-            "P1-outcome",
-            "P1-race",
-            "P1-apm",
-            "P2-race",
-            "P2-apm",
+        print('-' * 60)
+        print(','.join((
+            'filename',
+            'version',
+            'map_name',
+            'game_duration_loops',
+            'players',
+            'P1-outcome',
+            'P1-race',
+            'P1-apm',
+            'P2-race',
+            'P2-apm',
         )))
 
         bad_replays = []
@@ -67,10 +67,10 @@ def _replay_index(replay_dir):
                 try:
                     info = controller.replay_info(data)
                 except remote_controller.RequestError as e:
-                    bad_replays.append("%s: %s" % (file_name, e))
+                    bad_replays.append('%s: %s' % (file_name, e))
                     continue
-                if info.HasField("error"):
-                    print("failed:", file_name, info.error, info.error_details)
+                if info.HasField('error'):
+                    print('failed:', file_name, info.error, info.error_details)
                     bad_replays.append(file_name)
                 else:
                     out = [
@@ -89,39 +89,39 @@ def _replay_index(replay_dir):
                                 info.player_info[1].player_info.race_actual),
                             info.player_info[1].player_apm,
                         ]
-                    print(u",".join(str(s) for s in out))
+                    print(u','.join(str(s) for s in out))
         except KeyboardInterrupt:
             pass
         finally:
             if bad_replays:
-                print("\n")
-                print("Replays with errors:")
-                print("\n".join(bad_replays))
+                print('\n')
+                print('Replays with errors:')
+                print('\n'.join(bad_replays))
 
 
 def _replay_info(replay_path):
     """Query a replay for information."""
-    if not replay_path.lower().endswith("sc2replay"):
-        print("Must be a replay.")
+    if not replay_path.lower().endswith('sc2replay'):
+        print('Must be a replay.')
         return
 
     run_config = run_configs.get()
     data = run_config.replay_data(replay_path)
     ver = replay.get_replay_version(data)
-    FLAGS.set_default("sc2_version", ver.game_version)
+    FLAGS.set_default('sc2_version', ver.game_version)
     run_config = run_configs.get()  # In case the version changed.
-    print("Launching version:", run_config.version.game_version)
+    print('Launching version:', run_config.version.game_version)
     with run_config.start(want_rgb=False) as controller:
         info = controller.replay_info(data)
-    print("-" * 60)
+    print('-' * 60)
     print(info)
 
 
 def main(argv):
     if not argv:
-        raise ValueError("No replay directory or path specified.")
+        raise ValueError('No replay directory or path specified.')
     if len(argv) > 2:
-        raise ValueError("Too many arguments provided.")
+        raise ValueError('Too many arguments provided.')
     path = argv[1]
 
     try:
@@ -137,5 +137,5 @@ def entry_point():  # Needed so the setup.py scripts work.
     app.run(main)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

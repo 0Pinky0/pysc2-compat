@@ -26,27 +26,27 @@ from pysc2.lib import replay
 from pysc2.lib import stopwatch
 
 FLAGS = flags.FLAGS
-flags.DEFINE_integer("step_mul", 8, "Game steps per observation.")
-point_flag.DEFINE_point("feature_screen_size", "64",
-                        "Resolution for screen feature layers.")
-point_flag.DEFINE_point("feature_minimap_size", "64",
-                        "Resolution for minimap feature layers.")
-point_flag.DEFINE_point("rgb_screen_size", None,
-                        "Resolution for rendered screen.")
-point_flag.DEFINE_point("rgb_minimap_size", None,
-                        "Resolution for rendered minimap.")
-flags.DEFINE_bool("use_feature_units", True,
-                  "Whether to include feature units.")
-flags.DEFINE_bool("use_raw_units", True,
-                  "Whether to include raw units.")
-flags.DEFINE_string("replay", None, "Name of a replay to show.")
-flags.DEFINE_string("map_path", None, "Override the map for this replay.")
-flags.mark_flag_as_required("replay")
+flags.DEFINE_integer('step_mul', 8, 'Game steps per observation.')
+point_flag.DEFINE_point('feature_screen_size', '64',
+                        'Resolution for screen feature layers.')
+point_flag.DEFINE_point('feature_minimap_size', '64',
+                        'Resolution for minimap feature layers.')
+point_flag.DEFINE_point('rgb_screen_size', None,
+                        'Resolution for rendered screen.')
+point_flag.DEFINE_point('rgb_minimap_size', None,
+                        'Resolution for rendered minimap.')
+flags.DEFINE_bool('use_feature_units', True,
+                  'Whether to include feature units.')
+flags.DEFINE_bool('use_raw_units', True,
+                  'Whether to include raw units.')
+flags.DEFINE_string('replay', None, 'Name of a replay to show.')
+flags.DEFINE_string('map_path', None, 'Override the map for this replay.')
+flags.mark_flag_as_required('replay')
 
 
 def main(argv):
     if len(argv) > 1:
-        raise app.UsageError("Too many command-line arguments.")
+        raise app.UsageError('Too many command-line arguments.')
 
     stopwatch.sw.enable()
 
@@ -73,11 +73,11 @@ def main(argv):
 
     try:
         with run_config.start(
-                want_rgb=interface.HasField("render")) as controller:
+                want_rgb=interface.HasField('render')) as controller:
             info = controller.replay_info(replay_data)
-            print(" Replay info ".center(60, "-"))
+            print(' Replay info '.center(60, '-'))
             print(info)
-            print("-" * 60)
+            print('-' * 60)
             map_path = FLAGS.map_path or info.local_map_path
             if map_path:
                 start_replay.map_data = run_config.map_data(map_path)
@@ -103,5 +103,5 @@ def main(argv):
     print(stopwatch.sw)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

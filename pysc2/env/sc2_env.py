@@ -61,15 +61,21 @@ def get_default(a, b):
     return b if a is None else a
 
 
-class Agent(collections.namedtuple("Agent", ["race", "name"])):
-    """Define an Agent. It can have a single race or a list of races."""
+class Agent(collections.namedtuple('Agent', ['race', 'name'])):
+    """Define an Agent.
+
+    It can have a single race or a list of races.
+    """
 
     def __new__(cls, race, name=None):
-        return super(Agent, cls).__new__(cls, to_list(race), name or "<unknown>")
+        return super(Agent, cls).__new__(cls, to_list(race), name or '<unknown>')
 
 
-class Bot(collections.namedtuple("Bot", ["race", "difficulty", "build"])):
-    """Define a Bot. It can have a single or list of races or builds."""
+class Bot(collections.namedtuple('Bot', ['race', 'difficulty', 'build'])):
+    """Define a Bot.
+
+    It can have a single or list of races or builds.
+    """
 
     def __new__(cls, race, difficulty, build=None):
         return super(Bot, cls).__new__(
@@ -77,7 +83,7 @@ class Bot(collections.namedtuple("Bot", ["race", "difficulty", "build"])):
 
 
 _DelayedAction = collections.namedtuple(
-    "DelayedAction", ["game_loop", "action"])
+    'DelayedAction', ['game_loop', 'action'])
 
 REALTIME_GAME_LOOP_SECONDS = 1 / 22.4
 MAX_STEP_COUNT = 524000  # The game fails above 2^19=524288 steps.
@@ -87,8 +93,8 @@ NUM_ACTION_DELAY_BUCKETS = 10
 class SC2Env(environment.Base):
     """A Starcraft II environment.
 
-    The implementation details of the action and observation specs are in
-    lib/features.py
+    The implementation details of the action and observation specs are
+    in lib/features.py
     """
 
     def __init__(self,
@@ -123,14 +129,14 @@ class SC2Env(environment.Base):
         height. If you specify size then both width and height will take that value.
 
         Args:
-          map_name: Name of a SC2 map. Run bin/map_list to get the full list of
+            map_name: Name of a SC2 map. Run bin/map_list to get the full list of
               known maps. Alternatively, pass a Map instance. Take a look at the
               docs in maps/README.md for more information on available maps. Can
               also be a list of map names or instances, in which case one will be
               chosen at random per episode.
-          battle_net_map: Whether to use the battle.net versions of the map(s).
-          players: A list of Agent and Bot instances that specify who will play.
-          agent_interface_format: A sequence containing one AgentInterfaceFormat per
+            battle_net_map: Whether to use the battle.net versions of the map(s).
+            players: A list of Agent and Bot instances that specify who will play.
+            agent_interface_format: A sequence containing one AgentInterfaceFormat per
               agent, matching the order of agents specified in the players list. Or
               a single AgentInterfaceFormat to be used for all agents. Note that
               InterfaceOptions may be supplied in place of AgentInterfaceFormat, in
@@ -139,60 +145,60 @@ class SC2Env(environment.Base):
               observation for the agent and passed actions must be instances of
               sc_pb.Action. This is intended for agents which use custom environment
               conversion code.
-          discount: Returned as part of the observation.
-          discount_zero_after_timeout: If True, the discount will be zero
+            discount: Returned as part of the observation.
+            discount_zero_after_timeout: If True, the discount will be zero
               after the `game_steps_per_episode` timeout.
-          visualize: Whether to pop up a window showing the camera and feature
+            visualize: Whether to pop up a window showing the camera and feature
               layers. This won't work without access to a window manager.
-          step_mul: How many game steps per agent step (action/observation). None
+            step_mul: How many game steps per agent step (action/observation). None
               means use the map default.
-          realtime: Whether to use realtime mode. In this mode the game simulation
+            realtime: Whether to use realtime mode. In this mode the game simulation
               automatically advances (at 22.4 gameloops per second) rather than
               being stepped manually. The number of game loops advanced with each
               call to step() won't necessarily match the step_mul specified. The
               environment will attempt to honour step_mul, returning observations
               with that spacing as closely as possible. Game loops will be skipped
               if they cannot be retrieved and processed quickly enough.
-          save_replay_episodes: Save a replay after this many episodes. Default of 0
+            save_replay_episodes: Save a replay after this many episodes. Default of 0
               means don't save replays.
-          replay_dir: Directory to save replays. Required with save_replay_episodes.
-          replay_prefix: An optional prefix to use when saving replays.
-          game_steps_per_episode: Game steps per episode, independent of the
+            replay_dir: Directory to save replays. Required with save_replay_episodes.
+            replay_prefix: An optional prefix to use when saving replays.
+            game_steps_per_episode: Game steps per episode, independent of the
               step_mul. 0 means no limit. None means use the map default.
-          score_index: -1 means use the win/loss reward, >=0 is the index into the
+            score_index: -1 means use the win/loss reward, >=0 is the index into the
               score_cumulative with 0 being the curriculum score. None means use
               the map default.
-          score_multiplier: How much to multiply the score by. Useful for negating.
-          random_seed: Random number seed to use when initializing the game. This
+            score_multiplier: How much to multiply the score by. Useful for negating.
+            random_seed: Random number seed to use when initializing the game. This
               lets you run repeatable games/tests.
-          disable_fog: Whether to disable fog of war.
-          ensure_available_actions: Whether to throw an exception when an
+            disable_fog: Whether to disable fog of war.
+            ensure_available_actions: Whether to throw an exception when an
               unavailable action is passed to step().
-          version: The version of SC2 to use, defaults to the latest.
+            version: The version of SC2 to use, defaults to the latest.
 
         Raises:
-          ValueError: if no map is specified.
-          ValueError: if wrong number of players are requested for a map.
-          ValueError: if the resolutions aren't specified correctly.
+            ValueError: if no map is specified.
+            ValueError: if wrong number of players are requested for a map.
+            ValueError: if the resolutions aren't specified correctly.
         """
         if not players:
-            raise ValueError("You must specify the list of players.")
+            raise ValueError('You must specify the list of players.')
 
         for p in players:
             if not isinstance(p, (Agent, Bot)):
                 raise ValueError(
-                    "Expected players to be of type Agent or Bot. Got: %s." % p)
+                    'Expected players to be of type Agent or Bot. Got: %s.' % p)
 
         num_players = len(players)
         self._num_agents = sum(1 for p in players if isinstance(p, Agent))
         self._players = players
 
         if not 1 <= num_players <= 2 or not self._num_agents:
-            raise ValueError("Only 1 or 2 players with at least one agent is "
-                             "supported at the moment.")
+            raise ValueError('Only 1 or 2 players with at least one agent is '
+                             'supported at the moment.')
 
         if not map_name:
-            raise ValueError("Missing a map name.")
+            raise ValueError('Missing a map name.')
 
         self._battle_net_map = battle_net_map
         self._maps = [maps.get(name) for name in to_list(map_name)]
@@ -205,14 +211,14 @@ class SC2Env(environment.Base):
 
         if max_players == 1:
             if self._num_agents != 1:
-                raise ValueError("Single player maps require exactly one Agent.")
+                raise ValueError('Single player maps require exactly one Agent.')
         elif not 2 <= num_players <= min_players:
             raise ValueError(
-                "Maps support 2 - %s players, but trying to join with %s" % (
+                'Maps support 2 - %s players, but trying to join with %s' % (
                     min_players, num_players))
 
         if save_replay_episodes and not replay_dir:
-            raise ValueError("Missing replay_dir")
+            raise ValueError('Missing replay_dir')
 
         self._realtime = realtime
         self._last_step_time = None
@@ -235,7 +241,7 @@ class SC2Env(environment.Base):
         self._requested_races = None
 
         if agent_interface_format is None:
-            raise ValueError("Please specify agent_interface_format.")
+            raise ValueError('Please specify agent_interface_format.')
 
         if isinstance(agent_interface_format,
                       (AgentInterfaceFormat, sc_pb.InterfaceOptions)):
@@ -243,8 +249,8 @@ class SC2Env(environment.Base):
 
         if len(agent_interface_format) != self._num_agents:
             raise ValueError(
-                "The number of entries in agent_interface_format should "
-                "correspond 1-1 with the number of agents.")
+                'The number of entries in agent_interface_format should '
+                'correspond 1-1 with the number of agents.')
 
         self._action_delay_fns = [
             aif.action_delay_fn if isinstance(aif, AgentInterfaceFormat) else None
@@ -282,7 +288,7 @@ class SC2Env(environment.Base):
         self._obs = [None] * self._num_agents
         self._agent_obs = [None] * self._num_agents
         self._state = environment.StepType.LAST  # Want to jump to `reset`.
-        logging.info("Environment is ready")
+        logging.info('Environment is ready')
 
     @staticmethod
     def _get_interface(interface_format, require_raw):
@@ -326,14 +332,14 @@ class SC2Env(environment.Base):
         # Reserve a whole bunch of ports for the weird multiplayer implementation.
         if self._num_agents > 1:
             self._ports = portspicker.pick_unused_ports(self._num_agents * 2)
-            logging.info("Ports used for multiplayer: %s", self._ports)
+            logging.info('Ports used for multiplayer: %s', self._ports)
         else:
             self._ports = []
 
         # Actually launch the game processes.
         self._sc2_procs = [
             self._run_config.start(extra_ports=self._ports,
-                                   want_rgb=interface.HasField("render"))
+                                   want_rgb=interface.HasField('render'))
             for interface in self._interface_options]
         self._controllers = [p.controller for p in self._sc2_procs]
 
@@ -343,8 +349,8 @@ class SC2Env(environment.Base):
             unavailable = [m.name for m in self._maps
                            if m.battle_net not in available_maps]
             if unavailable:
-                raise ValueError("Requested map(s) not in the battle.net cache: %s"
-                                 % ",".join(unavailable))
+                raise ValueError('Requested map(s) not in the battle.net cache: %s'
+                                 % ','.join(unavailable))
 
     def _create_join(self):
         """Create the game, and join it."""
@@ -418,7 +424,7 @@ class SC2Env(environment.Base):
             if g.options.render != interface.render:
                 logging.warning(
                     "Actual interface options don't match requested options:\n"
-                    "Requested:\n%s\n\nActual:\n%s", interface, g.options)
+                    'Requested:\n%s\n\nActual:\n%s', interface, g.options)
 
         self._features = [
             features.features_from_game_info(
@@ -455,15 +461,15 @@ class SC2Env(environment.Base):
         """In realtime we track the delay observation -> action executed.
 
         Returns:
-          A list per agent of action delays, where action delays are a list where
-          the index in the list corresponds to the delay in game loops, the value
-          at that index the count over the course of an episode.
+            A list per agent of action delays, where action delays are a list where
+            the index in the list corresponds to the delay in game loops, the value
+            at that index the count over the course of an episode.
 
         Raises:
-          ValueError: If called when not in realtime mode.
+            ValueError: If called when not in realtime mode.
         """
         if not self._realtime:
-            raise ValueError("This method is only supported in realtime mode")
+            raise ValueError('This method is only supported in realtime mode')
 
         return self._action_delays
 
@@ -487,8 +493,8 @@ class SC2Env(environment.Base):
 
         self._episode_count += 1
         races = [Race(r).name for _, r in sorted(self._requested_races.items())]
-        logging.info("Starting episode %s: [%s] on %s",
-                     self._episode_count, ", ".join(races), self._map_name)
+        logging.info('Starting episode %s: [%s] on %s',
+                     self._episode_count, ', '.join(races), self._map_name)
         self._metrics.increment_episode()
 
         self._last_score = [0] * self._num_agents
@@ -500,19 +506,19 @@ class SC2Env(environment.Base):
 
         return self._observe(target_game_loop=0)
 
-    @sw.decorate("step_env")
+    @sw.decorate('step_env')
     def step(self, actions, step_mul=None):
         """Apply actions, step the world forward, and return observations.
 
         Args:
-          actions: A list of actions meeting the action spec, one per agent, or a
+            actions: A list of actions meeting the action spec, one per agent, or a
               list per agent. Using a list allows multiple actions per frame, but
               will still check that they're valid, so disabling
               ensure_available_actions is encouraged.
-          step_mul: If specified, use this rather than the environment's default.
+            step_mul: If specified, use this rather than the environment's default.
 
         Returns:
-          A tuple of TimeStep namedtuples, one per agent.
+            A tuple of TimeStep namedtuples, one per agent.
         """
         if self._state == environment.StepType.LAST:
             return self.reset()
@@ -534,7 +540,7 @@ class SC2Env(environment.Base):
     def _step(self, step_mul=None):
         step_mul = step_mul or self._step_mul
         if step_mul <= 0:
-            raise ValueError("step_mul should be positive, got {}".format(step_mul))
+            raise ValueError('step_mul should be positive, got {}'.format(step_mul))
 
         target_game_loop = self._episode_steps + step_mul
         if not self._realtime:
@@ -575,7 +581,8 @@ class SC2Env(environment.Base):
         return actions_now
 
     def _send_delayed_actions(self, up_to_game_loop, current_game_loop):
-        """Send any delayed actions scheduled for up to the specified game loop."""
+        """Send any delayed actions scheduled for up to the specified game
+        loop."""
         assert not self._realtime
         while True:
             if not any(self._delayed_actions):  # No queued actions
@@ -603,7 +610,7 @@ class SC2Env(environment.Base):
     def _step_to(self, game_loop, current_game_loop):
         step_mul = game_loop - current_game_loop
         if step_mul < 0:
-            raise ValueError("We should never need to step backwards")
+            raise ValueError('We should never need to step backwards')
         if step_mul > 0:
             with self._metrics.measure_step_time(step_mul):
                 if not self._controllers[0].status_ended:  # May already have ended.
@@ -626,10 +633,10 @@ class SC2Env(environment.Base):
                 not any(o.player_result for o in self._obs)):
             raise ValueError(
                 ("The game didn't advance to the expected game loop. "
-                 "Expected: %s, got: %s") % (target_game_loop, game_loop))
+                 'Expected: %s, got: %s') % (target_game_loop, game_loop))
         elif game_loop > target_game_loop and target_game_loop > 0:
             logging.warning(
-                "Received observation %d step(s) late: %d rather than %d.",
+                'Received observation %d step(s) late: %d rather than %d.',
                 game_loop - target_game_loop, game_loop, target_game_loop)
 
         if self._realtime:
@@ -642,7 +649,7 @@ class SC2Env(environment.Base):
             if self._last_obs_game_loop is not None:
                 for i, obs in enumerate(self._obs):
                     for action in obs.actions:
-                        if action.HasField("game_loop"):
+                        if action.HasField('game_loop'):
                             delay = action.game_loop - self._last_obs_game_loop
                             if delay > 0:
                                 num_slots = len(self._action_delays[i])
@@ -688,7 +695,7 @@ class SC2Env(environment.Base):
             elif cmd == renderer_human.ActionCmd.RESTART:
                 self._state = environment.StepType.LAST
             elif cmd == renderer_human.ActionCmd.QUIT:
-                raise KeyboardInterrupt("Quit?")
+                raise KeyboardInterrupt('Quit?')
 
         game_loop = _get_game_loop(self._agent_obs[0])
         self._total_steps += game_loop - self._episode_steps
@@ -704,8 +711,8 @@ class SC2Env(environment.Base):
             if (self._save_replay_episodes > 0 and
                     self._episode_count % self._save_replay_episodes == 0):
                 self.save_replay(self._replay_dir, self._replay_prefix)
-            logging.info(("Episode %s finished after %s game steps. "
-                          "Outcome: %s, reward: %s, score: %s"),
+            logging.info(('Episode %s finished after %s game steps. '
+                          'Outcome: %s, reward: %s, score: %s'),
                          self._episode_count, self._episode_steps, outcome, reward,
                          [_get_score(o) for o in self._agent_obs])
 
@@ -731,33 +738,33 @@ class SC2Env(environment.Base):
             prefix = self._map_name
         replay_path = self._run_config.save_replay(
             self._controllers[0].save_replay(), replay_dir, prefix)
-        logging.info("Wrote replay to: %s", replay_path)
+        logging.info('Wrote replay to: %s', replay_path)
         return replay_path
 
     def close(self):
-        logging.info("Environment Close")
-        if hasattr(self, "_metrics") and self._metrics:
+        logging.info('Environment Close')
+        if hasattr(self, '_metrics') and self._metrics:
             self._metrics.close()
             self._metrics = None
-        if hasattr(self, "_renderer_human") and self._renderer_human:
+        if hasattr(self, '_renderer_human') and self._renderer_human:
             self._renderer_human.close()
             self._renderer_human = None
 
         # Don't use parallel since it might be broken by an exception.
-        if hasattr(self, "_controllers") and self._controllers:
+        if hasattr(self, '_controllers') and self._controllers:
             for c in self._controllers:
                 c.quit()
             self._controllers = None
-        if hasattr(self, "_sc2_procs") and self._sc2_procs:
+        if hasattr(self, '_sc2_procs') and self._sc2_procs:
             for p in self._sc2_procs:
                 p.close()
             self._sc2_procs = None
 
-        if hasattr(self, "_ports") and self._ports:
+        if hasattr(self, '_ports') and self._ports:
             portspicker.return_ports(self._ports)
             self._ports = None
 
-        if hasattr(self, "_parallel") and self._parallel is not None:
+        if hasattr(self, '_parallel') and self._parallel is not None:
             self._parallel.shutdown()
             self._parallel = None
 
@@ -777,10 +784,10 @@ def crop_and_deduplicate_names(names):
     TODO(b/121092563): Fix this in the SC2 binary.
 
     Args:
-      names: List of names.
+        names: List of names.
 
     Returns:
-      De-duplicated names cropped to 32 characters.
+        De-duplicated names cropped to 32 characters.
     """
     max_name_length = 32
 
@@ -795,13 +802,13 @@ def crop_and_deduplicate_names(names):
         if name_counts[n] == 1:
             deduplicated.append(n)
         else:
-            deduplicated.append("({}) {}".format(name_index[n], n))
+            deduplicated.append('({}) {}'.format(name_index[n], n))
             name_index[n] += 1
 
     # Crop again.
     recropped = [n[:max_name_length] for n in deduplicated]
     if len(set(recropped)) != len(recropped):
-        raise ValueError("Failed to de-duplicate names")
+        raise ValueError('Failed to de-duplicate names')
 
     return recropped
 
@@ -818,7 +825,7 @@ def _get_score(agent_obs, score_index=0):
         if score_index != 0:
             raise ValueError(
                 "Non-zero score index isn't supported for passthrough agents, "
-                "currently")
+                'currently')
         return agent_obs.observation.score.score
     else:
-        return agent_obs["score_cumulative"][score_index]
+        return agent_obs['score_cumulative'][score_index]

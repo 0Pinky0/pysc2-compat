@@ -27,55 +27,55 @@ from pysc2.lib import point_flag
 from pysc2.lib import stopwatch
 
 FLAGS = flags.FLAGS
-flags.DEFINE_bool("render", True, "Whether to render with pygame.")
-point_flag.DEFINE_point("feature_screen_size", "84",
-                        "Resolution for screen feature layers.")
-point_flag.DEFINE_point("feature_minimap_size", "64",
-                        "Resolution for minimap feature layers.")
-point_flag.DEFINE_point("rgb_screen_size", None,
-                        "Resolution for rendered screen.")
-point_flag.DEFINE_point("rgb_minimap_size", None,
-                        "Resolution for rendered minimap.")
-flags.DEFINE_enum("action_space", None, sc2_env.ActionSpace._member_names_,  # pylint: disable=protected-access
-                  "Which action space to use. Needed if you take both feature "
-                  "and rgb observations.")
-flags.DEFINE_bool("use_feature_units", False,
-                  "Whether to include feature units.")
-flags.DEFINE_bool("use_raw_units", False,
-                  "Whether to include raw units.")
-flags.DEFINE_bool("disable_fog", False, "Whether to disable Fog of War.")
+flags.DEFINE_bool('render', True, 'Whether to render with pygame.')
+point_flag.DEFINE_point('feature_screen_size', '84',
+                        'Resolution for screen feature layers.')
+point_flag.DEFINE_point('feature_minimap_size', '64',
+                        'Resolution for minimap feature layers.')
+point_flag.DEFINE_point('rgb_screen_size', None,
+                        'Resolution for rendered screen.')
+point_flag.DEFINE_point('rgb_minimap_size', None,
+                        'Resolution for rendered minimap.')
+flags.DEFINE_enum('action_space', None, sc2_env.ActionSpace._member_names_,  # pylint: disable=protected-access
+                  'Which action space to use. Needed if you take both feature '
+                  'and rgb observations.')
+flags.DEFINE_bool('use_feature_units', False,
+                  'Whether to include feature units.')
+flags.DEFINE_bool('use_raw_units', False,
+                  'Whether to include raw units.')
+flags.DEFINE_bool('disable_fog', False, 'Whether to disable Fog of War.')
 
-flags.DEFINE_integer("max_agent_steps", 0, "Total agent steps.")
-flags.DEFINE_integer("game_steps_per_episode", None, "Game steps per episode.")
-flags.DEFINE_integer("max_episodes", 0, "Total episodes.")
-flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
+flags.DEFINE_integer('max_agent_steps', 0, 'Total agent steps.')
+flags.DEFINE_integer('game_steps_per_episode', None, 'Game steps per episode.')
+flags.DEFINE_integer('max_episodes', 0, 'Total episodes.')
+flags.DEFINE_integer('step_mul', 8, 'Game steps per agent step.')
 
-flags.DEFINE_string("agent", "pysc2.agents.random_agent.RandomAgent",
-                    "Which agent to run, as a python path to an Agent class.")
-flags.DEFINE_string("agent_name", None,
-                    "Name of the agent in replays. Defaults to the class name.")
-flags.DEFINE_enum("agent_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_string('agent', 'pysc2.agents.random_agent.RandomAgent',
+                    'Which agent to run, as a python path to an Agent class.')
+flags.DEFINE_string('agent_name', None,
+                    'Name of the agent in replays. Defaults to the class name.')
+flags.DEFINE_enum('agent_race', 'random', sc2_env.Race._member_names_,  # pylint: disable=protected-access
                   "Agent 1's race.")
 
-flags.DEFINE_string("agent2", "Bot", "Second agent, either Bot or agent class.")
-flags.DEFINE_string("agent2_name", None,
-                    "Name of the agent in replays. Defaults to the class name.")
-flags.DEFINE_enum("agent2_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_string('agent2', 'Bot', 'Second agent, either Bot or agent class.')
+flags.DEFINE_string('agent2_name', None,
+                    'Name of the agent in replays. Defaults to the class name.')
+flags.DEFINE_enum('agent2_race', 'random', sc2_env.Race._member_names_,  # pylint: disable=protected-access
                   "Agent 2's race.")
-flags.DEFINE_enum("difficulty", "very_easy", sc2_env.Difficulty._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_enum('difficulty', 'very_easy', sc2_env.Difficulty._member_names_,  # pylint: disable=protected-access
                   "If agent2 is a built-in Bot, it's strength.")
-flags.DEFINE_enum("bot_build", "random", sc2_env.BotBuild._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_enum('bot_build', 'random', sc2_env.BotBuild._member_names_,  # pylint: disable=protected-access
                   "Bot's build strategy.")
 
-flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
-flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
-flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
+flags.DEFINE_bool('profile', False, 'Whether to turn on code profiling.')
+flags.DEFINE_bool('trace', False, 'Whether to trace the code execution.')
+flags.DEFINE_integer('parallel', 1, 'How many instances to run in parallel.')
 
-flags.DEFINE_bool("save_replay", True, "Whether to save a replay at the end.")
+flags.DEFINE_bool('save_replay', True, 'Whether to save a replay at the end.')
 
-flags.DEFINE_string("map", None, "Name of a map to use.")
-flags.DEFINE_bool("battle_net_map", False, "Use the battle.net map version.")
-flags.mark_flag_as_required("map")
+flags.DEFINE_string('map', None, 'Name of a map to use.')
+flags.DEFINE_bool('battle_net_map', False, 'Use the battle.net map version.')
+flags.mark_flag_as_required('map')
 
 
 def run_thread(agent_classes, players, map_name, visualize):
@@ -115,19 +115,19 @@ def main(unused_argv):
     agent_classes = []
     players = []
 
-    agent_module, agent_name = FLAGS.agent.rsplit(".", 1)
+    agent_module, agent_name = FLAGS.agent.rsplit('.', 1)
     agent_cls = getattr(importlib.import_module(agent_module), agent_name)
     agent_classes.append(agent_cls)
     players.append(sc2_env.Agent(sc2_env.Race[FLAGS.agent_race],
                                  FLAGS.agent_name or agent_name))
 
     if map_inst.players >= 2:
-        if FLAGS.agent2 == "Bot":
+        if FLAGS.agent2 == 'Bot':
             players.append(sc2_env.Bot(sc2_env.Race[FLAGS.agent2_race],
                                        sc2_env.Difficulty[FLAGS.difficulty],
                                        sc2_env.BotBuild[FLAGS.bot_build]))
         else:
-            agent_module, agent_name = FLAGS.agent2.rsplit(".", 1)
+            agent_module, agent_name = FLAGS.agent2.rsplit('.', 1)
             agent_cls = getattr(importlib.import_module(agent_module), agent_name)
             agent_classes.append(agent_cls)
             players.append(sc2_env.Agent(sc2_env.Race[FLAGS.agent2_race],
@@ -153,5 +153,5 @@ def entry_point():  # Needed so setup.py scripts work.
     app.run(main)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

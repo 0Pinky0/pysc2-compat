@@ -32,8 +32,8 @@ class RestartError(Exception):
 class RemoteSC2Env(sc2_env.SC2Env):
     """A Remote Starcraft II environment for playing vs other agents or humans.
 
-    Unlike SC2Env, this doesn't actually start any instances and only connects
-    to a remote instance.
+    Unlike SC2Env, this doesn't actually start any instances and only
+    connects to a remote instance.
 
     This assumes a 2 player game, and works best with play_vs_agent.py.
     """
@@ -42,11 +42,11 @@ class RemoteSC2Env(sc2_env.SC2Env):
                  *,
                  map_name=None,
                  save_map=True,
-                 host="127.0.0.1",
+                 host='127.0.0.1',
                  host_port=None,
                  lan_port=None,
                  race=None,
-                 name="<unknown>",
+                 name='<unknown>',
                  agent_interface_format=None,
                  discount=1.,
                  visualize=False,
@@ -71,43 +71,43 @@ class RemoteSC2Env(sc2_env.SC2Env):
         documentation for further detail.
 
         Args:
-          map_name: Name of a SC2 map. Run bin/map_list to get the full list of
-              known maps. Alternatively, pass a Map instance. Take a look at the
-              docs in maps/README.md for more information on available maps.
-          save_map: Whether to save map data before joining the game.
-          host: Host where the SC2 process we're connecting to is running.
-          host_port: The WebSocket port for the SC2 process we're connecting to.
-          lan_port: Either an explicit sequence of LAN ports corresponding to
-              [server game port, ...base port, client game port, ...base port],
-              or an int specifying base port - equivalent to specifying the
-              sequence [lan_port, lan_port+1, lan_port+2, lan_port+3].
-          race: Race for this agent.
-          name: The name of this agent, for saving in the replay.
-          agent_interface_format: AgentInterfaceFormat object describing the
-              format of communication between the agent and the environment, else
-              just InterfaceOptions to use passthrough.
-          discount: Returned as part of the observation.
-          visualize: Whether to pop up a window showing the camera and feature
-              layers. This won't work without access to a window manager.
-          step_mul: How many game steps per agent step (action/observation). None
-              means use the map default.
-          realtime: Whether to use realtime mode. In this mode the game simulation
-              automatically advances (at 22.4 gameloops per second) rather than
-              being stepped manually. The number of game loops advanced with each
-              call to step() won't necessarily match the step_mul specified. The
-              environment will attempt to honour step_mul, returning observations
-              with that spacing as closely as possible. Game loops will be skipped
-              if they cannot be retrieved and processed quickly enough.
-          replay_dir: Directory to save a replay.
-          replay_prefix: An optional prefix to use when saving replays.
+            map_name: Name of a SC2 map. Run bin/map_list to get the full list of
+                known maps. Alternatively, pass a Map instance. Take a look at the
+                docs in maps/README.md for more information on available maps.
+            save_map: Whether to save map data before joining the game.
+            host: Host where the SC2 process we're connecting to is running.
+            host_port: The WebSocket port for the SC2 process we're connecting to.
+            lan_port: Either an explicit sequence of LAN ports corresponding to
+                [server game port, ...base port, client game port, ...base port],
+                or an int specifying base port - equivalent to specifying the
+                sequence [lan_port, lan_port+1, lan_port+2, lan_port+3].
+            race: Race for this agent.
+            name: The name of this agent, for saving in the replay.
+            agent_interface_format: AgentInterfaceFormat object describing the
+                format of communication between the agent and the environment, else
+                just InterfaceOptions to use passthrough.
+            discount: Returned as part of the observation.
+            visualize: Whether to pop up a window showing the camera and feature
+                layers. This won't work without access to a window manager.
+            step_mul: How many game steps per agent step (action/observation). None
+                means use the map default.
+            realtime: Whether to use realtime mode. In this mode the game simulation
+                automatically advances (at 22.4 gameloops per second) rather than
+                being stepped manually. The number of game loops advanced with each
+                call to step() won't necessarily match the step_mul specified. The
+                environment will attempt to honour step_mul, returning observations
+                with that spacing as closely as possible. Game loops will be skipped
+                if they cannot be retrieved and processed quickly enough.
+            replay_dir: Directory to save a replay.
+            replay_prefix: An optional prefix to use when saving replays.
 
         Raises:
-          ValueError: if the race is invalid.
-          ValueError: if the resolutions aren't specified correctly.
-          ValueError: if lan_port is a sequence but its length != 4.
+            ValueError: if the race is invalid.
+            ValueError: if the resolutions aren't specified correctly.
+            ValueError: if lan_port is a sequence but its length != 4.
         """
         if agent_interface_format is None:
-            raise ValueError("Please specify agent_interface_format.")
+            raise ValueError('Please specify agent_interface_format.')
 
         if not race:
             race = sc2_env.Race.random
@@ -141,7 +141,7 @@ class RemoteSC2Env(sc2_env.SC2Env):
 
         if isinstance(lan_port, Sequence):
             if len(lan_port) != 4:
-                raise ValueError("lan_port sequence must be of length 4")
+                raise ValueError('lan_port sequence must be of length 4')
             ports = lan_port[:]
         else:
             ports = [lan_port + p for p in range(4)]  # 2 * num players *in the game*.
@@ -155,12 +155,12 @@ class RemoteSC2Env(sc2_env.SC2Env):
     def close(self):
         # Leave the game so that another may be created in the same SC2 process.
         if self._in_game:
-            logging.info("Leaving game.")
+            logging.info('Leaving game.')
             self._controllers[0].leave()
             self._in_game = False
-            logging.info("Left game.")
+            logging.info('Left game.')
         self._controllers[0].close()
-        if hasattr(self, "_parallel") and self._parallel is not None:
+        if hasattr(self, '_parallel') and self._parallel is not None:
             self._parallel.shutdown()
             self._parallel = None
 
@@ -174,9 +174,9 @@ class RemoteSC2Env(sc2_env.SC2Env):
                         save_map, interface, agent_interface_format):
         """Make sure this stays synced with bin/agent_remote.py."""
         # Connect!
-        logging.info("Connecting...")
+        logging.info('Connecting...')
         self._controllers = [remote_controller.RemoteController(host, host_port)]
-        logging.info("Connected")
+        logging.info('Connected')
 
         if map_inst and save_map:
             run_config = run_configs.get()
@@ -192,7 +192,7 @@ class RemoteSC2Env(sc2_env.SC2Env):
         join.client_ports.add(
             game_port=lan_ports.pop(0), base_port=lan_ports.pop(0))
 
-        logging.info("Joining game.")
+        logging.info('Joining game.')
         self._controllers[0].join_game(join)
 
         self._game_info = [self._controllers[0].game_info()]
@@ -205,7 +205,7 @@ class RemoteSC2Env(sc2_env.SC2Env):
             agent_interface_format=agent_interface_format)]
 
         self._in_game = True
-        logging.info("Game joined.")
+        logging.info('Game joined.')
 
     def _restart(self):
         # Can't restart since it's not clear how you'd coordinate that with the

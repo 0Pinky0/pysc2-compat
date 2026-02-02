@@ -50,8 +50,8 @@ SQUARE_DIMENSIONS = features.Dimensions(screen=84, minimap=64)
 
 class AvailableActionsTest(absltest.TestCase):
     always_expected = {
-        "no_op", "move_camera", "select_point", "select_rect",
-        "select_control_group"
+        'no_op', 'move_camera', 'select_point', 'select_rect',
+        'select_control_group'
     }
 
     def setUp(self):
@@ -74,75 +74,75 @@ class AvailableActionsTest(absltest.TestCase):
 
     def testSelectUnit(self):
         self.obs.ui_data.multi.units.add(unit_type=1)
-        self.assertAvail(["select_unit"])
+        self.assertAvail(['select_unit'])
 
     def testSelectIdleWorkder(self):
         self.obs.player_common.idle_worker_count = 1
-        self.assertAvail(["select_idle_worker"])
+        self.assertAvail(['select_idle_worker'])
 
     def testSelectArmy(self):
         self.obs.player_common.army_count = 3
-        self.assertAvail(["select_army"])
+        self.assertAvail(['select_army'])
 
     def testSelectWarpGates(self):
         self.obs.player_common.warp_gate_count = 1
-        self.assertAvail(["select_warp_gates"])
+        self.assertAvail(['select_warp_gates'])
 
     def testSelectLarva(self):
         self.obs.player_common.larva_count = 2
-        self.assertAvail(["select_larva"])
+        self.assertAvail(['select_larva'])
 
     def testQuick(self):
         self.obs.abilities.add(ability_id=32)
-        self.assertAvail(["Effect_Salvage_quick"])
+        self.assertAvail(['Effect_Salvage_quick'])
 
     def testScreen(self):
         self.obs.abilities.add(ability_id=326, requires_point=True)
-        self.assertAvail(["Build_SensorTower_screen"])
+        self.assertAvail(['Build_SensorTower_screen'])
 
     def testScreenMinimap(self):
         self.obs.abilities.add(ability_id=17, requires_point=True)
-        self.assertAvail(["Patrol_screen", "Patrol_minimap"])
+        self.assertAvail(['Patrol_screen', 'Patrol_minimap'])
 
     def testScreenAutocast(self):
         self.obs.abilities.add(ability_id=386, requires_point=True)
-        self.assertAvail(["Effect_Heal_screen", "Effect_Heal_autocast"])
+        self.assertAvail(['Effect_Heal_screen', 'Effect_Heal_autocast'])
 
     def testScreenQuick(self):
         a = self.obs.abilities.add(ability_id=421)
 
         self.hideSpecificActions(True)
         a.requires_point = False
-        self.assertAvail(["Build_TechLab_quick"])
+        self.assertAvail(['Build_TechLab_quick'])
         a.requires_point = True
-        self.assertAvail(["Build_TechLab_screen"])
+        self.assertAvail(['Build_TechLab_screen'])
 
         self.hideSpecificActions(False)
         a.requires_point = False
-        self.assertAvail(["Build_TechLab_Barracks_quick", "Build_TechLab_quick"])
+        self.assertAvail(['Build_TechLab_Barracks_quick', 'Build_TechLab_quick'])
         a.requires_point = True
-        self.assertAvail(["Build_TechLab_Barracks_screen", "Build_TechLab_screen"])
+        self.assertAvail(['Build_TechLab_Barracks_screen', 'Build_TechLab_screen'])
 
     def testGeneral(self):
         self.obs.abilities.add(ability_id=1374)
         self.hideSpecificActions(False)
-        self.assertAvail(["BurrowDown_quick", "BurrowDown_Baneling_quick"])
+        self.assertAvail(['BurrowDown_quick', 'BurrowDown_Baneling_quick'])
         self.hideSpecificActions(True)
-        self.assertAvail(["BurrowDown_quick"])
+        self.assertAvail(['BurrowDown_quick'])
 
     def testGeneralType(self):
         a = self.obs.abilities.add(ability_id=1376)
         self.hideSpecificActions(False)
-        self.assertAvail(["BurrowUp_quick", "BurrowUp_Baneling_quick",
-                          "BurrowUp_autocast", "BurrowUp_Baneling_autocast"])
+        self.assertAvail(['BurrowUp_quick', 'BurrowUp_Baneling_quick',
+                          'BurrowUp_autocast', 'BurrowUp_Baneling_autocast'])
         self.hideSpecificActions(True)
-        self.assertAvail(["BurrowUp_quick", "BurrowUp_autocast"])
+        self.assertAvail(['BurrowUp_quick', 'BurrowUp_autocast'])
 
         a.ability_id = 2110
         self.hideSpecificActions(False)
-        self.assertAvail(["BurrowUp_quick", "BurrowUp_Lurker_quick"])
+        self.assertAvail(['BurrowUp_quick', 'BurrowUp_Lurker_quick'])
         self.hideSpecificActions(True)
-        self.assertAvail(["BurrowUp_quick"])
+        self.assertAvail(['BurrowUp_quick'])
 
     def testMany(self):
         add = [
@@ -160,56 +160,56 @@ class AvailableActionsTest(absltest.TestCase):
             self.obs.abilities.add(ability_id=a, requires_point=r)
         self.hideSpecificActions(False)
         self.assertAvail([
-            "Attack_Attack_minimap",
-            "Attack_Attack_screen",
-            "Attack_minimap",
-            "Attack_screen",
-            "Build_CommandCenter_screen",
-            "Build_Refinery_screen",
-            "Build_SupplyDepot_screen",
-            "Effect_Repair_screen",
-            "Effect_Repair_autocast",
-            "Effect_Repair_SCV_autocast",
-            "Effect_Repair_SCV_screen",
-            "Harvest_Gather_screen",
-            "Harvest_Gather_SCV_screen",
-            "Move_minimap",
-            "Move_screen",
-            "Move_Move_minimap",
-            "Move_Move_screen",
-            "Patrol_minimap",
-            "Patrol_screen",
-            "Patrol_Patrol_minimap",
-            "Patrol_Patrol_screen",
-            "Stop_quick",
-            "Stop_Stop_quick"
+            'Attack_Attack_minimap',
+            'Attack_Attack_screen',
+            'Attack_minimap',
+            'Attack_screen',
+            'Build_CommandCenter_screen',
+            'Build_Refinery_screen',
+            'Build_SupplyDepot_screen',
+            'Effect_Repair_screen',
+            'Effect_Repair_autocast',
+            'Effect_Repair_SCV_autocast',
+            'Effect_Repair_SCV_screen',
+            'Harvest_Gather_screen',
+            'Harvest_Gather_SCV_screen',
+            'Move_minimap',
+            'Move_screen',
+            'Move_Move_minimap',
+            'Move_Move_screen',
+            'Patrol_minimap',
+            'Patrol_screen',
+            'Patrol_Patrol_minimap',
+            'Patrol_Patrol_screen',
+            'Stop_quick',
+            'Stop_Stop_quick'
         ])
         self.hideSpecificActions(True)
         self.assertAvail([
-            "Attack_minimap",
-            "Attack_screen",
-            "Build_CommandCenter_screen",
-            "Build_Refinery_screen",
-            "Build_SupplyDepot_screen",
-            "Effect_Repair_screen",
-            "Effect_Repair_autocast",
-            "Harvest_Gather_screen",
-            "Move_minimap",
-            "Move_screen",
-            "Patrol_minimap",
-            "Patrol_screen",
-            "Stop_quick",
+            'Attack_minimap',
+            'Attack_screen',
+            'Build_CommandCenter_screen',
+            'Build_Refinery_screen',
+            'Build_SupplyDepot_screen',
+            'Effect_Repair_screen',
+            'Effect_Repair_autocast',
+            'Harvest_Gather_screen',
+            'Move_minimap',
+            'Move_screen',
+            'Patrol_minimap',
+            'Patrol_screen',
+            'Stop_quick',
         ])
 
 
 class ToPointTest(absltest.TestCase):
 
     def testIntAsString(self):
-        value = features._to_point("32")
+        value = features._to_point('32')
         self.assertEqual(value, point.Point(32, 32))
 
     def testIntStringTwoTuple(self):
-        value = features._to_point(("32", 64))
+        value = features._to_point(('32', 64))
         self.assertEqual(value, point.Point(32, 64))
 
     def testNoneInputReturnsNoneOutput(self):
@@ -346,7 +346,7 @@ class TestParseAgentInterfaceFormat(parameterized.TestCase):
             features.parse_agent_interface_format(
                 feature_screen=64,
                 feature_minimap=64,
-                action_space="UNKNOWN_ACTION_SPACE")
+                action_space='UNKNOWN_ACTION_SPACE')
 
     @parameterized.parameters(actions.ActionSpace.__members__.keys())
     def test_valid_action_space_is_parsed(self, action_space):
@@ -388,7 +388,7 @@ class FeaturesTest(absltest.TestCase):
     def testAllVersionsOfAnAbilityHaveTheSameGeneral(self):
         for ability_id, funcs in actions.ABILITY_IDS.items():
             self.assertLen({f.general_id for f in funcs}, 1,
-                           "Multiple generals for %s" % ability_id)
+                           'Multiple generals for %s' % ability_id)
 
     def testValidFunctionsAreConsistent(self):
         feats = features.Features(features.AgentInterfaceFormat(
@@ -425,7 +425,8 @@ class FeaturesTest(absltest.TestCase):
         self.assertEqual(func_call.function, 0)  # No-op
 
     def testSpecificActionsAreReversible(self):
-        """Test that the `transform_action` and `reverse_action` are inverses."""
+        """Test that the `transform_action` and `reverse_action` are
+        inverses."""
         feats = features.Features(features.AgentInterfaceFormat(
             feature_dimensions=RECTANGULAR_DIMENSIONS,
             hide_specific_actions=False))
@@ -470,24 +471,24 @@ class FeaturesTest(absltest.TestCase):
         ntag = numpy.array(tag, dtype=numpy.int64)
 
         def transform(fn, *args):
-            func_call = actions.RAW_FUNCTIONS[fn]("now", *args)
+            func_call = actions.RAW_FUNCTIONS[fn]('now', *args)
             proto = feats.transform_action(None, func_call, skip_available=True)
             return proto.action_raw.unit_command
 
-        self.assertEqual(transform("Attack_pt", tag, [15, 20]).unit_tags, [tag])
-        self.assertEqual(transform("Attack_pt", ntag, [15, 20]).unit_tags, [tag])
-        self.assertEqual(transform("Attack_pt", [tag], [15, 20]).unit_tags, [tag])
-        self.assertEqual(transform("Attack_pt", [ntag], [15, 20]).unit_tags, [tag])
-        self.assertEqual(transform("Attack_pt", tags, [15, 20]).unit_tags, tags)
-        self.assertEqual(transform("Attack_pt", ntags, [15, 20]).unit_tags, tags)
+        self.assertEqual(transform('Attack_pt', tag, [15, 20]).unit_tags, [tag])
+        self.assertEqual(transform('Attack_pt', ntag, [15, 20]).unit_tags, [tag])
+        self.assertEqual(transform('Attack_pt', [tag], [15, 20]).unit_tags, [tag])
+        self.assertEqual(transform('Attack_pt', [ntag], [15, 20]).unit_tags, [tag])
+        self.assertEqual(transform('Attack_pt', tags, [15, 20]).unit_tags, tags)
+        self.assertEqual(transform('Attack_pt', ntags, [15, 20]).unit_tags, tags)
         # Weird, but needed for backwards compatibility
-        self.assertEqual(transform("Attack_pt", [tags], [15, 20]).unit_tags, tags)
-        self.assertEqual(transform("Attack_pt", [ntags], [15, 20]).unit_tags, tags)
+        self.assertEqual(transform('Attack_pt', [tags], [15, 20]).unit_tags, tags)
+        self.assertEqual(transform('Attack_pt', [ntags], [15, 20]).unit_tags, tags)
 
-        self.assertEqual(transform("Attack_unit", tag, tag).target_unit_tag, tag)
-        self.assertEqual(transform("Attack_unit", tag, ntag).target_unit_tag, tag)
-        self.assertEqual(transform("Attack_unit", tag, [tag]).target_unit_tag, tag)
-        self.assertEqual(transform("Attack_unit", tag, [ntag]).target_unit_tag, tag)
+        self.assertEqual(transform('Attack_unit', tag, tag).target_unit_tag, tag)
+        self.assertEqual(transform('Attack_unit', tag, ntag).target_unit_tag, tag)
+        self.assertEqual(transform('Attack_unit', tag, [tag]).target_unit_tag, tag)
+        self.assertEqual(transform('Attack_unit', tag, [ntag]).target_unit_tag, tag)
 
     def testCanPickleSpecs(self):
         feats = features.Features(features.AgentInterfaceFormat(
@@ -500,7 +501,7 @@ class FeaturesTest(absltest.TestCase):
                          pickle.loads(pickle.dumps(observation_spec)))
 
     def testCanPickleFunctionCall(self):
-        func = actions.FUNCTIONS.select_point("select", [1, 2])
+        func = actions.FUNCTIONS.select_point('select', [1, 2])
         self.assertEqual(func, pickle.loads(pickle.dumps(func)))
 
     def testCanDeepcopyNumpyFunctionCall(self):
@@ -575,13 +576,13 @@ class FeaturesTest(absltest.TestCase):
             rgb_dimensions=features.Dimensions(screen=(128, 132), minimap=(74, 77)),
             action_space=actions.ActionSpace.FEATURES))
         obs_spec = feats.observation_spec()
-        self.assertEqual(obs_spec["feature_screen"],  # pylint: disable=g-generic-assert
+        self.assertEqual(obs_spec['feature_screen'],  # pylint: disable=g-generic-assert
                          (len(features.SCREEN_FEATURES), 80, 84))
-        self.assertEqual(obs_spec["feature_minimap"],  # pylint: disable=g-generic-assert
+        self.assertEqual(obs_spec['feature_minimap'],  # pylint: disable=g-generic-assert
                          (len(features.MINIMAP_FEATURES), 67, 64))
-        self.assertEqual(obs_spec["rgb_screen"], (132, 128, 3))
-        self.assertEqual(obs_spec["rgb_minimap"], (77, 74, 3))
+        self.assertEqual(obs_spec['rgb_screen'], (132, 128, 3))
+        self.assertEqual(obs_spec['rgb_minimap'], (77, 74, 3))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

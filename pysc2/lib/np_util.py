@@ -24,10 +24,10 @@ def summarize_array_diffs(lhs, rhs):
         index = tuple(np.array([e]) for e in row.tolist())
         lhs_element = lhs[index]
         rhs_element = rhs[index]
-        result.append("{}: {} -> {}".format(
-            "".join("[{}]".format(i) for i in row), lhs_element[0], rhs_element[0]))
+        result.append('{}: {} -> {}'.format(
+            ''.join('[{}]'.format(i) for i in row), lhs_element[0], rhs_element[0]))
 
     if indices.size:
-        return "{} element(s) changed - ".format(len(indices)) + "; ".join(result)
+        return '{} element(s) changed - '.format(len(indices)) + '; '.join(result)
     else:
-        return ""
+        return ''

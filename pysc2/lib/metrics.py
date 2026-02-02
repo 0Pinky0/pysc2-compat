@@ -25,7 +25,8 @@ class _EventTimer(object):
 
 
 class Metrics(object):
-    """Interface for tracking the number and/or latency of episodes and steps."""
+    """Interface for tracking the number and/or latency of episodes and
+    steps."""
 
     def __init__(self, map_name):
         pass
@@ -37,12 +38,14 @@ class Metrics(object):
         pass
 
     def measure_step_time(self, num_steps=1):
-        """Return a context manager to measure the time to perform N game steps."""
+        """Return a context manager to measure the time to perform N game
+        steps."""
         del num_steps
         return _EventTimer()
 
     def measure_observation_time(self):
-        """Return a context manager to measure the time to get an observation."""
+        """Return a context manager to measure the time to get an
+        observation."""
         return _EventTimer()
 
     def close(self):

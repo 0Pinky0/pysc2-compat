@@ -55,8 +55,8 @@ class RunParallelTest(absltest.TestCase):
         pool = run_parallel.RunParallel()
         out = pool.run([int])
         self.assertListEqual(out, [0])
-        out = pool.run([lambda: 1, lambda: 2, lambda: "asdf", lambda: {1: 2}])
-        self.assertListEqual(out, [1, 2, "asdf", {1: 2}])
+        out = pool.run([lambda: 1, lambda: 2, lambda: 'asdf', lambda: {1: 2}])
+        self.assertListEqual(out, [1, 2, 'asdf', {1: 2}])
         pool.shutdown()
 
     def test_run_in_parallel(self):
@@ -93,5 +93,5 @@ class RunParallelTest(absltest.TestCase):
         pool.shutdown()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

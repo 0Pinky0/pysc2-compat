@@ -39,7 +39,7 @@ class TestProtocolError(utils.TestCase):
     def test_replay_a_replay(self):
         run_config = run_configs.get()
         with run_config.start(want_rgb=False) as controller:
-            map_inst = maps.get("Flat64")
+            map_inst = maps.get('Flat64')
             map_data = map_inst.data(run_config)
             interface = sc_pb.InterfaceOptions(raw=True)
 
@@ -74,5 +74,5 @@ class TestProtocolError(utils.TestCase):
                 controller.save_replay()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

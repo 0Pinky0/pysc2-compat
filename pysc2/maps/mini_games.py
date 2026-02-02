@@ -11,14 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define the mini game map configs. These are maps made by Deepmind."""
+"""Define the mini game map configs.
+
+These are maps made by Deepmind.
+"""
 
 from pysc2.maps import lib
 
 
 class MiniGame(lib.Map):
-    directory = "mini_games"
-    download = "https://github.com/deepmind/pysc2#get-the-maps"
+    directory = 'mini_games'
+    download = 'https://github.com/deepmind/pysc2#get-the-maps'
     players = 1
     score_index = 0
     game_steps_per_episode = 0
@@ -26,13 +29,13 @@ class MiniGame(lib.Map):
 
 
 mini_games = [
-    "BuildMarines",  # 900s
-    "CollectMineralsAndGas",  # 420s
-    "CollectMineralShards",  # 120s
-    "DefeatRoaches",  # 120s
-    "DefeatZerglingsAndBanelings",  # 120s
-    "FindAndDefeatZerglings",  # 180s
-    "MoveToBeacon",  # 120s
+    'BuildMarines',  # 900s
+    'CollectMineralsAndGas',  # 420s
+    'CollectMineralShards',  # 120s
+    'DefeatRoaches',  # 120s
+    'DefeatZerglingsAndBanelings',  # 120s
+    'FindAndDefeatZerglings',  # 180s
+    'MoveToBeacon',  # 120s
 ]
 
 for name in mini_games:

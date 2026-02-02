@@ -24,7 +24,7 @@ from pysc2.lib import replay
 def main(argv):
     if len(argv) <= 1:
         raise app.UsageError(
-            "Please give one or more replay files/directories to scan as argv.")
+            'Please give one or more replay files/directories to scan as argv.')
 
     run_config = run_configs.get()
 
@@ -34,14 +34,14 @@ def main(argv):
 
     def replay_version(replay_path):
         """Query a replay for information."""
-        if replay_path.lower().endswith("sc2replay"):
+        if replay_path.lower().endswith('sc2replay'):
             data = run_config.replay_data(replay_path)
             try:
                 version = replay.get_replay_version(data)
             except (ValueError, KeyError):
                 pass  # Either corrupt or just old.
             except Exception as e:  # pylint: disable=broad-except
-                print("Invalid replay:", replay_path, e)
+                print('Invalid replay:', replay_path, e)
             else:
                 versions.add(version)
 
@@ -60,5 +60,5 @@ def main(argv):
         print(version)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

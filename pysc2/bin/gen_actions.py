@@ -25,9 +25,9 @@ from pysc2 import maps
 from pysc2 import run_configs
 from pysc2.lib import static_data
 
-flags.DEFINE_enum("command", None, ["csv", "python"], "What to generate.")
-flags.DEFINE_string("map", "Acropolis", "Which map to use.")
-flags.mark_flag_as_required("command")
+flags.DEFINE_enum('command', None, ['csv', 'python'], 'What to generate.')
+flags.DEFINE_string('map', 'Acropolis', 'Which map to use.')
+flags.mark_flag_as_required('command')
 FLAGS = flags.FLAGS
 
 
@@ -60,21 +60,21 @@ def sort_key(data, ability):
     name = generate_name(ability)
     if ability.remaps_to_ability_id:
         general = data.abilities[ability.remaps_to_ability_id]
-        name = "%s %s" % (generate_name(general), name)
+        name = '%s %s' % (generate_name(general), name)
     return name
 
 
 def generate_csv(data):
     """Generate a CSV of the abilities for easy commenting."""
-    print(",".join([
-        "ability_id",
-        "link_name",
-        "link_index",
-        "button_name",
-        "hotkey",
-        "friendly_name",
-        "remap_to",
-        "mismatch",
+    print(','.join([
+        'ability_id',
+        'link_name',
+        'link_index',
+        'button_name',
+        'hotkey',
+        'friendly_name',
+        'remap_to',
+        'mismatch',
     ]))
     for ability in sorted(data.abilities.values(),
                           key=lambda a: sort_key(data, a)):
@@ -83,31 +83,31 @@ def generate_csv(data):
                                        ab_id not in used_abilities):
             continue
 
-        general = ""
+        general = ''
         if ab_id in data.general_abilities:
-            general = "general"
+            general = 'general'
         elif ability.remaps_to_ability_id:
             general = ability.remaps_to_ability_id
 
-        mismatch = ""
+        mismatch = ''
         if ability.remaps_to_ability_id:
             def check_mismatch(ability, parent, attr):
                 if getattr(ability, attr) != getattr(parent, attr):
-                    return "%s: %s" % (attr, getattr(ability, attr))
+                    return '%s: %s' % (attr, getattr(ability, attr))
 
             parent = data.abilities[ability.remaps_to_ability_id]
-            mismatch = "; ".join(filter(None, [
-                check_mismatch(ability, parent, "available"),
-                check_mismatch(ability, parent, "target"),
-                check_mismatch(ability, parent, "allow_minimap"),
-                check_mismatch(ability, parent, "allow_autocast"),
-                check_mismatch(ability, parent, "is_building"),
-                check_mismatch(ability, parent, "footprint_radius"),
-                check_mismatch(ability, parent, "is_instant_placement"),
-                check_mismatch(ability, parent, "cast_range"),
+            mismatch = '; '.join(filter(None, [
+                check_mismatch(ability, parent, 'available'),
+                check_mismatch(ability, parent, 'target'),
+                check_mismatch(ability, parent, 'allow_minimap'),
+                check_mismatch(ability, parent, 'allow_autocast'),
+                check_mismatch(ability, parent, 'is_building'),
+                check_mismatch(ability, parent, 'footprint_radius'),
+                check_mismatch(ability, parent, 'is_instant_placement'),
+                check_mismatch(ability, parent, 'cast_range'),
             ]))
 
-        print(",".join(map(str, [
+        print(','.join(map(str, [
             ability.ability_id,
             ability.link_name,
             ability.link_index,
@@ -126,7 +126,7 @@ def generate_py_abilities(data):
         args = [func_id, '"%s"' % name, func, ab_id]
         if general_id:
             args.append(general_id)
-        print("    Function.ability(%s)," % ", ".join(str(v) for v in args))
+        print('    Function.ability(%s),' % ', '.join(str(v) for v in args))
 
     func_ids = itertools.count(12)  # Leave room for the ui funcs.
     for ability in sorted(data.abilities.values(),
@@ -136,30 +136,30 @@ def generate_py_abilities(data):
                                        ab_id not in used_abilities):
             continue
 
-        name = generate_name(ability).replace(" ", "_")
+        name = generate_name(ability).replace(' ', '_')
 
-        if ability.target in (sc_data.AbilityData.Target.Value("None"),
+        if ability.target in (sc_data.AbilityData.Target.Value('None'),
                               sc_data.AbilityData.PointOrNone):
-            print_action(next(func_ids), name + "_quick", "cmd_quick", ab_id,
+            print_action(next(func_ids), name + '_quick', 'cmd_quick', ab_id,
                          ability.remaps_to_ability_id)
-        if ability.target != sc_data.AbilityData.Target.Value("None"):
-            print_action(next(func_ids), name + "_screen", "cmd_screen", ab_id,
+        if ability.target != sc_data.AbilityData.Target.Value('None'):
+            print_action(next(func_ids), name + '_screen', 'cmd_screen', ab_id,
                          ability.remaps_to_ability_id)
             if ability.allow_minimap:
-                print_action(next(func_ids), name + "_minimap", "cmd_minimap", ab_id,
+                print_action(next(func_ids), name + '_minimap', 'cmd_minimap', ab_id,
                              ability.remaps_to_ability_id)
         if ability.allow_autocast:
-            print_action(next(func_ids), name + "_autocast", "autocast", ab_id,
+            print_action(next(func_ids), name + '_autocast', 'autocast', ab_id,
                          ability.remaps_to_ability_id)
 
 
 def main(unused_argv):
     data = get_data()
-    print("-" * 60)
+    print('-' * 60)
 
-    if FLAGS.command == "csv":
+    if FLAGS.command == 'csv':
         generate_csv(data)
-    elif FLAGS.command == "python":
+    elif FLAGS.command == 'python':
         generate_py_abilities(data)
 
 
@@ -172,5 +172,5 @@ unload_unit = {410, 415, 397, 1440, 2373, 1409, 914, 3670}
 
 skip_abilities = cancel_slot | unload_unit | frivolous
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

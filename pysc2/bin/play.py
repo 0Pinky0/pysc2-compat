@@ -31,53 +31,53 @@ from pysc2.lib import replay
 from pysc2.lib import stopwatch
 
 FLAGS = flags.FLAGS
-flags.DEFINE_bool("render", True, "Whether to render with pygame.")
-flags.DEFINE_bool("realtime", False, "Whether to run in realtime mode.")
-flags.DEFINE_bool("full_screen", False, "Whether to run full screen.")
+flags.DEFINE_bool('render', True, 'Whether to render with pygame.')
+flags.DEFINE_bool('realtime', False, 'Whether to run in realtime mode.')
+flags.DEFINE_bool('full_screen', False, 'Whether to run full screen.')
 
-flags.DEFINE_float("fps", 22.4, "Frames per second to run the game.")
-flags.DEFINE_integer("step_mul", 1, "Game steps per observation.")
-flags.DEFINE_bool("render_sync", False, "Turn on sync rendering.")
-point_flag.DEFINE_point("feature_screen_size", "84",
-                        "Resolution for screen feature layers.")
-point_flag.DEFINE_point("feature_minimap_size", "64",
-                        "Resolution for minimap feature layers.")
-flags.DEFINE_integer("feature_camera_width", 24,
-                     "Width of the feature layer camera.")
-point_flag.DEFINE_point("rgb_screen_size", "256,192",
-                        "Resolution for rendered screen.")
-point_flag.DEFINE_point("rgb_minimap_size", "128",
-                        "Resolution for rendered minimap.")
-point_flag.DEFINE_point("window_size", "640,480",
-                        "Screen size if not full screen.")
-flags.DEFINE_string("video", None, "Path to render a video of observations.")
+flags.DEFINE_float('fps', 22.4, 'Frames per second to run the game.')
+flags.DEFINE_integer('step_mul', 1, 'Game steps per observation.')
+flags.DEFINE_bool('render_sync', False, 'Turn on sync rendering.')
+point_flag.DEFINE_point('feature_screen_size', '84',
+                        'Resolution for screen feature layers.')
+point_flag.DEFINE_point('feature_minimap_size', '64',
+                        'Resolution for minimap feature layers.')
+flags.DEFINE_integer('feature_camera_width', 24,
+                     'Width of the feature layer camera.')
+point_flag.DEFINE_point('rgb_screen_size', '256,192',
+                        'Resolution for rendered screen.')
+point_flag.DEFINE_point('rgb_minimap_size', '128',
+                        'Resolution for rendered minimap.')
+point_flag.DEFINE_point('window_size', '640,480',
+                        'Screen size if not full screen.')
+flags.DEFINE_string('video', None, 'Path to render a video of observations.')
 
-flags.DEFINE_integer("max_game_steps", 0, "Total game steps to run.")
-flags.DEFINE_integer("max_episode_steps", 0, "Total game steps per episode.")
+flags.DEFINE_integer('max_game_steps', 0, 'Total game steps to run.')
+flags.DEFINE_integer('max_episode_steps', 0, 'Total game steps per episode.')
 
-flags.DEFINE_string("user_name", getpass.getuser(),
-                    "Name of the human player for replays.")
-flags.DEFINE_enum("user_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_string('user_name', getpass.getuser(),
+                    'Name of the human player for replays.')
+flags.DEFINE_enum('user_race', 'random', sc2_env.Race._member_names_,  # pylint: disable=protected-access
                   "User's race.")
-flags.DEFINE_enum("bot_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
-                  "AI race.")
-flags.DEFINE_enum("difficulty", "very_easy", sc2_env.Difficulty._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_enum('bot_race', 'random', sc2_env.Race._member_names_,  # pylint: disable=protected-access
+                  'AI race.')
+flags.DEFINE_enum('difficulty', 'very_easy', sc2_env.Difficulty._member_names_,  # pylint: disable=protected-access
                   "Bot's strength.")
-flags.DEFINE_enum("bot_build", "random", sc2_env.BotBuild._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_enum('bot_build', 'random', sc2_env.BotBuild._member_names_,  # pylint: disable=protected-access
                   "Bot's build strategy.")
-flags.DEFINE_bool("disable_fog", False, "Disable fog of war.")
-flags.DEFINE_integer("observed_player", 1, "Which player to observe.")
+flags.DEFINE_bool('disable_fog', False, 'Disable fog of war.')
+flags.DEFINE_integer('observed_player', 1, 'Which player to observe.')
 
-flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
-flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
+flags.DEFINE_bool('profile', False, 'Whether to turn on code profiling.')
+flags.DEFINE_bool('trace', False, 'Whether to trace the code execution.')
 
-flags.DEFINE_bool("save_replay", True, "Whether to save a replay at the end.")
+flags.DEFINE_bool('save_replay', True, 'Whether to save a replay at the end.')
 
-flags.DEFINE_string("map", None, "Name of a map to use to play.")
-flags.DEFINE_bool("battle_net_map", False, "Use the battle.net map version.")
+flags.DEFINE_string('map', None, 'Name of a map to use to play.')
+flags.DEFINE_bool('battle_net_map', False, 'Use the battle.net map version.')
 
-flags.DEFINE_string("map_path", None, "Override the map for this replay.")
-flags.DEFINE_string("replay", None, "Name of a replay to show.")
+flags.DEFINE_string('map_path', None, 'Override the map for this replay.')
+flags.DEFINE_string('replay', None, 'Name of a replay to show.')
 
 
 def main(unused_argv):
@@ -88,23 +88,23 @@ def main(unused_argv):
         stopwatch.sw.enable()
 
     if (FLAGS.map and FLAGS.replay) or (not FLAGS.map and not FLAGS.replay):
-        sys.exit("Must supply either a map or replay.")
+        sys.exit('Must supply either a map or replay.')
 
-    if FLAGS.replay and not FLAGS.replay.lower().endswith("sc2replay"):
-        sys.exit("Replay must end in .SC2Replay.")
+    if FLAGS.replay and not FLAGS.replay.lower().endswith('sc2replay'):
+        sys.exit('Replay must end in .SC2Replay.')
 
     if FLAGS.realtime and FLAGS.replay:
         # TODO(tewalds): Support realtime in replays once the game supports it.
         sys.exit("realtime isn't possible for replays yet.")
 
     if FLAGS.render and (FLAGS.realtime or FLAGS.full_screen):
-        sys.exit("disable pygame rendering if you want realtime or full_screen.")
+        sys.exit('disable pygame rendering if you want realtime or full_screen.')
 
-    if platform.system() == "Linux" and (FLAGS.realtime or FLAGS.full_screen):
-        sys.exit("realtime and full_screen only make sense on Windows/MacOS.")
+    if platform.system() == 'Linux' and (FLAGS.realtime or FLAGS.full_screen):
+        sys.exit('realtime and full_screen only make sense on Windows/MacOS.')
 
     if not FLAGS.render and FLAGS.render_sync:
-        sys.exit("render_sync only makes sense with pygame rendering on.")
+        sys.exit('render_sync only makes sense with pygame rendering on.')
 
     run_config = run_configs.get()
 
@@ -171,15 +171,15 @@ def main(unused_argv):
     with run_config.start(
             full_screen=FLAGS.full_screen,
             window_size=FLAGS.window_size,
-            want_rgb=interface.HasField("render")) as controller:
+            want_rgb=interface.HasField('render')) as controller:
         if FLAGS.map:
             controller.create_game(create)
             controller.join_game(join)
         else:
             info = controller.replay_info(replay_data)
-            print(" Replay info ".center(60, "-"))
+            print(' Replay info '.center(60, '-'))
             print(info)
-            print("-" * 60)
+            print('-' * 60)
             map_path = FLAGS.map_path or info.local_map_path
             if map_path:
                 start_replay.map_data = run_config.map_data(map_path,
@@ -207,15 +207,15 @@ def main(unused_argv):
                     time.sleep(max(0, frame_start_time + 1 / FLAGS.fps - time.time()))
             except KeyboardInterrupt:
                 pass
-            print("Score: ", obs.observation.score.score)
-            print("Result: ", obs.player_result)
+            print('Score: ', obs.observation.score.score)
+            print('Result: ', obs.player_result)
             if FLAGS.map and FLAGS.save_replay:
                 replay_save_loc = run_config.save_replay(
-                    controller.save_replay(), "local", FLAGS.map)
-                print("Replay saved to:", replay_save_loc)
+                    controller.save_replay(), 'local', FLAGS.map)
+                print('Replay saved to:', replay_save_loc)
                 # Save scores so we know how the human player did.
-                with open(replay_save_loc.replace("SC2Replay", "txt"), "w") as f:
-                    f.write("{}\n".format(obs.observation.score.score))
+                with open(replay_save_loc.replace('SC2Replay', 'txt'), 'w') as f:
+                    f.write('{}\n'.format(obs.observation.score.score))
 
     if FLAGS.profile:
         print(stopwatch.sw)
@@ -225,5 +225,5 @@ def entry_point():  # Needed so setup.py scripts work.
     app.run(main)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

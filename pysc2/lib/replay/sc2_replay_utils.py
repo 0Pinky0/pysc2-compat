@@ -21,25 +21,25 @@ from pysc2.lib.replay import sc2_replay
 
 _EVENT_TYPES_TO_FILTER_OUT = frozenset([
     # Not related to actions.
-    "SetSyncLoadingTime",
-    "SetSyncPlayingTime",
-    "TriggerSoundLengthSync",
-    "UserFinishedLoadingSync",
-    "UserOptions",
+    'SetSyncLoadingTime',
+    'SetSyncPlayingTime',
+    'TriggerSoundLengthSync',
+    'UserFinishedLoadingSync',
+    'UserOptions',
 
     # Always accompanied by a CommandManagerState, which we track.
-    "CmdUpdateTargetPoint",
+    'CmdUpdateTargetPoint',
 
     # Of interest for the visual interface, but skipped for now as we are
     # targeting raw.
-    "CameraSave",
-    "ControlGroupUpdate",
-    "SelectionDelta",
+    'CameraSave',
+    'ControlGroupUpdate',
+    'SelectionDelta',
 ])
 
 
 def _readable_event_type(full_event_type):
-    return full_event_type[len("NNet.Game.S"):-5]
+    return full_event_type[len('NNet.Game.S'):-5]
 
 
 @dataclasses.dataclass
@@ -52,7 +52,7 @@ def raw_action_skips(replay: sc2_replay.SC2Replay) -> Mapping[int, List[int]]:
     """Returns player id -> list, the game loops on which each player acted.
 
     Args:
-      replay: An sc2_replay.SC2Replay instance.
+        replay: An sc2_replay.SC2Replay instance.
 
     Note that these skips are specific to the raw interface - further work will
     be needed to support visual.
@@ -61,22 +61,22 @@ def raw_action_skips(replay: sc2_replay.SC2Replay) -> Mapping[int, List[int]]:
     last_game_loop = None
     # Extract per-user events of interest.
     for event in replay.game_events():
-        event_type = _readable_event_type(event["_event"])
+        event_type = _readable_event_type(event['_event'])
         if event_type not in _EVENT_TYPES_TO_FILTER_OUT:
-            game_loop = event["_gameloop"]
+            game_loop = event['_gameloop']
             last_game_loop = game_loop
             # As soon as anyone leaves, we stop tracking events.
-            if event_type == "GameUserLeave":
+            if event_type == 'GameUserLeave':
                 break
 
-            user_id = event["_userid"]["m_userId"]
+            user_id = event['_userid']['m_userId']
             player_id = user_id + 1
             if player_id < 1 or player_id > 2:
                 raise ValueError(f"Unexpected player_id: {player_id}")
             if (action_frames[player_id] and
                     action_frames[player_id][-1].game_loop == game_loop):
                 # Later (non-camera) events on the same game loop take priority.
-                if event_type != "CameraUpdate":
+                if event_type != 'CameraUpdate':
                     action_frames[player_id][-1].event_type = event_type
             else:
                 action_frames[player_id].append(EventData(game_loop, event_type))
@@ -85,14 +85,14 @@ def raw_action_skips(replay: sc2_replay.SC2Replay) -> Mapping[int, List[int]]:
         # Filter out repeated camera updates.
         filtered = []
         for v in action_frames[player_id]:
-            if (v.event_type == "CameraUpdate" and filtered and
-                    filtered[-1].event_type == "CameraUpdate"):
+            if (v.event_type == 'CameraUpdate' and filtered and
+                    filtered[-1].event_type == 'CameraUpdate'):
                 filtered[-1].game_loop = v.game_loop
             else:
                 filtered.append(v)
         # If the last update is a camera move, remove it (only camera moves with a
         # raw action following them should be added).
-        if filtered and filtered[-1].event_type == "CameraUpdate":
+        if filtered and filtered[-1].event_type == 'CameraUpdate':
             filtered.pop()
         # Extract game loops.
         action_frames[player_id] = [v.game_loop for v in filtered]

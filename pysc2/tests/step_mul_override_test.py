@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Test that stepping without observing works correctly for multiple players."""
+"""Test that stepping without observing works correctly for multiple
+players."""
 
 from absl.testing import absltest
 
@@ -29,7 +30,7 @@ class StepMulOverrideTest(utils.TestCase):
 
     def test_returns_game_loop_zero_on_first_step_despite_override(self):
         with sc2_env.SC2Env(
-                map_name="DefeatRoaches",
+                map_name='DefeatRoaches',
                 players=[sc2_env.Agent(sc2_env.Race.random)],
                 step_mul=1,
                 agent_interface_format=AGENT_INTERFACE_FORMAT) as env:
@@ -43,7 +44,7 @@ class StepMulOverrideTest(utils.TestCase):
 
     def test_respects_override(self):
         with sc2_env.SC2Env(
-                map_name="DefeatRoaches",
+                map_name='DefeatRoaches',
                 players=[sc2_env.Agent(sc2_env.Race.random)],
                 step_mul=1,
                 agent_interface_format=AGENT_INTERFACE_FORMAT) as env:
@@ -59,5 +60,5 @@ class StepMulOverrideTest(utils.TestCase):
                     expected_game_loop)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

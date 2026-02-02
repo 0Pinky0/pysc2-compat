@@ -24,12 +24,12 @@ from pysc2.lib import np_util
 class NpUtilTest(parameterized.TestCase):
 
     @parameterized.named_parameters(
-        ("no_diff_1d", [1, 2, 3, 4], [1, 2, 3, 4], ""),
-        ("no_diff_2d", [[1, 2], [3, 4]], [[1, 2], [3, 4]], ""),
-        ("diff_1d", [1, 2, 3, 4], [1, 3, 2, 4],
-         "2 element(s) changed - [1]: 2 -> 3; [2]: 3 -> 2"),
-        ("diff_2d", [[1, 2], [3, 4]], [[1, 3], [2, 4]],
-         "2 element(s) changed - [0][1]: 2 -> 3; [1][0]: 3 -> 2"))
+        ('no_diff_1d', [1, 2, 3, 4], [1, 2, 3, 4], ''),
+        ('no_diff_2d', [[1, 2], [3, 4]], [[1, 2], [3, 4]], ''),
+        ('diff_1d', [1, 2, 3, 4], [1, 3, 2, 4],
+         '2 element(s) changed - [1]: 2 -> 3; [2]: 3 -> 2'),
+        ('diff_2d', [[1, 2], [3, 4]], [[1, 3], [2, 4]],
+         '2 element(s) changed - [0][1]: 2 -> 3; [1][0]: 3 -> 2'))
     def testSummarizeArrayDiffs(self, lhs, rhs, expected):
         a = np.array(lhs)
         b = np.array(rhs)
@@ -37,5 +37,5 @@ class NpUtilTest(parameterized.TestCase):
         self.assertEqual(result, expected)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

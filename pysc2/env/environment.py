@@ -31,12 +31,12 @@ class TimeStep(collections.namedtuple(
     have `StepType.MID.
 
     Attributes:
-      step_type: A `StepType` enum value.
-      reward: A scalar, or 0 if `step_type` is `StepType.FIRST`, i.e. at the
+        step_type: A `StepType` enum value.
+        reward: A scalar, or 0 if `step_type` is `StepType.FIRST`, i.e. at the
         start of a sequence.
-      discount: A discount value in the range `[0, 1]`, or 0 if `step_type`
+        discount: A discount value in the range `[0, 1]`, or 0 if `step_type`
         is `StepType.FIRST`, i.e. at the start of a sequence.
-      observation: A NumPy array, or a dict, list or tuple of arrays.
+        observation: A NumPy array, or a dict, list or tuple of arrays.
     """
     __slots__ = ()
 
@@ -65,10 +65,11 @@ class Base(metaclass=abc.ABCMeta):  # pytype: disable=ignored-abstractmethod
 
     @abc.abstractmethod
     def reset(self):
-        """Starts a new sequence and returns the first `TimeStep` of this sequence.
+        """Starts a new sequence and returns the first `TimeStep` of this
+        sequence.
 
         Returns:
-          A `TimeStep` namedtuple containing:
+            A `TimeStep` namedtuple containing:
             step_type: A `StepType` of `FIRST`.
             reward: Zero.
             discount: Zero.
@@ -78,7 +79,8 @@ class Base(metaclass=abc.ABCMeta):  # pytype: disable=ignored-abstractmethod
 
     @abc.abstractmethod
     def step(self, action):
-        """Updates the environment according to the action and returns a `TimeStep`.
+        """Updates the environment according to the action and returns a
+        `TimeStep`.
 
         If the environment returned a `TimeStep` with `StepType.LAST` at the
         previous step, this call to `step` will start a new sequence and `action`
@@ -89,16 +91,16 @@ class Base(metaclass=abc.ABCMeta):  # pytype: disable=ignored-abstractmethod
         `action` will be ignored.
 
         Args:
-          action: A NumPy array, or a dict, list or tuple of arrays corresponding to
-            `action_spec()`.
+            action: A NumPy array, or a dict, list or tuple of arrays corresponding to
+                `action_spec()`.
 
         Returns:
-          A `TimeStep` namedtuple containing:
-            step_type: A `StepType` value.
-            reward: Reward at this timestep.
-            discount: A discount in the range [0, 1].
-            observation: A NumPy array, or a dict, list or tuple of arrays
-              corresponding to `observation_spec()`.
+            A `TimeStep` namedtuple containing:
+                step_type: A `StepType` value.
+                reward: Reward at this timestep.
+                discount: A discount in the range [0, 1].
+                observation: A NumPy array, or a dict, list or tuple of arrays
+                    corresponding to `observation_spec()`.
         """
 
     @abc.abstractmethod
@@ -106,7 +108,7 @@ class Base(metaclass=abc.ABCMeta):  # pytype: disable=ignored-abstractmethod
         """Defines the observations provided by the environment.
 
         Returns:
-          A tuple of specs (one per agent), where each spec is a dict of shape
+            A tuple of specs (one per agent), where each spec is a dict of shape
             tuples.
         """
 
@@ -115,7 +117,7 @@ class Base(metaclass=abc.ABCMeta):  # pytype: disable=ignored-abstractmethod
         """Defines the actions that should be provided to `step`.
 
         Returns:
-          A tuple of specs (one per agent), where each spec is something that
+            A tuple of specs (one per agent), where each spec is something that
             defines the shape of the actions.
         """
 

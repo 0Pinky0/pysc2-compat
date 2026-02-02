@@ -21,11 +21,11 @@ def pysc2_create_external_repos(pysc2_repo_name):
 
     Args:
         pysc2_repo_name: The name of the PySC2 repo, as instantiated in
-          the local WORKSPACE. When executing this function from the pysc2
-          WORKSPACE, this name is "pysc2". But external consumers shouldn't
-          use that name as it leads to Python import problems due to the
-          pysc2/pysc2 subdirectory. Hence a name such as "pysc2_archive"
-          is recommended.
+            the local WORKSPACE. When executing this function from the pysc2
+            WORKSPACE, this name is "pysc2". But external consumers shouldn't
+            use that name as it leads to Python import problems due to the
+            pysc2/pysc2 subdirectory. Hence a name such as "pysc2_archive"
+            is recommended.
 
     Example:
         http_archive(

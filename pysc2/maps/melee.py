@@ -17,22 +17,22 @@ from pysc2.maps import lib
 
 
 class Melee(lib.Map):
-    directory = "Melee"
-    download = "https://github.com/Blizzard/s2client-proto#map-packs"
+    directory = 'Melee'
+    download = 'https://github.com/Blizzard/s2client-proto#map-packs'
     players = 2
     game_steps_per_episode = 16 * 60 * 30  # 30 minute limit.
 
 
 melee_maps = [
     # "Empty128",  # Not really playable, but may be useful in the future.
-    "Flat32",
-    "Flat48",
-    "Flat64",
-    "Flat96",
-    "Flat128",
-    "Simple64",
-    "Simple96",
-    "Simple128",
+    'Flat32',
+    'Flat48',
+    'Flat64',
+    'Flat96',
+    'Flat128',
+    'Simple64',
+    'Simple96',
+    'Simple128',
 ]
 
 for name in melee_maps:

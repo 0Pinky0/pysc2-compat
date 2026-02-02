@@ -53,53 +53,53 @@ from pysc2.lib import point_flag
 from pysc2.lib import renderer_human
 
 FLAGS = flags.FLAGS
-flags.DEFINE_bool("render", platform.system() == "Linux",
-                  "Whether to render with pygame.")
-flags.DEFINE_bool("realtime", False, "Whether to run in realtime mode.")
+flags.DEFINE_bool('render', platform.system() == 'Linux',
+                  'Whether to render with pygame.')
+flags.DEFINE_bool('realtime', False, 'Whether to run in realtime mode.')
 
-flags.DEFINE_string("agent", "pysc2.agents.random_agent.RandomAgent",
-                    "Which agent to run, as a python path to an Agent class.")
-flags.DEFINE_string("agent_name", None,
-                    "Name of the agent in replays. Defaults to the class name.")
-flags.DEFINE_enum("agent_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_string('agent', 'pysc2.agents.random_agent.RandomAgent',
+                    'Which agent to run, as a python path to an Agent class.')
+flags.DEFINE_string('agent_name', None,
+                    'Name of the agent in replays. Defaults to the class name.')
+flags.DEFINE_enum('agent_race', 'random', sc2_env.Race._member_names_,  # pylint: disable=protected-access
                   "Agent's race.")
 
-flags.DEFINE_float("fps", 22.4, "Frames per second to run the game.")
-flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
+flags.DEFINE_float('fps', 22.4, 'Frames per second to run the game.')
+flags.DEFINE_integer('step_mul', 8, 'Game steps per agent step.')
 
-point_flag.DEFINE_point("feature_screen_size", "84",
-                        "Resolution for screen feature layers.")
-point_flag.DEFINE_point("feature_minimap_size", "64",
-                        "Resolution for minimap feature layers.")
-point_flag.DEFINE_point("rgb_screen_size", "256",
-                        "Resolution for rendered screen.")
-point_flag.DEFINE_point("rgb_minimap_size", "128",
-                        "Resolution for rendered minimap.")
-flags.DEFINE_enum("action_space", "FEATURES",
+point_flag.DEFINE_point('feature_screen_size', '84',
+                        'Resolution for screen feature layers.')
+point_flag.DEFINE_point('feature_minimap_size', '64',
+                        'Resolution for minimap feature layers.')
+point_flag.DEFINE_point('rgb_screen_size', '256',
+                        'Resolution for rendered screen.')
+point_flag.DEFINE_point('rgb_minimap_size', '128',
+                        'Resolution for rendered minimap.')
+flags.DEFINE_enum('action_space', 'FEATURES',
                   sc2_env.ActionSpace._member_names_,  # pylint: disable=protected-access
-                  "Which action space to use. Needed if you take both feature "
-                  "and rgb observations.")
-flags.DEFINE_bool("use_feature_units", False,
-                  "Whether to include feature units.")
+                  'Which action space to use. Needed if you take both feature '
+                  'and rgb observations.')
+flags.DEFINE_bool('use_feature_units', False,
+                  'Whether to include feature units.')
 
-flags.DEFINE_string("user_name", getpass.getuser(),
-                    "Name of the human player for replays.")
-flags.DEFINE_enum("user_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_string('user_name', getpass.getuser(),
+                    'Name of the human player for replays.')
+flags.DEFINE_enum('user_race', 'random', sc2_env.Race._member_names_,  # pylint: disable=protected-access
                   "User's race.")
 
-flags.DEFINE_string("host", "127.0.0.1", "Game Host. Can be 127.0.0.1 or ::1")
+flags.DEFINE_string('host', '127.0.0.1', 'Game Host. Can be 127.0.0.1 or ::1')
 flags.DEFINE_integer(
-    "config_port", 14380,
-    "Where to set/find the config port. The host starts a tcp server to share "
-    "the config with the client, and to proxy udp traffic if played over an "
-    "ssh tunnel. This sets that port, and is also the start of the range of "
-    "ports used for LAN play.")
-flags.DEFINE_string("remote", None,
-                    "Where to set up the ssh tunnels to the client.")
+    'config_port', 14380,
+    'Where to set/find the config port. The host starts a tcp server to share '
+    'the config with the client, and to proxy udp traffic if played over an '
+    'ssh tunnel. This sets that port, and is also the start of the range of '
+    'ports used for LAN play.')
+flags.DEFINE_string('remote', None,
+                    'Where to set up the ssh tunnels to the client.')
 
-flags.DEFINE_string("map", None, "Name of a map to use to play.")
+flags.DEFINE_string('map', None, 'Name of a map to use to play.')
 
-flags.DEFINE_bool("human", False, "Whether to host a game as a human.")
+flags.DEFINE_bool('human', False, 'Whether to host a game as a human.')
 
 
 def main(unused_argv):
@@ -111,10 +111,10 @@ def main(unused_argv):
 
 def agent():
     """Run the agent, connecting to a (remote) host started independently."""
-    agent_module, agent_name = FLAGS.agent.rsplit(".", 1)
+    agent_module, agent_name = FLAGS.agent.rsplit('.', 1)
     agent_cls = getattr(importlib.import_module(agent_module), agent_name)
 
-    logging.info("Starting agent:")
+    logging.info('Starting agent:')
     with lan_sc2_env.LanSC2Env(
             host=FLAGS.host,
             config_port=FLAGS.config_port,
@@ -140,12 +140,12 @@ def agent():
                 use_feature_units=FLAGS.use_feature_units),
             visualize=FLAGS.render) as env:
         agents = [agent_cls()]
-        logging.info("Connected, starting run_loop.")
+        logging.info('Connected, starting run_loop.')
         try:
             run_loop.run_loop(agents, env)
         except lan_sc2_env.RestartError:
             pass
-    logging.info("Done.")
+    logging.info('Done.')
 
 
 def human():
@@ -155,12 +155,12 @@ def human():
     map_inst = maps.get(FLAGS.map)
 
     if not FLAGS.rgb_screen_size or not FLAGS.rgb_minimap_size:
-        logging.info("Use --rgb_screen_size and --rgb_minimap_size if you want rgb "
-                     "observations.")
+        logging.info('Use --rgb_screen_size and --rgb_minimap_size if you want rgb '
+                     'observations.')
 
     ports = [FLAGS.config_port + p for p in range(5)]  # tcp + 2 * num_players
     if not all(portpicker.is_port_free(p) for p in ports):
-        sys.exit("Need 5 free ports after the config port.")
+        sys.exit('Need 5 free ports after the config port.')
 
     proc = None
     ssh_proc = None
@@ -172,58 +172,58 @@ def human():
 
         tcp_port = ports[0]
         settings = {
-            "remote": FLAGS.remote,
-            "game_version": proc.version.game_version,
-            "realtime": FLAGS.realtime,
-            "map_name": map_inst.name,
-            "map_path": map_inst.path,
-            "map_data": map_inst.data(run_config),
-            "ports": {
-                "server": {"game": ports[1], "base": ports[2]},
-                "client": {"game": ports[3], "base": ports[4]},
+            'remote': FLAGS.remote,
+            'game_version': proc.version.game_version,
+            'realtime': FLAGS.realtime,
+            'map_name': map_inst.name,
+            'map_path': map_inst.path,
+            'map_data': map_inst.data(run_config),
+            'ports': {
+                'server': {'game': ports[1], 'base': ports[2]},
+                'client': {'game': ports[3], 'base': ports[4]},
             }
         }
 
         create = sc_pb.RequestCreateGame(
-            realtime=settings["realtime"],
-            local_map=sc_pb.LocalMap(map_path=settings["map_path"]))
+            realtime=settings['realtime'],
+            local_map=sc_pb.LocalMap(map_path=settings['map_path']))
         create.player_setup.add(type=sc_pb.Participant)
         create.player_setup.add(type=sc_pb.Participant)
 
         controller = proc.controller
-        controller.save_map(settings["map_path"], settings["map_data"])
+        controller.save_map(settings['map_path'], settings['map_data'])
         controller.create_game(create)
 
         if FLAGS.remote:
             ssh_proc = lan_sc2_env.forward_ports(
-                FLAGS.remote, proc.host, [settings["ports"]["client"]["base"]],
-                [tcp_port, settings["ports"]["server"]["base"]])
+                FLAGS.remote, proc.host, [settings['ports']['client']['base']],
+                [tcp_port, settings['ports']['server']['base']])
 
-        print("-" * 80)
-        print("Join: play_vs_agent --host %s --config_port %s" % (proc.host,
+        print('-' * 80)
+        print('Join: play_vs_agent --host %s --config_port %s' % (proc.host,
                                                                   tcp_port))
-        print("-" * 80)
+        print('-' * 80)
 
         tcp_conn = lan_sc2_env.tcp_server(
             lan_sc2_env.Addr(proc.host, tcp_port), settings)
 
         if FLAGS.remote:
             udp_sock = lan_sc2_env.udp_server(
-                lan_sc2_env.Addr(proc.host, settings["ports"]["client"]["game"]))
+                lan_sc2_env.Addr(proc.host, settings['ports']['client']['game']))
 
             lan_sc2_env.daemon_thread(
                 lan_sc2_env.tcp_to_udp,
                 (tcp_conn, udp_sock,
-                 lan_sc2_env.Addr(proc.host, settings["ports"]["server"]["game"])))
+                 lan_sc2_env.Addr(proc.host, settings['ports']['server']['game'])))
 
             lan_sc2_env.daemon_thread(lan_sc2_env.udp_to_tcp, (udp_sock, tcp_conn))
 
         join = sc_pb.RequestJoinGame()
         join.shared_port = 0  # unused
-        join.server_ports.game_port = settings["ports"]["server"]["game"]
-        join.server_ports.base_port = settings["ports"]["server"]["base"]
-        join.client_ports.add(game_port=settings["ports"]["client"]["game"],
-                              base_port=settings["ports"]["client"]["base"])
+        join.server_ports.game_port = settings['ports']['server']['game']
+        join.server_ports.base_port = settings['ports']['server']['base']
+        join.client_ports.add(game_port=settings['ports']['client']['game'],
+                              base_port=settings['ports']['client']['base'])
 
         join.race = sc2_env.Race[FLAGS.user_race]
         join.player_name = FLAGS.user_name
@@ -283,5 +283,5 @@ def entry_point():  # Needed so setup.py scripts work.
     app.run(main)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

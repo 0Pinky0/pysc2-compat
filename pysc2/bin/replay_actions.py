@@ -37,10 +37,10 @@ from pysc2.lib import replay
 from pysc2.lib import static_data
 
 FLAGS = flags.FLAGS
-flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
-flags.DEFINE_integer("step_mul", 8, "How many game steps per observation.")
-flags.DEFINE_string("replays", None, "Path to a directory of replays.")
-flags.mark_flag_as_required("replays")
+flags.DEFINE_integer('parallel', 1, 'How many instances to run in parallel.')
+flags.DEFINE_integer('step_mul', 8, 'How many game steps per observation.')
+flags.DEFINE_string('replays', None, 'Path to a directory of replays.')
+flags.mark_flag_as_required('replays')
 
 size = point.Point(16, 16)
 interface = sc_pb.InterfaceOptions(
@@ -51,7 +51,7 @@ size.assign_to(interface.feature_layer.minimap_resolution)
 
 
 def sorted_dict_str(d):
-    return "{%s}" % ", ".join("%s: %s" % (k, d[k])
+    return '{%s}' % ', '.join('%s: %s' % (k, d[k])
                               for k in sorted(d, key=d.get, reverse=True))
 
 
@@ -114,27 +114,27 @@ class ReplayStats(object):
         new_units = set(self.unit_ids) - set(static_data.UNIT_TYPES)
         new_buffs = set(self.buffs) - set(static_data.BUFFS)
         new_upgrades = set(self.upgrades) - set(static_data.UPGRADES)
-        return "\n\n".join((
-            "Replays: %s, Steps total: %s" % (self.replays, self.steps),
-            "Camera move: %s, Select pt: %s, Select rect: %s, Control group: %s" % (
+        return '\n\n'.join((
+            'Replays: %s, Steps total: %s' % (self.replays, self.steps),
+            'Camera move: %s, Select pt: %s, Select rect: %s, Control group: %s' % (
                 self.camera_move, self.select_pt, self.select_rect,
                 self.control_group),
-            "Maps: %s\n%s" % len_sorted_dict(self.maps),
-            "Races: %s\n%s" % len_sorted_dict(self.races),
-            "Unit ids: %s\n%s" % len_sorted_dict(self.unit_ids),
-            "New units: %s \n%s" % len_sorted_list(new_units),
-            "Valid abilities: %s\n%s" % len_sorted_dict(self.valid_abilities),
-            "Made abilities: %s\n%s" % len_sorted_dict(self.made_abilities),
-            "New abilities: %s\n%s" % len_sorted_list(new_abilities),
-            "Valid actions: %s\n%s" % len_sorted_dict(self.valid_actions),
-            "Made actions: %s\n%s" % len_sorted_dict(self.made_actions),
-            "Buffs: %s\n%s" % len_sorted_dict(self.buffs),
-            "New buffs: %s\n%s" % len_sorted_list(new_buffs),
-            "Upgrades: %s\n%s" % len_sorted_dict(self.upgrades),
-            "New upgrades: %s\n%s" % len_sorted_list(new_upgrades),
-            "Effects: %s\n%s" % len_sorted_dict(self.effects),
-            "Crashing replays: %s\n%s" % len_sorted_list(self.crashing_replays),
-            "Invalid replays: %s\n%s" % len_sorted_list(self.invalid_replays),
+            'Maps: %s\n%s' % len_sorted_dict(self.maps),
+            'Races: %s\n%s' % len_sorted_dict(self.races),
+            'Unit ids: %s\n%s' % len_sorted_dict(self.unit_ids),
+            'New units: %s \n%s' % len_sorted_list(new_units),
+            'Valid abilities: %s\n%s' % len_sorted_dict(self.valid_abilities),
+            'Made abilities: %s\n%s' % len_sorted_dict(self.made_abilities),
+            'New abilities: %s\n%s' % len_sorted_list(new_abilities),
+            'Valid actions: %s\n%s' % len_sorted_dict(self.valid_actions),
+            'Made actions: %s\n%s' % len_sorted_dict(self.made_actions),
+            'Buffs: %s\n%s' % len_sorted_dict(self.buffs),
+            'New buffs: %s\n%s' % len_sorted_list(new_buffs),
+            'Upgrades: %s\n%s' % len_sorted_dict(self.upgrades),
+            'New upgrades: %s\n%s' % len_sorted_list(new_upgrades),
+            'Effects: %s\n%s' % len_sorted_dict(self.effects),
+            'Crashing replays: %s\n%s' % len_sorted_list(self.crashing_replays),
+            'Invalid replays: %s\n%s' % len_sorted_list(self.invalid_replays),
         ))
 
 
@@ -144,8 +144,8 @@ class ProcessStats(object):
     def __init__(self, proc_id):
         self.proc_id = proc_id
         self.time = time.time()
-        self.stage = ""
-        self.replay = ""
+        self.stage = ''
+        self.replay = ''
         self.replay_stats = ReplayStats()
 
     def update(self, stage):
@@ -153,8 +153,8 @@ class ProcessStats(object):
         self.stage = stage
 
     def __str__(self):
-        return ("[%2d] replay: %10s, replays: %5d, steps: %7d, game loops: %7s, "
-                "last: %12s, %3d s ago" % (
+        return ('[%2d] replay: %10s, replays: %5d, steps: %7d, game loops: %7s, '
+                'last: %12s, %3d s ago' % (
                     self.proc_id, self.replay, self.replay_stats.replays,
                     self.replay_stats.steps,
                     self.replay_stats.steps * FLAGS.step_mul, self.stage,
@@ -163,7 +163,7 @@ class ProcessStats(object):
 
 def valid_replay(info, ping):
     """Make sure the replay isn't corrupt, and is worth looking at."""
-    if (info.HasField("error") or
+    if (info.HasField('error') or
             info.base_build != ping.base_build or  # different game version
             info.game_duration_loops < 1000 or
             len(info.player_info) != 2):
@@ -189,34 +189,34 @@ class ReplayProcessor(multiprocessing.Process):
 
     def run(self):
         signal.signal(signal.SIGTERM, lambda a, b: sys.exit())  # Exit quietly.
-        self._update_stage("spawn")
-        replay_name = "none"
+        self._update_stage('spawn')
+        replay_name = 'none'
         while True:
-            self._print("Starting up a new SC2 instance.")
-            self._update_stage("launch")
+            self._print('Starting up a new SC2 instance.')
+            self._update_stage('launch')
             try:
                 with self.run_config.start(
-                        want_rgb=interface.HasField("render")) as controller:
-                    self._print("SC2 Started successfully.")
+                        want_rgb=interface.HasField('render')) as controller:
+                    self._print('SC2 Started successfully.')
                     ping = controller.ping()
                     for _ in range(300):
                         try:
                             replay_path = self.replay_queue.get()
                         except queue.Empty:
-                            self._update_stage("done")
-                            self._print("Empty queue, returning")
+                            self._update_stage('done')
+                            self._print('Empty queue, returning')
                             return
                         try:
                             replay_name = os.path.basename(replay_path)[:10]
                             self.stats.replay = replay_name
-                            self._print("Got replay: %s" % replay_path)
-                            self._update_stage("open replay file")
+                            self._print('Got replay: %s' % replay_path)
+                            self._update_stage('open replay file')
                             replay_data = self.run_config.replay_data(replay_path)
-                            self._update_stage("replay_info")
+                            self._update_stage('replay_info')
                             info = controller.replay_info(replay_data)
-                            self._print((" Replay Info %s " % replay_name).center(60, "-"))
+                            self._print((' Replay Info %s ' % replay_name).center(60, '-'))
                             self._print(info)
-                            self._print("-" * 60)
+                            self._print('-' * 60)
                             if valid_replay(info, ping):
                                 self.stats.replay_stats.maps[info.map_name] += 1
                                 for player_info in info.player_info:
@@ -225,7 +225,7 @@ class ReplayProcessor(multiprocessing.Process):
                                     self.stats.replay_stats.races[race_name] += 1
                                 map_data = None
                                 if info.local_map_path:
-                                    self._update_stage("open map file")
+                                    self._update_stage('open map file')
                                     map_data = self.run_config.map_data(info.local_map_path)
                                 for player_id in [1, 2]:
                                     self._print("Starting %s from player %s's perspective" % (
@@ -233,11 +233,11 @@ class ReplayProcessor(multiprocessing.Process):
                                     self.process_replay(controller, replay_data, map_data,
                                                         player_id)
                             else:
-                                self._print("Replay is invalid.")
+                                self._print('Replay is invalid.')
                                 self.stats.replay_stats.invalid_replays.add(replay_name)
                         finally:
                             self.replay_queue.task_done()
-                    self._update_stage("shutdown")
+                    self._update_stage('shutdown')
             except (protocol.ConnectionError, protocol.ProtocolError,
                     remote_controller.RequestError):
                 self.stats.replay_stats.crashing_replays.add(replay_name)
@@ -246,7 +246,7 @@ class ReplayProcessor(multiprocessing.Process):
 
     def _print(self, s):
         for line in str(s).strip().splitlines():
-            print("[%s] %s" % (self.stats.proc_id, line))
+            print('[%s] %s' % (self.stats.proc_id, line))
 
     def _update_stage(self, stage):
         self.stats.update(stage)
@@ -254,7 +254,7 @@ class ReplayProcessor(multiprocessing.Process):
 
     def process_replay(self, controller, replay_data, map_data, player_id):
         """Process a single replay, updating the stats."""
-        self._update_stage("start_replay")
+        self._update_stage('start_replay')
         controller.start_replay(sc_pb.RequestStartReplay(
             replay_data=replay_data,
             map_data=map_data,
@@ -264,25 +264,25 @@ class ReplayProcessor(multiprocessing.Process):
         feat = features.features_from_game_info(controller.game_info())
 
         self.stats.replay_stats.replays += 1
-        self._update_stage("step")
+        self._update_stage('step')
         controller.step()
         while True:
             self.stats.replay_stats.steps += 1
-            self._update_stage("observe")
+            self._update_stage('observe')
             obs = controller.observe()
 
             for action in obs.actions:
                 act_fl = action.action_feature_layer
-                if act_fl.HasField("unit_command"):
+                if act_fl.HasField('unit_command'):
                     self.stats.replay_stats.made_abilities[
                         act_fl.unit_command.ability_id] += 1
-                if act_fl.HasField("camera_move"):
+                if act_fl.HasField('camera_move'):
                     self.stats.replay_stats.camera_move += 1
-                if act_fl.HasField("unit_selection_point"):
+                if act_fl.HasField('unit_selection_point'):
                     self.stats.replay_stats.select_pt += 1
-                if act_fl.HasField("unit_selection_rect"):
+                if act_fl.HasField('unit_selection_rect'):
                     self.stats.replay_stats.select_rect += 1
-                if action.action_ui.HasField("control_group"):
+                if action.action_ui.HasField('control_group'):
                     self.stats.replay_stats.control_group += 1
 
                 try:
@@ -311,7 +311,7 @@ class ReplayProcessor(multiprocessing.Process):
             if obs.player_result:
                 break
 
-            self._update_stage("step")
+            self._update_stage('step')
             controller.step(FLAGS.step_mul)
 
 
@@ -339,11 +339,11 @@ def stats_printer(stats_queue):
         for s in proc_stats:
             replay_stats.merge(s.replay_stats)
 
-        print((" Summary %0d secs " % (print_time - start_time)).center(width, "="))
+        print((' Summary %0d secs ' % (print_time - start_time)).center(width, '='))
         print(replay_stats)
-        print(" Process stats ".center(width, "-"))
-        print("\n".join(str(s) for s in proc_stats))
-        print("=" * width)
+        print(' Process stats '.center(width, '-'))
+        print('\n'.join(str(s) for s in proc_stats))
+        print('=' * width)
 
 
 def replay_queue_filler(replay_queue, replay_list):
@@ -367,17 +367,17 @@ def main(unused_argv):
         # queue in a separate thread. Grab the list synchronously so we know there
         # is work in the queue before the SC2 processes actually run, otherwise
         # The replay_queue.join below succeeds without doing any work, and exits.
-        print("Getting replay list:", FLAGS.replays)
+        print('Getting replay list:', FLAGS.replays)
         replay_list = sorted(run_config.replay_paths(FLAGS.replays))
-        print(len(replay_list), "replays found.")
+        print(len(replay_list), 'replays found.')
         if not replay_list:
             return
 
-        if not FLAGS["sc2_version"].present:  # ie not set explicitly.
+        if not FLAGS['sc2_version'].present:  # ie not set explicitly.
             version = replay.get_replay_version(
                 run_config.replay_data(replay_list[0]))
             run_config = run_configs.get(version=version)
-            print("Assuming version:", version.game_version)
+            print('Assuming version:', version.game_version)
 
         print()
 
@@ -396,12 +396,12 @@ def main(unused_argv):
 
         replay_queue.join()  # Wait for the queue to empty.
     except KeyboardInterrupt:
-        print("Caught KeyboardInterrupt, exiting.")
+        print('Caught KeyboardInterrupt, exiting.')
     finally:
         stats_queue.put(None)  # Tell the stats_thread to print and exit.
         if stats_thread.is_alive():
             stats_thread.join()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

@@ -17,7 +17,8 @@ from pysc2.env import environment
 
 
 class BaseEnvWrapper(environment.Base):
-    """A base env wrapper so we don't need to override everything every time."""
+    """A base env wrapper so we don't need to override everything every
+    time."""
 
     def __init__(self, env):
         self._env = env

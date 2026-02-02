@@ -17,7 +17,7 @@ import deepdiff
 
 from google.protobuf import json_format
 
-_ARRAY_PLACEHOLDER = "*"
+_ARRAY_PLACEHOLDER = '*'
 
 
 class ProtoPath(object):
@@ -27,7 +27,7 @@ class ProtoPath(object):
         """Initializer.
 
         Args:
-          path: Tuple of attribute names / array indices on the path to a field.
+            path: Tuple of attribute names / array indices on the path to a field.
         """
         self._path = tuple(path)
 
@@ -43,7 +43,8 @@ class ProtoPath(object):
         return value
 
     def with_anonymous_array_indices(self):
-        """Path with array indices replaced with '*' so that they compare equal."""
+        """Path with array indices replaced with '*' so that they compare
+        equal."""
         return ProtoPath(
             tuple(_ARRAY_PLACEHOLDER if isinstance(t, int) else t
                   for t in self._path))
@@ -74,12 +75,12 @@ class ProtoPath(object):
         return hash(self._path)
 
     def __repr__(self):
-        result = ""
+        result = ''
         for k in self._path:
             if isinstance(k, int) or k == _ARRAY_PLACEHOLDER:
-                result += "[{}]".format(k)
+                result += '[{}]'.format(k)
             else:
-                result += ("." if result else "") + k
+                result += ('.' if result else '') + k
 
         return result
 
@@ -91,11 +92,11 @@ class ProtoDiffs(object):
         """Initializer.
 
         Args:
-          proto_a: First proto.
-          proto_b: Second proto.
-          changed: List of paths to attributes which changed between the two.
-          added: List of paths to attributes added from proto_a -> proto_b.
-          removed: List of paths to attributes removed from proto_a -> proto_b.
+            proto_a: First proto.
+            proto_b: Second proto.
+            changed: List of paths to attributes which changed between the two.
+            added: List of paths to attributes added from proto_a -> proto_b.
+            removed: List of paths to attributes removed from proto_a -> proto_b.
         """
         self._proto_a = proto_a
         self._proto_b = proto_b
@@ -134,20 +135,20 @@ class ProtoDiffs(object):
         customized via the differencers argument.
 
         Args:
-          differencers: Iterable of callable(path, proto_a, proto_b) -> str or None
+            differencers: Iterable of callable(path, proto_a, proto_b) -> str or None
             If a string is returned it is used to represent the diff between
             path.get_field(proto_a) and path.get_field(proto_b), and no further
             differencers are invoked. If None is returned by all differencers, the
             default string diff is used.
-          truncate_to: Number of characters to truncate diff output values to.
+            truncate_to: Number of characters to truncate diff output values to.
             Zero, the default, means no truncation.
         """
         results = []
         for a in self._added:
-            results.append("Added {}.".format(a))
+            results.append('Added {}.'.format(a))
 
         for r in self._removed:
-            results.append("Removed {}.".format(r))
+            results.append('Removed {}.'.format(r))
 
         for c in self._changed:
             result = None
@@ -158,35 +159,35 @@ class ProtoDiffs(object):
                         break
 
             if not result:
-                result = "{} -> {}".format(
+                result = '{} -> {}'.format(
                     _truncate(c.get_field(self._proto_a), truncate_to),
                     _truncate(c.get_field(self._proto_b), truncate_to))
             else:
                 result = _truncate(result, truncate_to)
 
-            results.append("Changed {}: {}.".format(c, result))
+            results.append('Changed {}: {}.'.format(c, result))
 
         if results:
-            return "\n".join(results)
+            return '\n'.join(results)
         else:
-            return "No diffs."
+            return 'No diffs.'
 
     def __repr__(self):
-        return "changed: {}, added: {}, removed: {}".format(
+        return 'changed: {}, added: {}, removed: {}'.format(
             self._changed, self._added, self._removed)
 
 
 def _truncate(val, truncate_to):
     string_val = str(val)
     if truncate_to and len(string_val) > truncate_to:
-        return string_val[:max(truncate_to - 3, 0)] + "..."
+        return string_val[:max(truncate_to - 3, 0)] + '...'
     else:
         return string_val
 
 
 def _dict_path_to_proto_path(dict_path):
     dict_path = dict_path[5:-1]  # strip off 'root[...]'
-    keys = dict_path.split("][")  # tokenize
+    keys = dict_path.split('][')  # tokenize
     return ProtoPath(
         (k[1:-1] if k[0] == "'" else int(k)) for k in keys)  # key or idx
 
@@ -195,33 +196,33 @@ def compute_diff(proto_a, proto_b):
     """Returns `ProtoDiff` of two protos, else None if no diffs.
 
     Args:
-      proto_a: First of the two protos to compare.
-      proto_b: Second of the two protos to compare.
+        proto_a: First of the two protos to compare.
+        proto_b: Second of the two protos to compare.
     """
     dict1 = json_format.MessageToDict(proto_a, preserving_proto_field_name=True)
     dict2 = json_format.MessageToDict(proto_b, preserving_proto_field_name=True)
     diff = deepdiff.DeepDiff(dict1, dict2, significant_digits=3)
     if diff:
         changed_paths = []
-        for key in diff.pop("values_changed", []):
+        for key in diff.pop('values_changed', []):
             changed_paths.append(_dict_path_to_proto_path(key))
 
         added_paths = []
-        for key in diff.pop("dictionary_item_added", []):
+        for key in diff.pop('dictionary_item_added', []):
             added_paths.append(_dict_path_to_proto_path(key))
 
-        for key in diff.pop("iterable_item_added", []):
+        for key in diff.pop('iterable_item_added', []):
             added_paths.append(_dict_path_to_proto_path(key))
 
         removed_paths = []
-        for key in diff.pop("dictionary_item_removed", []):
+        for key in diff.pop('dictionary_item_removed', []):
             removed_paths.append(_dict_path_to_proto_path(key))
 
-        for key in diff.pop("iterable_item_removed", []):
+        for key in diff.pop('iterable_item_removed', []):
             removed_paths.append(_dict_path_to_proto_path(key))
 
         if diff:
-            raise ValueError("Unhandled diffs: {}".format(diff))
+            raise ValueError('Unhandled diffs: {}'.format(diff))
 
         return ProtoDiffs(
             proto_a=proto_a,

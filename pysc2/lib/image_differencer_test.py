@@ -28,7 +28,7 @@ class ImageDifferencerTest(absltest.TestCase):
 
     def testFilteredOut(self):
         result = image_differencer.image_differencer(
-            path=proto_diff.ProtoPath(("observation", "actions", 1)),
+            path=proto_diff.ProtoPath(('observation', 'actions', 1)),
             proto_a=None,
             proto_b=None)
         self.assertIsNone(result)
@@ -65,18 +65,18 @@ class ImageDifferencerTest(absltest.TestCase):
 
         result = image_differencer.image_differencer(
             path=proto_diff.ProtoPath((
-                "observation",
-                "feature_layer_data",
-                "renders",
-                "height_map",
-                "data")),
+                'observation',
+                'feature_layer_data',
+                'renders',
+                'height_map',
+                'data')),
             proto_a=a,
             proto_b=b)
 
         self.assertEqual(
             result,
-            "3 element(s) changed - [1][0]: 1 -> 0; [1][1]: 0 -> 1; [3][3]: 1 -> 0")
+            '3 element(s) changed - [1][0]: 1 -> 0; [1][1]: 0 -> 1; [3][3]: 1 -> 0')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

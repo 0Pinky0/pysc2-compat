@@ -199,7 +199,7 @@ class DummyObservationTest(parameterized.TestCase):
 
     def testNoSingleSelect(self):
         obs = self._get_obs()
-        self.assertFalse(obs.ui_data.HasField("single"))
+        self.assertFalse(obs.ui_data.HasField('single'))
 
     def testWithSingleSelect(self):
         self._builder.single_select(_PROBE)
@@ -208,7 +208,7 @@ class DummyObservationTest(parameterized.TestCase):
 
     def testNoMultiSelect(self):
         obs = self._get_obs()
-        self.assertFalse(obs.ui_data.HasField("multi"))
+        self.assertFalse(obs.ui_data.HasField('multi'))
 
     def testWithMultiSelect(self):
         nits = [_MOTHERSHIP, _PROBE, _PROBE, _ZEALOT]
@@ -221,12 +221,12 @@ class DummyObservationTest(parameterized.TestCase):
     def testBuildQueue(self):
         nits = [_MOTHERSHIP, _PROBE]
         production = [
-            {"ability_id": actions.FUNCTIONS.Train_Mothership_quick.ability_id,
-             "build_progress": 0.5},
-            {"ability_id": actions.FUNCTIONS.Train_Probe_quick.ability_id,
-             "build_progress": 0},
-            {"ability_id": actions.FUNCTIONS.Research_ShadowStrike_quick.ability_id,
-             "build_progress": 0},
+            {'ability_id': actions.FUNCTIONS.Train_Mothership_quick.ability_id,
+             'build_progress': 0.5},
+            {'ability_id': actions.FUNCTIONS.Train_Probe_quick.ability_id,
+             'build_progress': 0},
+            {'ability_id': actions.FUNCTIONS.Research_ShadowStrike_quick.ability_id,
+             'build_progress': 0},
         ]
         self._builder.build_queue(nits, production)
         obs = self._get_obs()
@@ -235,8 +235,8 @@ class DummyObservationTest(parameterized.TestCase):
             self._check_unit(proto, builder)
         self.assertLen(obs.ui_data.production.production_queue, 3)
         for proto, p in zip(obs.ui_data.production.production_queue, production):
-            self.assertEqual(proto.ability_id, p["ability_id"])
-            self.assertEqual(proto.build_progress, p["build_progress"])
+            self.assertEqual(proto.ability_id, p['ability_id'])
+            self.assertEqual(proto.build_progress, p['build_progress'])
 
     def testFeatureUnitsAreAdded(self):
         feature_units = [
@@ -289,18 +289,18 @@ class DummyObservationTest(parameterized.TestCase):
 
     def _check_feature_unit(self, proto, builder):
         return self._check_attributes_match(proto, builder, [
-            "unit_type",
-            "alliance",
-            "owner",
-            "pos",
-            "radius",
-            "health",
-            "health_max",
-            "is_on_screen",
-            "shield",
-            "shield_max"
+            'unit_type',
+            'alliance',
+            'owner',
+            'pos',
+            'radius',
+            'health',
+            'health_max',
+            'is_on_screen',
+            'shield',
+            'shield_max'
         ])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

@@ -52,7 +52,7 @@ class TestRender(utils.TestCase):
 
         run_config = run_configs.get()
         with run_config.start() as controller:
-            map_inst = maps.get("Simple64")
+            map_inst = maps.get('Simple64')
             create = sc_pb.RequestCreateGame(
                 realtime=False, disable_fog=False,
                 local_map=sc_pb.LocalMap(map_path=map_inst.path,
@@ -103,5 +103,5 @@ class TestRender(utils.TestCase):
                     break
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

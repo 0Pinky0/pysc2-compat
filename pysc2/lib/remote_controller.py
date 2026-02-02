@@ -28,11 +28,11 @@ from pysc2.lib import protocol
 from pysc2.lib import static_data
 from pysc2.lib import stopwatch
 
-flags.DEFINE_bool("sc2_log_actions", False,
-                  ("Print all the actions sent to SC2. If you want observations"
-                   " as well, consider using `sc2_verbose_protocol`."))
-flags.DEFINE_integer("sc2_timeout", 360,
-                     "Timeout to connect and wait for rpc responses.")
+flags.DEFINE_bool('sc2_log_actions', False,
+                  ('Print all the actions sent to SC2. If you want observations'
+                   ' as well, consider using `sc2_verbose_protocol`.'))
+flags.DEFINE_integer('sc2_timeout', 360,
+                     'Timeout to connect and wait for rpc responses.')
 FLAGS = flags.FLAGS
 
 sw = stopwatch.sw
@@ -53,10 +53,10 @@ class RequestError(Exception):
 
 def check_error(res, error_enum):
     """Raise if the result has an error, otherwise return the result."""
-    if res.HasField("error"):
+    if res.HasField('error'):
         enum_name = error_enum.DESCRIPTOR.full_name
         error_name = error_enum.Name(res.error)
-        details = getattr(res, "error_details", "<none>")
+        details = getattr(res, 'error_details', '<none>')
         raise RequestError("%s.%s: '%s'" % (enum_name, error_name, details), res)
     return res
 
@@ -96,8 +96,8 @@ def valid_status(*valid):
         def _valid_status(self, *args, **kwargs):
             if self.status not in valid:
                 raise protocol.ProtocolError(
-                    "`%s` called while in state: %s, valid: (%s)" % (
-                        func.__name__, self.status, ",".join(map(str, valid))))
+                    '`%s` called while in state: %s, valid: (%s)' % (
+                        func.__name__, self.status, ','.join(map(str, valid))))
             return func(self, *args, **kwargs)
 
         return _valid_status
@@ -116,7 +116,7 @@ def catch_game_end(func):
             return func(self, *args, **kwargs)
         except protocol.ProtocolError as protocol_error:
             if prev_status == Status.in_game and (
-                    "Game has already ended" in str(protocol_error)):
+                    'Game has already ended' in str(protocol_error)):
                 # It's currently possible for us to receive this error even though
                 # our previous status was in_game. This shouldn't happen according
                 # to the protocol. It does happen sometimes when we don't observe on
@@ -125,7 +125,7 @@ def catch_game_end(func):
                 # and so let the client code continue.
                 logging.warning(
                     "Received a 'Game has already ended' error from SC2 whilst status "
-                    "in_game. Suppressing the exception, returning None.")
+                    'in_game. Suppressing the exception, returning None.')
 
                 return None
             else:
@@ -137,13 +137,13 @@ def catch_game_end(func):
 class RemoteController(object):
     """Implements a python interface to interact with the SC2 binary.
 
-    All of these are implemented as blocking calls, so wait for the response
-    before returning.
+    All of these are implemented as blocking calls, so wait for the
+    response before returning.
 
     Many of these functions take a Request* object and respond with the
-    corresponding Response* object as returned from SC2. The simpler functions
-    take a value and construct the Request itself, or return something more useful
-    than a Response* object.
+    corresponding Response* object as returned from SC2. The simpler
+    functions take a value and construct the Request itself, or return
+    something more useful than a Response* object.
     """
 
     def __init__(self, host, port, proc=None, timeout_seconds=None):
@@ -155,10 +155,13 @@ class RemoteController(object):
 
     @sw.decorate
     def _connect(self, host, port, proc, timeout_seconds):
-        """Connect to the websocket, retrying as needed. Returns the socket."""
-        if ":" in host and not host.startswith("["):  # Support ipv6 addresses.
-            host = "[%s]" % host
-        url = "ws://%s:%s/sc2api" % (host, port)
+        """Connect to the websocket, retrying as needed.
+
+        Returns the socket.
+        """
+        if ':' in host and not host.startswith('['):  # Support ipv6 addresses.
+            host = '[%s]' % host
+        url = 'ws://%s:%s/sc2api' % (host, port)
 
         was_running = False
         for i in range(timeout_seconds):
@@ -168,21 +171,21 @@ class RemoteController(object):
                 logging.warning(
                     "SC2 isn't running, so bailing early on the websocket connection.")
                 break
-            logging.info("Connecting to: %s, attempt: %s, running: %s", url, i,
+            logging.info('Connecting to: %s, attempt: %s, running: %s', url, i,
                          is_running)
             try:
                 return websocket.create_connection(url, timeout=timeout_seconds)
             except socket.error:
                 pass  # SC2 hasn't started listening yet.
             except websocket.WebSocketConnectionClosedException:
-                raise ConnectError("Connection rejected. Is something else connected?")
+                raise ConnectError('Connection rejected. Is something else connected?')
             except websocket.WebSocketBadStatusException as err:
                 if err.status_code == 404:
                     pass  # SC2 is listening, but hasn't set up the /sc2api endpoint yet.
                 else:
                     raise
             time.sleep(1)
-        raise ConnectError("Failed to connect to the SC2 websocket. Is it up?")
+        raise ConnectError('Failed to connect to the SC2 websocket. Is it up?')
 
     def close(self):
         self._client.close()
@@ -195,14 +198,18 @@ class RemoteController(object):
     @decorate_check_error(sc_pb.ResponseCreateGame.Error)
     @sw.decorate
     def create_game(self, req_create_game):
-        """Create a new game. This can only be done by the host."""
+        """Create a new game.
+
+        This can only be done by the host.
+        """
         return self._client.send(create_game=req_create_game)
 
     @valid_status(Status.launched, Status.init_game)
     @decorate_check_error(sc_pb.ResponseSaveMap.Error)
     @sw.decorate
     def save_map(self, map_path, map_data):
-        """Save a map into temp dir so create game can access it in multiplayer."""
+        """Save a map into temp dir so create game can access it in
+        multiplayer."""
         return self._client.send(save_map=sc_pb.RequestSaveMap(
             map_path=map_path, map_data=map_data))
 
@@ -217,7 +224,10 @@ class RemoteController(object):
     @decorate_check_error(sc_pb.ResponseRestartGame.Error)
     @sw.decorate
     def restart(self):
-        """Restart the game. Only done by the host."""
+        """Restart the game.
+
+        Only done by the host.
+        """
         return self._client.send(restart_game=sc_pb.RequestRestartGame())
 
     @valid_status(Status.launched, Status.ended, Status.in_game, Status.in_replay)
@@ -237,7 +247,10 @@ class RemoteController(object):
     @sw.decorate
     def data_raw(self, ability_id=True, unit_type_id=True, upgrade_id=True,
                  buff_id=True, effect_id=True):
-        """Get the raw static data for the current game. Prefer `data` instead."""
+        """Get the raw static data for the current game.
+
+        Prefer `data` instead.
+        """
         return self._client.send(data=sc_pb.RequestData(
             ability_id=ability_id, unit_type_id=unit_type_id, upgrade_id=upgrade_id,
             buff_id=buff_id, effect_id=effect_id))
@@ -255,12 +268,12 @@ class RemoteController(object):
             disable_fog=disable_fog))
 
         if obs.observation.game_loop == 2 ** 32 - 1:
-            logging.info("Received stub observation.")
+            logging.info('Received stub observation.')
 
             if not obs.player_result:
-                raise ValueError("Expect a player result in a stub observation")
+                raise ValueError('Expect a player result in a stub observation')
             elif self._last_obs is None:
-                raise RuntimeError("Received stub observation with no previous obs")
+                raise RuntimeError('Received stub observation with no previous obs')
 
             # Rather than handling empty obs through the code, regurgitate the last
             # observation (+ player result, sub actions).
@@ -274,7 +287,7 @@ class RemoteController(object):
             self._last_obs = obs
 
         if FLAGS.sc2_log_actions and obs.actions:
-            sys.stderr.write(" Executed actions ".center(60, "<") + "\n")
+            sys.stderr.write(' Executed actions '.center(60, '<') + '\n')
             for action in obs.actions:
                 sys.stderr.write(str(action))
             sys.stderr.flush()
@@ -298,7 +311,7 @@ class RemoteController(object):
     def actions(self, req_action):
         """Send a `sc_pb.RequestAction`, which may include multiple actions."""
         if FLAGS.sc2_log_actions and req_action.actions:
-            sys.stderr.write(" Sending actions ".center(60, ">") + "\n")
+            sys.stderr.write(' Sending actions '.center(60, '>') + '\n')
             for action in req_action.actions:
                 sys.stderr.write(str(action))
             sys.stderr.flush()
@@ -306,7 +319,10 @@ class RemoteController(object):
         return self._client.send(action=req_action)
 
     def act(self, action):
-        """Send a single action. This is a shortcut for `actions`."""
+        """Send a single action.
+
+        This is a shortcut for `actions`.
+        """
         if action and action.ListFields():  # Skip no-ops.
             return self.actions(sc_pb.RequestAction(actions=[action]))
 
@@ -316,7 +332,7 @@ class RemoteController(object):
     def observer_actions(self, req_observer_action):
         """Send a `sc_pb.RequestObserverAction`."""
         if FLAGS.sc2_log_actions and req_observer_action.actions:
-            sys.stderr.write(" Sending observer actions ".center(60, ">") + "\n")
+            sys.stderr.write(' Sending observer actions '.center(60, '>') + '\n')
             for action in req_observer_action.actions:
                 sys.stderr.write(str(action))
             sys.stderr.flush()
@@ -324,7 +340,10 @@ class RemoteController(object):
         return self._client.send(obs_action=req_observer_action)
 
     def observer_act(self, action):
-        """Send a single observer action. A shortcut for `observer_actions`."""
+        """Send a single observer action.
+
+        A shortcut for `observer_actions`.
+        """
         if action and action.ListFields():  # Skip no-ops.
             return self.observer_actions(
                 sc_pb.RequestObserverAction(actions=[action]))

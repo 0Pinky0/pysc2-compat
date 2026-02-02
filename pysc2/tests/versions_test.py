@@ -24,11 +24,11 @@ from pysc2 import run_configs
 
 
 def major_version(v):
-    return ".".join(v.split(".")[:2])
+    return '.'.join(v.split('.')[:2])
 
 
 def log_center(s, *args):
-    logging.info(((" " + s + " ") % args).center(80, "-"))
+    logging.info(((' ' + s + ' ') % args).center(80, '-'))
 
 
 class TestVersions(absltest.TestCase):
@@ -39,22 +39,22 @@ class TestVersions(absltest.TestCase):
         for game_version, version in sorted(run_config.get_versions().items()):
             try:
                 self.assertEqual(game_version, version.game_version)
-                log_center("starting version check: %s", game_version)
+                log_center('starting version check: %s', game_version)
                 run_config = run_configs.get(version=game_version)
                 with run_config.start(want_rgb=False) as controller:
                     ping = controller.ping()
-                    logging.info("expected: %s", version)
-                    logging.info("actual: %s", ", ".join(str(ping).strip().split("\n")))
+                    logging.info('expected: %s', version)
+                    logging.info('actual: %s', ', '.join(str(ping).strip().split('\n')))
                     self.assertEqual(version.build_version, ping.base_build)
-                    if version.game_version != "latest":
+                    if version.game_version != 'latest':
                         self.assertEqual(major_version(ping.game_version),
                                          major_version(version.game_version))
                         self.assertEqual(version.data_version.lower(),
                                          ping.data_version.lower())
-                log_center("success: %s", game_version)
+                log_center('success: %s', game_version)
             except:  # pylint: disable=bare-except
-                log_center("failure: %s", game_version)
-                logging.exception("Failed")
+                log_center('failure: %s', game_version)
+                logging.exception('Failed')
                 failures.append(game_version)
         self.assertEmpty(failures)
 
@@ -63,7 +63,7 @@ class TestVersions(absltest.TestCase):
         failures = []
         for game_version in sorted(run_config.get_versions().keys()):
             try:
-                log_center("starting create game: %s", game_version)
+                log_center('starting create game: %s', game_version)
                 run_config = run_configs.get(version=game_version)
                 with run_config.start(want_rgb=False) as controller:
                     interface = sc_pb.InterfaceOptions()
@@ -75,7 +75,7 @@ class TestVersions(absltest.TestCase):
                     interface.feature_layer.minimap_resolution.x = 64
                     interface.feature_layer.minimap_resolution.y = 64
 
-                    map_inst = maps.get("Simple64")
+                    map_inst = maps.get('Simple64')
                     create = sc_pb.RequestCreateGame(local_map=sc_pb.LocalMap(
                         map_path=map_inst.path, map_data=map_inst.data(run_config)))
                     create.player_setup.add(type=sc_pb.Participant)
@@ -90,13 +90,13 @@ class TestVersions(absltest.TestCase):
                         controller.step(16)
                         controller.observe()
 
-                log_center("success: %s", game_version)
+                log_center('success: %s', game_version)
             except:  # pylint: disable=bare-except
-                logging.exception("Failed")
-                log_center("failure: %s", game_version)
+                logging.exception('Failed')
+                log_center('failure: %s', game_version)
                 failures.append(game_version)
         self.assertEmpty(failures)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

@@ -28,7 +28,7 @@ class DebugTest(absltest.TestCase):
 
     def test_multi_player(self):
         run_config = run_configs.get()
-        map_inst = maps.get("Simple64")
+        map_inst = maps.get('Simple64')
 
         with run_config.start(want_rgb=False) as controller:
             create = sc_pb.RequestCreateGame(
@@ -92,5 +92,5 @@ class DebugTest(absltest.TestCase):
             self.assertEqual(marines[tags[1]].health, 5)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

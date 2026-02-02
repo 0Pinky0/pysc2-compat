@@ -24,7 +24,7 @@ import time
 
 class Stat(object):
     """A set of statistics about a single value series."""
-    __slots__ = ("num", "min", "max", "sum", "sum_sq")
+    __slots__ = ('num', 'min', 'max', 'sum', 'sum_sq')
 
     def __init__(self):
         self.reset()
@@ -76,21 +76,21 @@ class Stat(object):
 
     @staticmethod
     def parse(s):
-        if s == "num=0":
+        if s == 'num=0':
             return Stat()
-        parts = (float(p.split(":")[1]) for p in s.split(", "))
+        parts = (float(p.split(':')[1]) for p in s.split(', '))
         return Stat.build(*parts)
 
     def __str__(self):
         if self.num == 0:
-            return "num=0"
-        return "sum: %.4f, avg: %.4f, dev: %.4f, min: %.4f, max: %.4f, num: %d" % (
+            return 'num=0'
+        return 'sum: %.4f, avg: %.4f, dev: %.4f, min: %.4f, max: %.4f, num: %d' % (
             self.sum, self.avg, self.dev, self.min, self.max, self.num)
 
 
 class StopWatchContext(object):
     """Time an individual call."""
-    __slots__ = ("_sw", "_start")
+    __slots__ = ('_sw', '_start')
 
     def __init__(self, stopwatch, name):
         self._sw = stopwatch
@@ -108,10 +108,10 @@ class TracingStopWatchContext(StopWatchContext):
 
     def __enter__(self):
         super(TracingStopWatchContext, self).__enter__()
-        self._log(">>> %s" % self._sw.cur_stack())
+        self._log('>>> %s' % self._sw.cur_stack())
 
     def __exit__(self, *args, **kwargs):
-        self._log("<<< %s: %.6f secs" % (self._sw.cur_stack(),
+        self._log('<<< %s: %.6f secs' % (self._sw.cur_stack(),
                                          time.time() - self._start))
         super(TracingStopWatchContext, self).__exit__(*args, **kwargs)
 
@@ -120,7 +120,8 @@ class TracingStopWatchContext(StopWatchContext):
 
 
 class FakeStopWatchContext(object):
-    """A fake stopwatch context for when the stopwatch is too slow or unneeded."""
+    """A fake stopwatch context for when the stopwatch is too slow or
+    unneeded."""
     __slots__ = ()
 
     def __enter__(self):
@@ -148,7 +149,7 @@ class StopWatch(object):
         func()
         print(sw)
     """
-    __slots__ = ("_times", "_local", "_factory")
+    __slots__ = ('_times', '_local', '_factory')
 
     def __init__(self, enabled=True, trace=False):
         self._times = collections.defaultdict(Stat)
@@ -189,13 +190,13 @@ class StopWatch(object):
             pass
 
         Args:
-          name_or_func: the name or the function to decorate.
+            name_or_func: the name or the function to decorate.
 
         Returns:
-          If a name is passed, returns this as a decorator, otherwise returns the
-          decorated function.
+            If a name is passed, returns this as a decorator, otherwise returns the
+            decorated function.
         """
-        if os.environ.get("SC2_NO_STOPWATCH"):
+        if os.environ.get('SC2_NO_STOPWATCH'):
             return name_or_func if callable(name_or_func) else lambda func: func
 
         def decorator(name, func):
@@ -220,12 +221,12 @@ class StopWatch(object):
 
     def pop(self):
         stack = self._local.stack
-        ret = ".".join(stack)
+        ret = '.'.join(stack)
         stack.pop()
         return ret
 
     def cur_stack(self):
-        return ".".join(self._local.stack)
+        return '.'.join(self._local.stack)
 
     def clear(self):
         self._times.clear()
@@ -252,7 +253,7 @@ class StopWatch(object):
             if line.strip():
                 parts = line.split(None)
                 name = parts[0]
-                if name != "%":  # ie not the header line
+                if name != '%':  # ie not the header line
                     rest = (float(v) for v in parts[2:])
                     stopwatch.times[parts[0]].merge(Stat.build(*rest))
         return stopwatch
@@ -260,31 +261,31 @@ class StopWatch(object):
     def str(self, threshold=0.1):
         """Return a string representation of the timings."""
         if not self._times:
-            return ""
-        total = sum(s.sum for k, s in self._times.items() if "." not in k)
-        table = [["", "% total", "sum", "avg", "dev", "min", "max", "num"]]
+            return ''
+        total = sum(s.sum for k, s in self._times.items() if '.' not in k)
+        table = [['', '% total', 'sum', 'avg', 'dev', 'min', 'max', 'num']]
         for k, v in sorted(self._times.items()):
             percent = 100 * v.sum / (total or 1)
             if percent > threshold:  # ignore anything below the threshold
                 table.append([
                     k,
-                    "%.2f%%" % percent,
-                    "%.4f" % v.sum,
-                    "%.4f" % v.avg,
-                    "%.4f" % v.dev,
-                    "%.4f" % v.min,
-                    "%.4f" % v.max,
-                    "%d" % v.num,
+                    '%.2f%%' % percent,
+                    '%.4f' % v.sum,
+                    '%.4f' % v.avg,
+                    '%.4f' % v.dev,
+                    '%.4f' % v.min,
+                    '%.4f' % v.max,
+                    '%d' % v.num,
                 ])
         col_widths = [max(len(row[i]) for row in table)
                       for i in range(len(table[0]))]
 
-        out = ""
+        out = ''
         for row in table:
-            out += "  " + row[0].ljust(col_widths[0]) + "  "
-            out += "  ".join(
+            out += '  ' + row[0].ljust(col_widths[0]) + '  '
+            out += '  '.join(
                 val.rjust(width) for val, width in zip(row[1:], col_widths[1:]))
-            out += "\n"
+            out += '\n'
         return out
 
     def __str__(self):

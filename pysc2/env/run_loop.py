@@ -46,5 +46,5 @@ def run_loop(agents, env, max_frames=0, max_episodes=0):
         pass
     finally:
         elapsed_time = time.time() - start_time
-        print("Took %.3f seconds for %s steps: %.3f fps" % (
+        print('Took %.3f seconds for %s steps: %.3f fps' % (
             elapsed_time, total_frames, total_frames / elapsed_time))

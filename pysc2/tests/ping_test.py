@@ -27,14 +27,14 @@ class TestPing(utils.TestCase):
         count = 100
 
         with run_configs.get().start(want_rgb=False) as controller:
-            with stopwatch.sw("first"):
+            with stopwatch.sw('first'):
                 controller.ping()
 
             for _ in range(count):
                 controller.ping()
 
-        self.assertEqual(stopwatch.sw["ping"].num, count)
+        self.assertEqual(stopwatch.sw['ping'].num, count)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

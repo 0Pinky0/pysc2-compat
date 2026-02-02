@@ -34,7 +34,7 @@ class TestHostRemoteAgent(utils.TestCase):
         for _ in range(NUM_MATCHES):
             with host_remote_agent.VsBot() as game:
                 game.create_game(
-                    map_name="Simple64",
+                    map_name='Simple64',
                     bot_difficulty=sc_pb.VeryHard,
                     bot_first=bot_first)
                 controller = remote_controller.RemoteController(
@@ -58,7 +58,7 @@ class TestHostRemoteAgent(utils.TestCase):
         parallel = run_parallel.RunParallel()
         for _ in range(NUM_MATCHES):
             with host_remote_agent.VsAgent() as game:
-                game.create_game("Simple64")
+                game.create_game('Simple64')
                 controllers = [
                     remote_controller.RemoteController(  # pylint:disable=g-complex-comprehension
                         host=host,
@@ -88,5 +88,5 @@ class TestHostRemoteAgent(utils.TestCase):
         parallel.shutdown()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

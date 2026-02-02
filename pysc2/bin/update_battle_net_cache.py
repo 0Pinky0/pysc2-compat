@@ -28,10 +28,10 @@ from s2protocol import versions as s2versions
 from pysc2 import run_configs
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("bnet_base", None,
-                    "Path to a Battle.net directory to update.")
+flags.DEFINE_string('bnet_base', None,
+                    'Path to a Battle.net directory to update.')
 
-DEPOT_URL_TEMPLATE = "http://us.depot.battle.net:1119/{hash}.{type}"
+DEPOT_URL_TEMPLATE = 'http://us.depot.battle.net:1119/{hash}.{type}'
 
 
 def mkdirs(*paths):
@@ -41,21 +41,21 @@ def mkdirs(*paths):
 
 
 def test_looks_like_battle_net(path):
-    path = path.rstrip("/").rstrip("\\")
-    if os.path.basename(path) != "Battle.net":
+    path = path.rstrip('/').rstrip('\\')
+    if os.path.basename(path) != 'Battle.net':
         raise ValueError("Doesn't look like a Battle.net cache:", path)
-    if not os.path.isdir(os.path.join(path, "Cache")):
-        raise ValueError("Missing a Cache subdirectory:", path)
+    if not os.path.isdir(os.path.join(path, 'Cache')):
+        raise ValueError('Missing a Cache subdirectory:', path)
 
 
 def replay_paths(paths):
     """A generator yielding the full path to the replays under `replay_dir`."""
     for path in paths:
-        if path.lower().endswith(".sc2replay"):
+        if path.lower().endswith('.sc2replay'):
             yield path
         else:
             for f in os.listdir(path):
-                if f.lower().endswith(".sc2replay"):
+                if f.lower().endswith('.sc2replay'):
                     yield os.path.join(path, f)
 
 
@@ -69,26 +69,26 @@ def update_battle_net_cache(replays, bnet_base):
         try:
             archive = mpyq.MPQArchive(replay_path)
         except ValueError:
-            print("Failed to parse replay:", replay_path)
+            print('Failed to parse replay:', replay_path)
             continue
         extracted = archive.extract()
-        contents = archive.header["user_data_header"]["content"]
+        contents = archive.header['user_data_header']['content']
         header = s2versions.latest().decode_replay_header(contents)
-        base_build = header["m_version"]["m_baseBuild"]
+        base_build = header['m_version']['m_baseBuild']
         prot = s2versions.build(base_build)
 
-        details_bytes = (extracted.get(b"replay.details") or
-                         extracted.get(b"replay.details.backup"))
+        details_bytes = (extracted.get(b'replay.details') or
+                         extracted.get(b'replay.details.backup'))
         details = prot.decode_replay_details(details_bytes)
 
-        for map_handle in details["m_cacheHandles"]:
+        for map_handle in details['m_cacheHandles']:
             # server = map_handle[4:8].decode("utf-8").strip("\x00 ")
-            map_hash = binascii.b2a_hex(map_handle[8:]).decode("utf8")
-            file_type = map_handle[0:4].decode("utf8")
+            map_hash = binascii.b2a_hex(map_handle[8:]).decode('utf8')
+            file_type = map_handle[0:4].decode('utf8')
 
             cache_path = os.path.join(
-                bnet_base, "Cache", map_hash[0:2], map_hash[2:4],
-                "%s.%s" % (map_hash, file_type))
+                bnet_base, 'Cache', map_hash[0:2], map_hash[2:4],
+                '%s.%s' % (map_hash, file_type))
 
             url = DEPOT_URL_TEMPLATE.format(hash=map_hash, type=file_type)
             if not os.path.exists(cache_path) and url not in failed:
@@ -97,7 +97,7 @@ def update_battle_net_cache(replays, bnet_base):
                 try:
                     urllib.request.urlretrieve(url, cache_path)
                 except urllib.error.HTTPError as e:
-                    print("Download failed:", e)
+                    print('Download failed:', e)
                     failed.add(url)
                 else:
                     downloaded += 1
@@ -107,13 +107,13 @@ def update_battle_net_cache(replays, bnet_base):
 def main(argv):
     replays = list(replay_paths(argv[1:]))
     bnet_base = FLAGS.bnet_base or os.path.join(run_configs.get().data_dir,
-                                                "Battle.net")
+                                                'Battle.net')
 
-    print("Updating cache:", bnet_base)
-    print("Checking", len(replays), "replays")
+    print('Updating cache:', bnet_base)
+    print('Checking', len(replays), 'replays')
     downloaded = update_battle_net_cache(replays, bnet_base)
-    print("Downloaded", downloaded, "files")
+    print('Downloaded', downloaded, 'files')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

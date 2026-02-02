@@ -61,51 +61,51 @@ from pysc2.lib import portspicker
 from pysc2.lib import renderer_human
 
 FLAGS = flags.FLAGS
-flags.DEFINE_bool("render", platform.system() == "Linux",
-                  "Whether to render with pygame.")
-flags.DEFINE_bool("realtime", False, "Whether to run in realtime mode.")
+flags.DEFINE_bool('render', platform.system() == 'Linux',
+                  'Whether to render with pygame.')
+flags.DEFINE_bool('realtime', False, 'Whether to run in realtime mode.')
 
-flags.DEFINE_string("agent", "pysc2.agents.random_agent.RandomAgent",
-                    "Which agent to run, as a python path to an Agent class.")
-flags.DEFINE_string("agent_name", None,
-                    "Name of the agent in replays. Defaults to the class name.")
-flags.DEFINE_enum("agent_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_string('agent', 'pysc2.agents.random_agent.RandomAgent',
+                    'Which agent to run, as a python path to an Agent class.')
+flags.DEFINE_string('agent_name', None,
+                    'Name of the agent in replays. Defaults to the class name.')
+flags.DEFINE_enum('agent_race', 'random', sc2_env.Race._member_names_,  # pylint: disable=protected-access
                   "Agent's race.")
 
-flags.DEFINE_float("fps", 22.4, "Frames per second to run the game.")
-flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
+flags.DEFINE_float('fps', 22.4, 'Frames per second to run the game.')
+flags.DEFINE_integer('step_mul', 8, 'Game steps per agent step.')
 
-point_flag.DEFINE_point("feature_screen_size", "84",
-                        "Resolution for screen feature layers.")
-point_flag.DEFINE_point("feature_minimap_size", "64",
-                        "Resolution for minimap feature layers.")
-point_flag.DEFINE_point("rgb_screen_size", "256",
-                        "Resolution for rendered screen.")
-point_flag.DEFINE_point("rgb_minimap_size", "128",
-                        "Resolution for rendered minimap.")
-flags.DEFINE_enum("action_space", "FEATURES",
+point_flag.DEFINE_point('feature_screen_size', '84',
+                        'Resolution for screen feature layers.')
+point_flag.DEFINE_point('feature_minimap_size', '64',
+                        'Resolution for minimap feature layers.')
+point_flag.DEFINE_point('rgb_screen_size', '256',
+                        'Resolution for rendered screen.')
+point_flag.DEFINE_point('rgb_minimap_size', '128',
+                        'Resolution for rendered minimap.')
+flags.DEFINE_enum('action_space', 'FEATURES',
                   sc2_env.ActionSpace._member_names_,  # pylint: disable=protected-access
-                  "Which action space to use. Needed if you take both feature "
-                  "and rgb observations.")
-flags.DEFINE_bool("use_feature_units", False,
-                  "Whether to include feature units.")
+                  'Which action space to use. Needed if you take both feature '
+                  'and rgb observations.')
+flags.DEFINE_bool('use_feature_units', False,
+                  'Whether to include feature units.')
 
-flags.DEFINE_string("user_name", getpass.getuser(),
-                    "Name of the human player for replays.")
-flags.DEFINE_enum("user_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_string('user_name', getpass.getuser(),
+                    'Name of the human player for replays.')
+flags.DEFINE_enum('user_race', 'random', sc2_env.Race._member_names_,  # pylint: disable=protected-access
                   "User's race.")
 
-flags.DEFINE_string("host", "127.0.0.1", "Game Host")
-flags.DEFINE_integer("host_port", None, "Host port")
-flags.DEFINE_integer("lan_port", None, "Host port")
+flags.DEFINE_string('host', '127.0.0.1', 'Game Host')
+flags.DEFINE_integer('host_port', None, 'Host port')
+flags.DEFINE_integer('lan_port', None, 'Host port')
 
-flags.DEFINE_string("map", None, "Name of a map to use to play.")
+flags.DEFINE_string('map', None, 'Name of a map to use to play.')
 
-flags.DEFINE_bool("human", False, "Whether to host a game as a human.")
+flags.DEFINE_bool('human', False, 'Whether to host a game as a human.')
 
-flags.DEFINE_integer("timeout_seconds", 300,
-                     "Time in seconds for the remote agent to connect to the "
-                     "game before an exception is raised.")
+flags.DEFINE_integer('timeout_seconds', 300,
+                     'Time in seconds for the remote agent to connect to the '
+                     'game before an exception is raised.')
 
 
 def main(unused_argv):
@@ -117,10 +117,10 @@ def main(unused_argv):
 
 def agent():
     """Run the agent, connecting to a (remote) host started independently."""
-    agent_module, agent_name = FLAGS.agent.rsplit(".", 1)
+    agent_module, agent_name = FLAGS.agent.rsplit('.', 1)
     agent_cls = getattr(importlib.import_module(agent_module), agent_name)
 
-    logging.info("Starting agent:")
+    logging.info('Starting agent:')
     with remote_sc2_env.RemoteSC2Env(
             map_name=FLAGS.map,
             host=FLAGS.host,
@@ -138,12 +138,12 @@ def agent():
                 use_feature_units=FLAGS.use_feature_units),
             visualize=FLAGS.render) as env:
         agents = [agent_cls()]
-        logging.info("Connected, starting run_loop.")
+        logging.info('Connected, starting run_loop.')
         try:
             run_loop.run_loop(agents, env)
         except remote_sc2_env.RestartError:
             pass
-    logging.info("Done.")
+    logging.info('Done.')
 
 
 def human():
@@ -153,8 +153,8 @@ def human():
     map_inst = maps.get(FLAGS.map)
 
     if not FLAGS.rgb_screen_size or not FLAGS.rgb_minimap_size:
-        logging.info("Use --rgb_screen_size and --rgb_minimap_size if you want rgb "
-                     "observations.")
+        logging.info('Use --rgb_screen_size and --rgb_minimap_size if you want rgb '
+                     'observations.')
 
     ports = portspicker.pick_contiguous_unused_ports(4)  # 2 * num_players
     host_proc = run_config.start(extra_ports=ports, host=FLAGS.host,
@@ -172,10 +172,10 @@ def human():
     controller.save_map(map_inst.path, map_inst.data(run_config))
     controller.create_game(create)
 
-    print("-" * 80)
-    print("Join host: agent_remote --map %s --host %s --host_port %s "
-          "--lan_port %s" % (FLAGS.map, FLAGS.host, client_proc.port, ports[0]))
-    print("-" * 80)
+    print('-' * 80)
+    print('Join host: agent_remote --map %s --host %s --host_port %s '
+          '--lan_port %s' % (FLAGS.map, FLAGS.host, client_proc.port, ports[0]))
+    print('-' * 80)
     sys.stdout.flush()
 
     join = sc_pb.RequestJoinGame()
@@ -227,5 +227,5 @@ def entry_point():  # Needed so setup.py scripts work.
     app.run(main)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

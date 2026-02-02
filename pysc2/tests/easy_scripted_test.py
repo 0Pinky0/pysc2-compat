@@ -28,7 +28,7 @@ class TestEasy(utils.TestCase):
 
     def test_move_to_beacon(self):
         with sc2_env.SC2Env(
-                map_name="MoveToBeacon",
+                map_name='MoveToBeacon',
                 players=[sc2_env.Agent(sc2_env.Race.terran)],
                 agent_interface_format=sc2_env.AgentInterfaceFormat(
                     feature_dimensions=sc2_env.Dimensions(
@@ -45,7 +45,7 @@ class TestEasy(utils.TestCase):
 
     def test_collect_mineral_shards(self):
         with sc2_env.SC2Env(
-                map_name="CollectMineralShards",
+                map_name='CollectMineralShards',
                 players=[sc2_env.Agent(sc2_env.Race.terran)],
                 agent_interface_format=sc2_env.AgentInterfaceFormat(
                     feature_dimensions=sc2_env.Dimensions(
@@ -62,7 +62,7 @@ class TestEasy(utils.TestCase):
 
     def test_collect_mineral_shards_feature_units(self):
         with sc2_env.SC2Env(
-                map_name="CollectMineralShards",
+                map_name='CollectMineralShards',
                 players=[sc2_env.Agent(sc2_env.Race.terran)],
                 agent_interface_format=sc2_env.AgentInterfaceFormat(
                     feature_dimensions=sc2_env.Dimensions(
@@ -80,7 +80,7 @@ class TestEasy(utils.TestCase):
 
     def test_collect_mineral_shards_raw(self):
         with sc2_env.SC2Env(
-                map_name="CollectMineralShards",
+                map_name='CollectMineralShards',
                 players=[sc2_env.Agent(sc2_env.Race.terran)],
                 agent_interface_format=sc2_env.AgentInterfaceFormat(
                     action_space=sc2_env.ActionSpace.RAW,  # or: use_raw_actions=True,
@@ -96,7 +96,7 @@ class TestEasy(utils.TestCase):
 
     def test_defeat_roaches(self):
         with sc2_env.SC2Env(
-                map_name="DefeatRoaches",
+                map_name='DefeatRoaches',
                 players=[sc2_env.Agent(sc2_env.Race.terran)],
                 agent_interface_format=sc2_env.AgentInterfaceFormat(
                     feature_dimensions=sc2_env.Dimensions(
@@ -113,7 +113,7 @@ class TestEasy(utils.TestCase):
 
     def test_defeat_roaches_raw(self):
         with sc2_env.SC2Env(
-                map_name="DefeatRoaches",
+                map_name='DefeatRoaches',
                 players=[sc2_env.Agent(sc2_env.Race.terran)],
                 agent_interface_format=sc2_env.AgentInterfaceFormat(
                     action_space=sc2_env.ActionSpace.RAW,  # or: use_raw_actions=True,
@@ -128,5 +128,5 @@ class TestEasy(utils.TestCase):
         self.assertEqual(agent.steps, self.steps)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

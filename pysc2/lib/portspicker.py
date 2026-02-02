@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""portpicker for multiple ports."""
+"""Portpicker for multiple ports."""
 
 import portpicker
 import time
@@ -24,7 +24,7 @@ _contiguous_ports = set()
 def pick_unused_ports(num_ports, retry_interval_secs=1, retry_attempts=5):
     """Reserves and returns a list of `num_ports` unused ports."""
     if num_ports <= 0:
-        raise ValueError("Number of ports, must be >= 1, got: %s" % num_ports)
+        raise ValueError('Number of ports, must be >= 1, got: %s' % num_ports)
     ports = set()
     for _ in range(retry_attempts):
         ports.update(
@@ -39,7 +39,7 @@ def pick_unused_ports(num_ports, retry_interval_secs=1, retry_attempts=5):
     # Could not obtain enough ports. Release what we do have.
     return_ports(ports)
 
-    raise RuntimeError("Unable to obtain %d unused ports." % num_ports)
+    raise RuntimeError('Unable to obtain %d unused ports.' % num_ports)
 
 
 def pick_contiguous_unused_ports(
@@ -48,7 +48,7 @@ def pick_contiguous_unused_ports(
         retry_attempts=5):
     """Reserves and returns a list of `num_ports` contiguous unused ports."""
     if num_ports <= 0:
-        raise ValueError("Number of ports, must be >= 1, got: %s" % num_ports)
+        raise ValueError('Number of ports, must be >= 1, got: %s' % num_ports)
     for _ in range(retry_attempts):
         start_port = portpicker.pick_unused_port()
         if start_port is not None:
@@ -61,7 +61,7 @@ def pick_contiguous_unused_ports(
 
         time.sleep(retry_interval_secs)
 
-    raise RuntimeError("Unable to obtain %d contiguous unused ports." % num_ports)
+    raise RuntimeError('Unable to obtain %d contiguous unused ports.' % num_ports)
 
 
 def return_ports(ports):

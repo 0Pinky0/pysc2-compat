@@ -13,9 +13,9 @@
 # limitations under the License.
 """PySC2 environment converter.
 
-This is a thin wrapper around the pybind implementation, supporting dm specs
-and numpy arrays in place of dm_env_rpc protos; also supports documentation
-more naturally.
+This is a thin wrapper around the pybind implementation, supporting dm
+specs and numpy arrays in place of dm_env_rpc protos; also supports
+documentation more naturally.
 """
 
 from dm_env import specs
@@ -56,8 +56,9 @@ class Converter:
     def observation_spec(self) -> Mapping[str, specs.Array]:
         """Returns the observation spec.
 
-        This is a flat mapping of string label to dm_env array spec and varies
-        with the specified converter settings and instantiated environment info.
+        This is a flat mapping of string label to dm_env array spec and
+        varies with the specified converter settings and instantiated
+        environment info.
         """
         spec = {}
         for k, v in self._converter.ObservationSpec().items():
@@ -69,8 +70,9 @@ class Converter:
     def action_spec(self) -> Mapping[str, specs.Array]:
         """Returns the action spec.
 
-        This is a flat mapping of string label to dm_env array spec and varies
-        with the specified converter settings and instantiated environment info.
+        This is a flat mapping of string label to dm_env array spec and
+        varies with the specified converter settings and instantiated
+        environment info.
         """
         spec = {}
         for k, v in self._converter.ActionSpec().items():
@@ -84,14 +86,14 @@ class Converter:
         """Converts a SC2 API observation, enriching it with additional info.
 
         Args:
-          observation: Proto containing the SC2 API observation proto for the
-            player, and potentially for his opponent. When operating in supervised
-            mode must also contain the action taken by the player in response to
-            this observation.
+            observation: Proto containing the SC2 API observation proto for the
+                player, and potentially for his opponent. When operating in supervised
+                mode must also contain the action taken by the player in response to
+                this observation.
 
         Returns:
-          A flat mapping of string labels to numpy arrays / or scalars, as
-          appropriate.
+            A flat mapping of string labels to numpy arrays / or scalars, as
+            appropriate.
         """
         serialized_converted_obs = self._converter.ConvertObservation(
             observation.SerializeToString())
@@ -115,10 +117,10 @@ class Converter:
         by this player until the next observation.
 
         Args:
-          action: A flat mapping of string labels to numpy arrays / or scalars.
+            action: A flat mapping of string labels to numpy arrays / or scalars.
 
         Returns:
-          An SC2 API action request + game loop delay.
+            An SC2 API action request + game loop delay.
         """
         # TODO(b/210113354): Remove protos serialization over pybind11 boundary.
         serialized_action = {

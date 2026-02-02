@@ -19,12 +19,13 @@ from skvideo import io
 class VideoWriter(io.FFmpegWriter):
     """Write a video based on a numpy array.
 
-    Subclass/wrap FFmpegWriter to make it easy to switch to a different library.
+    Subclass/wrap FFmpegWriter to make it easy to switch to a different
+    library.
     """
 
     def __init__(self, filename, frame_rate):
         super(VideoWriter, self).__init__(
-            filename, outputdict={"-r": str(frame_rate)})
+            filename, outputdict={'-r': str(frame_rate)})
 
     def add(self, frame):
         """Add a frame to the video based on a numpy array."""

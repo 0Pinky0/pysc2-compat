@@ -44,7 +44,7 @@ class TestCase(absltest.TestCase):
         super(TestCase, self).tearDown()
         s = str(stopwatch.sw)
         if s:
-            logging.info("Stop watch profile:\n%s", s)
+            logging.info('Stop watch profile:\n%s', s)
         stopwatch.sw.disable()
 
 
@@ -86,7 +86,8 @@ def only_in_game(func):
 
 
 class GameReplayTestCase(TestCase):
-    """Tests that run through a game, then verify it still works in a replay."""
+    """Tests that run through a game, then verify it still works in a
+    replay."""
 
     @staticmethod
     def setup(**kwargs):
@@ -96,13 +97,13 @@ class GameReplayTestCase(TestCase):
             @functools.wraps(func)
             def _setup(self):  # pylint: disable=missing-docstring
                 def test_in_game():
-                    print((" %s: Starting game " % func.__name__).center(80, "-"))
+                    print((' %s: Starting game ' % func.__name__).center(80, '-'))
                     self.start_game(**kwargs)
                     func(self)
 
                 def test_in_replay():
                     self.start_replay()
-                    print((" %s: Starting replay " % func.__name__).center(80, "-"))
+                    print((' %s: Starting replay ' % func.__name__).center(80, '-'))
                     func(self)
 
                 try:
@@ -120,7 +121,7 @@ class GameReplayTestCase(TestCase):
         self._disable_fog = disable_fog
         run_config = run_configs.get()
         self._parallel = run_parallel.RunParallel()  # Needed for multiplayer.
-        map_inst = maps.get("Flat64")
+        map_inst = maps.get('Flat64')
         self._map_data = map_inst.data(run_config)
 
         self._ports = portspicker.pick_unused_ports(4) if players == 2 else []
@@ -170,7 +171,7 @@ class GameReplayTestCase(TestCase):
             self._info, use_raw_units=True)
 
         self._map_size = point.Point.build(self._info.start_raw.map_size)
-        print("Map size:", self._map_size)
+        print('Map size:', self._map_size)
         self.in_game = True
         self.step()  # Get into the game properly.
 
@@ -192,19 +193,19 @@ class GameReplayTestCase(TestCase):
     def close(self):  # Instead of tearDown.
         """Shut down the SC2 instances."""
         # Don't use parallel since it might be broken by an exception.
-        if hasattr(self, "_controllers") and self._controllers:
+        if hasattr(self, '_controllers') and self._controllers:
             for c in self._controllers:
                 c.quit()
             self._controllers = None
-        if hasattr(self, "_sc2_procs") and self._sc2_procs:
+        if hasattr(self, '_sc2_procs') and self._sc2_procs:
             for p in self._sc2_procs:
                 p.close()
             self._sc2_procs = None
 
-        if hasattr(self, "_ports") and self._ports:
+        if hasattr(self, '_ports') and self._ports:
             portspicker.return_ports(self._ports)
             self._ports = None
-        if hasattr(self, "_parallel") and self._parallel is not None:
+        if hasattr(self, '_parallel') and self._parallel is not None:
             self._parallel.shutdown()
             self._parallel = None
 
@@ -278,16 +279,16 @@ class GameReplayTestCase(TestCase):
     def assert_layers(self, layers, pos, **kwargs):
         for k, v in sorted(kwargs.items()):
             self.assertEqual(layers[k, pos.y, pos.x], v,
-                             msg="%s[%s, %s]: expected: %s, got: %s" % (
+                             msg='%s[%s, %s]: expected: %s, got: %s' % (
                                  k, pos.y, pos.x, v, layers[k, pos.y, pos.x]))
 
     def assert_unit(self, unit, **kwargs):
         self.assertTrue(unit)
         self.assertIsInstance(unit, sc_raw.Unit)
         for k, v in sorted(kwargs.items()):
-            if k == "pos":
+            if k == 'pos':
                 self.assert_point(unit.pos, v)
             else:
                 self.assertEqual(getattr(unit, k), v,
-                                 msg="%s: expected: %s, got: %s\n%s" % (
+                                 msg='%s: expected: %s, got: %s\n%s' % (
                                      k, v, getattr(unit, k), unit))

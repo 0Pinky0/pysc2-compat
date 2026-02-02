@@ -19,7 +19,7 @@ from absl import app
 
 # raw version of:
 # https://github.com/Blizzard/s2client-proto/blob/master/buildinfo/versions.json
-VERSIONS_FILE = "https://raw.githubusercontent.com/Blizzard/s2client-proto/master/buildinfo/versions.json"
+VERSIONS_FILE = 'https://raw.githubusercontent.com/Blizzard/s2client-proto/master/buildinfo/versions.json'
 
 
 def main(argv):
@@ -28,12 +28,12 @@ def main(argv):
     versions = requests.get(VERSIONS_FILE).json()
 
     for v in versions:
-        version_str = v["label"]
-        if version_str.count(".") == 1:
-            version_str += ".0"
+        version_str = v['label']
+        if version_str.count('.') == 1:
+            version_str += '.0'
         print('    Version("%s", %i, "%s", None),' % (
-            version_str, v["base-version"], v["data-hash"]))
+            version_str, v['base-version'], v['data-hash']))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

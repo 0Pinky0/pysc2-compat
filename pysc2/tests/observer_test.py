@@ -27,7 +27,7 @@ class TestObserver(utils.TestCase):
 
     def test_observer(self):
         run_config = run_configs.get()
-        map_inst = maps.get("Simple64")
+        map_inst = maps.get('Simple64')
 
         with run_config.start(want_rgb=False) as controller:
             create = sc_pb.RequestCreateGame(local_map=sc_pb.LocalMap(
@@ -49,15 +49,15 @@ class TestObserver(utils.TestCase):
                 controller.step(16)
                 obs = controller.observe()
                 if obs.player_result:
-                    print("Outcome after %s steps (%0.1f game minutes):" % (
+                    print('Outcome after %s steps (%0.1f game minutes):' % (
                         obs.observation.game_loop, obs.observation.game_loop / (16 * 60)))
                     for r in obs.player_result:
-                        print("Player %s: %s" % (r.player_id, sc_pb.Result.Name(r.result)))
+                        print('Player %s: %s' % (r.player_id, sc_pb.Result.Name(r.result)))
                     outcome = True
                     break
 
             self.assertTrue(outcome)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

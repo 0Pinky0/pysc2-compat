@@ -44,9 +44,9 @@ class MoveToBeacon(base_agent.BaseAgent):
             if not beacon:
                 return FUNCTIONS.no_op()
             beacon_center = numpy.mean(beacon, axis=0).round()
-            return FUNCTIONS.Move_screen("now", beacon_center)
+            return FUNCTIONS.Move_screen('now', beacon_center)
         else:
-            return FUNCTIONS.select_army("select")
+            return FUNCTIONS.select_army('select')
 
 
 class CollectMineralShards(base_agent.BaseAgent):
@@ -63,9 +63,9 @@ class CollectMineralShards(base_agent.BaseAgent):
             marine_xy = numpy.mean(marines, axis=0).round()  # Average location.
             distances = numpy.linalg.norm(numpy.array(minerals) - marine_xy, axis=1)
             closest_mineral_xy = minerals[numpy.argmin(distances)]
-            return FUNCTIONS.Move_screen("now", closest_mineral_xy)
+            return FUNCTIONS.Move_screen('now', closest_mineral_xy)
         else:
-            return FUNCTIONS.select_army("select")
+            return FUNCTIONS.select_army('select')
 
 
 class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
@@ -79,8 +79,8 @@ class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
 
     def setup(self, obs_spec, action_spec):
         super(CollectMineralShardsFeatureUnits, self).setup(obs_spec, action_spec)
-        if "feature_units" not in obs_spec:
-            raise Exception("This agent requires the feature_units observation.")
+        if 'feature_units' not in obs_spec:
+            raise Exception('This agent requires the feature_units observation.')
 
     def reset(self):
         super(CollectMineralShardsFeatureUnits, self).reset()
@@ -100,7 +100,7 @@ class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
         if not marine_unit.is_selected:
             # Nothing selected or the wrong marine is selected.
             self._marine_selected = True
-            return FUNCTIONS.select_point("select", marine_xy)
+            return FUNCTIONS.select_point('select', marine_xy)
 
         if FUNCTIONS.Move_screen.id in obs.observation.available_actions:
             # Find and move to the nearest mineral.
@@ -120,7 +120,7 @@ class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
                 # Swap to the other marine.
                 self._marine_selected = False
                 self._previous_mineral_xy = closest_mineral_xy
-                return FUNCTIONS.Move_screen("now", closest_mineral_xy)
+                return FUNCTIONS.Move_screen('now', closest_mineral_xy)
 
         return FUNCTIONS.no_op()
 
@@ -135,8 +135,8 @@ class CollectMineralShardsRaw(base_agent.BaseAgent):
 
     def setup(self, obs_spec, action_spec):
         super(CollectMineralShardsRaw, self).setup(obs_spec, action_spec)
-        if "raw_units" not in obs_spec:
-            raise Exception("This agent requires the raw_units observation.")
+        if 'raw_units' not in obs_spec:
+            raise Exception('This agent requires the raw_units observation.')
 
     def reset(self):
         super(CollectMineralShardsRaw, self).reset()
@@ -167,7 +167,7 @@ class CollectMineralShardsRaw(base_agent.BaseAgent):
 
             self._last_marine = marine_unit.tag
             self._previous_mineral_xy = closest_mineral_xy
-            return RAW_FUNCTIONS.Move_pt("now", marine_unit.tag, closest_mineral_xy)
+            return RAW_FUNCTIONS.Move_pt('now', marine_unit.tag, closest_mineral_xy)
 
         return RAW_FUNCTIONS.no_op()
 
@@ -185,10 +185,10 @@ class DefeatRoaches(base_agent.BaseAgent):
 
             # Find the roach with max y coord.
             target = roaches[numpy.argmax(numpy.array(roaches)[:, 1])]
-            return FUNCTIONS.Attack_screen("now", target)
+            return FUNCTIONS.Attack_screen('now', target)
 
         if FUNCTIONS.select_army.id in obs.observation.available_actions:
-            return FUNCTIONS.select_army("select")
+            return FUNCTIONS.select_army('select')
 
         return FUNCTIONS.no_op()
 
@@ -198,8 +198,8 @@ class DefeatRoachesRaw(base_agent.BaseAgent):
 
     def setup(self, obs_spec, action_spec):
         super(DefeatRoachesRaw, self).setup(obs_spec, action_spec)
-        if "raw_units" not in obs_spec:
-            raise Exception("This agent requires the raw_units observation.")
+        if 'raw_units' not in obs_spec:
+            raise Exception('This agent requires the raw_units observation.')
 
     def step(self, obs):
         super(DefeatRoachesRaw, self).step(obs)
@@ -211,6 +211,6 @@ class DefeatRoachesRaw(base_agent.BaseAgent):
         if marines and roaches:
             # Find the roach with max y coord.
             target = sorted(roaches, key=lambda r: r.y)[0].tag
-            return RAW_FUNCTIONS.Attack_unit("now", marines, target)
+            return RAW_FUNCTIONS.Attack_unit('now', marines, target)
 
         return FUNCTIONS.no_op()

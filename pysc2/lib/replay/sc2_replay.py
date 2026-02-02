@@ -36,7 +36,8 @@ def _convert_all_to_str(structure):
 
 
 class SC2Replay(object):
-    """Helper class for loading and extracting data using s2protocol library."""
+    """Helper class for loading and extracting data using s2protocol
+    library."""
 
     def __init__(self, replay_data):
         """Construct SC2Replay helper for extracting data from a replay."""
@@ -44,9 +45,9 @@ class SC2Replay(object):
          self._protocol) = _extract(replay_data)
 
     def details(self):
-        details_key = b"replay.details"
+        details_key = b'replay.details'
         if details_key not in self._extracted:
-            details_key = b"replay.details.backup"
+            details_key = b'replay.details.backup'
 
         return _convert_all_to_str(
             self._protocol.decode_replay_details(self._extracted[details_key]))
@@ -54,13 +55,13 @@ class SC2Replay(object):
     def init_data(self):
         return _convert_all_to_str(
             self._protocol.decode_replay_initdata(
-                self._extracted[b"replay.initData"]))
+                self._extracted[b'replay.initData']))
 
     def tracker_events(self, filter_fn=None):
         """Yield tracker events from the replay in s2protocol format."""
         for event in _convert_all_to_str(
                 self._protocol.decode_replay_tracker_events(
-                    self._extracted[b"replay.tracker.events"])):
+                    self._extracted[b'replay.tracker.events'])):
             if not filter_fn or filter_fn(event):
                 yield event
 
@@ -68,7 +69,7 @@ class SC2Replay(object):
         """Yield game events from the replay in s2protocol format."""
         for event in _convert_all_to_str(
                 self._protocol.decode_replay_game_events(
-                    self._extracted[b"replay.game.events"])):
+                    self._extracted[b'replay.game.events'])):
             if not filter_fn or filter_fn(event):
                 yield event
 
@@ -76,7 +77,7 @@ class SC2Replay(object):
         """Yield message events from the replay in s2protocol format."""
         for event in _convert_all_to_str(
                 self._protocol.decode_replay_message_events(
-                    self._extracted[b"replay.message.events"])):
+                    self._extracted[b'replay.message.events'])):
             if not filter_fn or filter_fn(event):
                 yield event
 
@@ -84,7 +85,7 @@ class SC2Replay(object):
         """Yield attribute events from the replay in s2protocol format."""
         for event in _convert_all_to_str(
                 self._protocol.decode_replay_attributes_events(
-                    self._extracted[b"replay.attributes.events"])):
+                    self._extracted[b'replay.attributes.events'])):
             if not filter_fn or filter_fn(event):
                 yield event
 
@@ -105,11 +106,11 @@ def _extract(contents):
     archive = mpyq.MPQArchive(replay_io)
     extracted = archive.extract()
     metadata = json.loads(
-        bytes.decode(extracted[b"replay.gamemetadata.json"], "utf-8"))
-    contents = archive.header["user_data_header"]["content"]
+        bytes.decode(extracted[b'replay.gamemetadata.json'], 'utf-8'))
+    contents = archive.header['user_data_header']['content']
     header = s2versions.latest().decode_replay_header(contents)
-    base_build = header["m_version"]["m_baseBuild"]
+    base_build = header['m_version']['m_baseBuild']
     protocol = s2versions.build(base_build)
     if protocol is None:
-        raise ValueError("Could not load protocol {} for replay".format(base_build))
+        raise ValueError('Could not load protocol {} for replay'.format(base_build))
     return header, metadata, extracted, protocol

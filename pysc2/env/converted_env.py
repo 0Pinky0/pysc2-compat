@@ -75,10 +75,10 @@ class ConvertedEnvironment(dm_env.Environment):
         """Initializes the environment.
 
         Args:
-          env: The underlying environment which is being converted.
-          converter_factories: One for each agent player in the game.
-          allow_out_of_turn_actions: Whether to allow agents to act when it's not
-            their turns. Used for testing.
+            env: The underlying environment which is being converted.
+            converter_factories: One for each agent player in the game.
+            allow_out_of_turn_actions: Whether to allow agents to act when it's not
+                their turns. Used for testing.
         """
         self._env = env
         self._num_players = len(converter_factories)
@@ -187,7 +187,8 @@ class ConvertedEnvironment(dm_env.Environment):
 
 
 class _Stream(dm_env.Environment):
-    """A stream for a single player interacting with a multiplayer environment."""
+    """A stream for a single player interacting with a multiplayer
+    environment."""
 
     def __init__(self, player: int, environment: '_StreamedEnvironment'):
         self._player = player
@@ -213,7 +214,8 @@ class _Stream(dm_env.Environment):
 
 
 class _StreamedEnvironment:
-    """Env presenting ConvertedEnvironment as multiple single player streams."""
+    """Env presenting ConvertedEnvironment as multiple single player
+    streams."""
 
     def __init__(self, underlying_env: ConvertedEnvironment):
         if not 1 <= underlying_env.num_players() <= 2:
@@ -295,11 +297,11 @@ def make_streams(converted_environment: ConvertedEnvironment):
     raised.
 
     Args:
-      converted_environment: A converted environment configured for 1 or 2
-        players.
+        converted_environment: A converted environment configured for 1 or 2
+            players.
 
     Returns:
-      A dm_env.Environment for each player.
+        A dm_env.Environment for each player.
     """
     environment = _StreamedEnvironment(converted_environment)
     return [
@@ -311,9 +313,10 @@ def make_streams(converted_environment: ConvertedEnvironment):
 def _dummy_game_info() -> sc2api_pb2.ResponseGameInfo:
     """Returns a dummy game info object.
 
-    The converter *specs* don't depend on the game info (this is not true for
-    the converted data). So, rather than instantiating the game to have the
-    converter generate specs, we can supply this dummy game info instead.
+    The converter *specs* don't depend on the game info (this is not
+    true for the converted data). So, rather than instantiating the game
+    to have the converter generate specs, we can supply this dummy game
+    info instead.
     """
     return sc2api_pb2.ResponseGameInfo(
         start_raw=raw_pb2.StartRaw(map_size=common_pb2.Size2DI(x=256, y=256)),
@@ -333,10 +336,10 @@ def get_environment_spec(
     """Gets observation and action spec for the specified converter settings.
 
     Args:
-      converter_settings: The converter settings to get specs for.
+        converter_settings: The converter settings to get specs for.
 
     Returns:
-      (observation spec, action spec).
+        (observation spec, action spec).
     """
     env_info = converter_pb2.EnvironmentInfo(game_info=_dummy_game_info())
     cvr = converter_lib.Converter(converter_settings, env_info)

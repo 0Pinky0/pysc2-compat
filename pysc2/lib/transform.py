@@ -70,7 +70,7 @@ class Linear(Transform):
         return (pt - self.offset) / self.scale
 
     def __str__(self):
-        return "Linear(scale=%s, offset=%s)" % (self.scale, self.offset)
+        return 'Linear(scale=%s, offset=%s)' % (self.scale, self.offset)
 
 
 class Chain(Transform):
@@ -100,7 +100,7 @@ class Chain(Transform):
         return pt
 
     def __str__(self):
-        return "Chain(%s)" % (self.transforms,)
+        return 'Chain(%s)' % (self.transforms,)
 
 
 class PixelToCoord(Transform):
@@ -119,4 +119,4 @@ class PixelToCoord(Transform):
         return pt.floor() + 0.5
 
     def __str__(self):
-        return "PixelToCoord()"
+        return 'PixelToCoord()'

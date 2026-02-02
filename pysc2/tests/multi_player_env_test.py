@@ -29,19 +29,19 @@ from pysc2.tests import utils
 class TestMultiplayerEnv(parameterized.TestCase, utils.TestCase):
 
     @parameterized.named_parameters(
-        ("features",
+        ('features',
          sc2_env.AgentInterfaceFormat(
              feature_dimensions=sc2_env.Dimensions(screen=84, minimap=64))),
-        ("rgb",
+        ('rgb',
          sc2_env.AgentInterfaceFormat(
              rgb_dimensions=sc2_env.Dimensions(screen=84, minimap=64))),
-        ("features_and_rgb", [
+        ('features_and_rgb', [
             sc2_env.AgentInterfaceFormat(
                 feature_dimensions=sc2_env.Dimensions(screen=84, minimap=64)),
             sc2_env.AgentInterfaceFormat(
                 rgb_dimensions=sc2_env.Dimensions(screen=128, minimap=32))
         ]),
-        ("passthrough_and_features", [
+        ('passthrough_and_features', [
             sc_pb.InterfaceOptions(
                 raw=True,
                 score=True,
@@ -60,9 +60,9 @@ class TestMultiplayerEnv(parameterized.TestCase, utils.TestCase):
         if not isinstance(agent_interface_format, list):
             agent_interface_format = [agent_interface_format] * players
         with sc2_env.SC2Env(
-                map_name="Simple64",
-                players=[sc2_env.Agent(sc2_env.Race.random, "random"),
-                         sc2_env.Agent(sc2_env.Race.random, "random")],
+                map_name='Simple64',
+                players=[sc2_env.Agent(sc2_env.Race.random, 'random'),
+                         sc2_env.Agent(sc2_env.Race.random, 'random')],
                 step_mul=step_mul,
                 game_steps_per_episode=steps * step_mul // 2,
                 agent_interface_format=agent_interface_format) as env:
@@ -74,5 +74,5 @@ class TestMultiplayerEnv(parameterized.TestCase, utils.TestCase):
             run_loop.run_loop(agents, env, steps)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

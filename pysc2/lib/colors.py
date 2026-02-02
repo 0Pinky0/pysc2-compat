@@ -21,7 +21,7 @@ import random
 from pysc2.lib import static_data
 
 
-class Color(collections.namedtuple("Color", ["r", "g", "b"])):
+class Color(collections.namedtuple('Color', ['r', 'g', 'b'])):
     """A basic Color class."""
     __slots__ = ()
 
@@ -40,7 +40,7 @@ class Color(collections.namedtuple("Color", ["r", "g", "b"])):
                      int(math.ceil(self.b)))
 
     def __str__(self):
-        return "%d,%d,%d" % self
+        return '%d,%d,%d' % self
 
     def __add__(self, o):
         return Color(self.r + o.r, self.g + o.g, self.b + o.b)
@@ -123,7 +123,8 @@ def shuffled_hue(scale):
 
 
 def piece_wise_linear(scale, points):
-    """Create a palette that is piece-wise linear given some colors at points."""
+    """Create a palette that is piece-wise linear given some colors at
+    points."""
     assert len(points) >= 2
     assert points[0][0] == 0
     assert points[-1][0] == 1

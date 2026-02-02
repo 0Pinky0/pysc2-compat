@@ -18,7 +18,7 @@ import math
 import random
 
 
-class Point(collections.namedtuple("Point", ["x", "y"])):
+class Point(collections.namedtuple('Point', ['x', 'y'])):
     """A basic Point class."""
     __slots__ = ()
 
@@ -29,7 +29,8 @@ class Point(collections.namedtuple("Point", ["x", "y"])):
 
     @classmethod
     def unit_rand(cls):
-        """Return a Point with x, y chosen randomly with 0 <= x < 1, 0 <= y < 1."""
+        """Return a Point with x, y chosen randomly with 0 <= x < 1, 0 <= y <
+        1."""
         return cls(random.random(), random.random())
 
     def assign_to(self, obj):
@@ -74,11 +75,13 @@ class Point(collections.namedtuple("Point", ["x", "y"])):
         return self * (target_len / self.len())
 
     def scale_max_size(self, max_size):
-        """Scale this value, keeping aspect ratio, but fitting inside `max_size`."""
+        """Scale this value, keeping aspect ratio, but fitting inside
+        `max_size`."""
         return self * (max_size / self).min_dim()
 
     def scale_min_size(self, min_size):
-        """Scale this value, keeping aspect ratio, but fitting around `min_size`."""
+        """Scale this value, keeping aspect ratio, but fitting around
+        `min_size`."""
         return self * (min_size / self).max_dim()
 
     def min_dim(self):
@@ -112,9 +115,9 @@ class Point(collections.namedtuple("Point", ["x", "y"])):
 
     def __str__(self):
         if all(isinstance(v, int) for v in self):
-            return "%d,%d" % self
+            return '%d,%d' % self
         else:
-            return "%.6f,%.6f" % self
+            return '%.6f,%.6f' % self
 
     def __neg__(self):
         return Point(-self.x, -self.y)
@@ -155,8 +158,11 @@ class Point(collections.namedtuple("Point", ["x", "y"])):
 origin = Point(0, 0)
 
 
-class Rect(collections.namedtuple("Rect", ["t", "l", "b", "r"])):
-    """A basic Rect class. Assumes tl <= br."""
+class Rect(collections.namedtuple('Rect', ['t', 'l', 'b', 'r'])):
+    """A basic Rect class.
+
+    Assumes tl <= br.
+    """
     __slots__ = ()
 
     def __new__(cls, *args):
@@ -165,7 +171,7 @@ class Rect(collections.namedtuple("Rect", ["t", "l", "b", "r"])):
         if len(args) == 2:
             p1, p2 = args
             if not isinstance(p1, Point) or not isinstance(p2, Point):
-                raise TypeError("Rect expected Points")
+                raise TypeError('Rect expected Points')
             return super(Rect, cls).__new__(
                 cls,
                 min(p1.y, p2.y),
@@ -174,17 +180,17 @@ class Rect(collections.namedtuple("Rect", ["t", "l", "b", "r"])):
                 max(p1.x, p2.x))
         if len(args) == 4:
             if args[0] > args[2] or args[1] > args[3]:
-                raise TypeError("Rect requires: t <= b and l <= r")
+                raise TypeError('Rect requires: t <= b and l <= r')
             # TODO(b/117657518): Remove the disable once the pytype bug is fixed.
             return super(Rect, cls).__new__(cls, *args)  # pytype: disable=missing-parameter
         raise TypeError(
-            "Unexpected arguments to Rect. Takes 1 or 2 Points, or 4 coords.")
+            'Unexpected arguments to Rect. Takes 1 or 2 Points, or 4 coords.')
 
     def __str__(self):
         if all(isinstance(v, int) for v in self):
-            return "%d,%d,%d,%d" % self
+            return '%d,%d,%d,%d' % self
         else:
-            return "%.6f,%.6f,%.6f,%.6f" % self
+            return '%.6f,%.6f,%.6f,%.6f' % self
 
     @property
     def center(self):

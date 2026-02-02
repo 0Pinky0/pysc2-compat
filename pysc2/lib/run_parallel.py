@@ -13,8 +13,8 @@
 # limitations under the License.
 """A thread pool for running a set of functions synchronously in parallel.
 
-This is mainly intended for use where the functions have a barrier and none will
-return until all have been called.
+This is mainly intended for use where the functions have a barrier and
+none will return until all have been called.
 """
 
 import functools
@@ -38,13 +38,13 @@ class RunParallel(object):
         including blocking process exit.
 
         Args:
-          funcs: An iterable of functions or iterable of args to functools.partial.
+            funcs: An iterable of functions or iterable of args to functools.partial.
 
         Returns:
-          A list of return values with the values matching the order in funcs.
+            A list of return values with the values matching the order in funcs.
 
         Raises:
-          Propagates the first exception encountered in one of the functions.
+            Propagates the first exception encountered in one of the functions.
         """
         funcs = [f if callable(f) else functools.partial(*f) for f in funcs]
         if len(funcs) == 1:  # Ignore threads if it's not needed.

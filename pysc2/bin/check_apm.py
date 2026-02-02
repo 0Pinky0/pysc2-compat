@@ -57,7 +57,7 @@ class Env(object):
 
     def __init__(self):
         run_config = run_configs.get()
-        map_inst = maps.get("Flat64")
+        map_inst = maps.get('Flat64')
         self._map_path = map_inst.path
         self._map_data = map_inst.data(run_config)
 
@@ -70,9 +70,9 @@ class Env(object):
         self._controller.quit()
         self._sc2_proc.close()
 
-        print(" apm name")
+        print(' apm name')
         for name, info in self._summary:
-            print("%4d %s" % (info.player_info[0].player_apm, name))
+            print('%4d %s' % (info.player_info[0].player_apm, name))
 
     def __enter__(self):
         return self
@@ -164,45 +164,45 @@ def main(unused_argv):
     def random_probe_tag(obs):
         return random.choice(get_units(obs, unit_type=units.Protoss.Probe).keys())
 
-    for i, obs in env.check_apm("no-op"):
+    for i, obs in env.check_apm('no-op'):
         pass
 
-    for i, obs in env.check_apm("fl stop, single probe"):
+    for i, obs in env.check_apm('fl stop, single probe'):
         if i == 0:
-            env.fl_action(obs, "select_point", "select", random_probe_loc(obs))
-        env.fl_action(obs, "Stop_quick", "now")
+            env.fl_action(obs, 'select_point', 'select', random_probe_loc(obs))
+        env.fl_action(obs, 'Stop_quick', 'now')
 
-    for i, obs in env.check_apm("fl smart, single probe, random location"):
+    for i, obs in env.check_apm('fl smart, single probe, random location'):
         if i == 0:
-            env.fl_action(obs, "select_point", "select", random_probe_loc(obs))
-        env.fl_action(obs, "Smart_screen", "now", rand_fl_coord())
+            env.fl_action(obs, 'select_point', 'select', random_probe_loc(obs))
+        env.fl_action(obs, 'Smart_screen', 'now', rand_fl_coord())
 
-    for i, obs in env.check_apm("fl move, single probe, random location"):
+    for i, obs in env.check_apm('fl move, single probe, random location'):
         if i == 0:
-            env.fl_action(obs, "select_point", "select", random_probe_loc(obs))
-        env.fl_action(obs, "Move_screen", "now", rand_fl_coord())
+            env.fl_action(obs, 'select_point', 'select', random_probe_loc(obs))
+        env.fl_action(obs, 'Move_screen', 'now', rand_fl_coord())
 
-    for i, obs in env.check_apm("fl stop, random probe"):
-        env.fl_action(obs, "select_point", "select", random_probe_loc(obs))
-        env.fl_action(obs, "Stop_quick", "now")
+    for i, obs in env.check_apm('fl stop, random probe'):
+        env.fl_action(obs, 'select_point', 'select', random_probe_loc(obs))
+        env.fl_action(obs, 'Stop_quick', 'now')
 
-    for i, obs in env.check_apm("fl move, random probe, random location"):
-        env.fl_action(obs, "select_point", "select", random_probe_loc(obs))
-        env.fl_action(obs, "Move_screen", "now", rand_fl_coord())
+    for i, obs in env.check_apm('fl move, random probe, random location'):
+        env.fl_action(obs, 'select_point', 'select', random_probe_loc(obs))
+        env.fl_action(obs, 'Move_screen', 'now', rand_fl_coord())
 
-    for i, obs in env.check_apm("raw stop, random probe"):
-        env.raw_unit_command("Stop_quick", random_probe_tag(obs))
+    for i, obs in env.check_apm('raw stop, random probe'):
+        env.raw_unit_command('Stop_quick', random_probe_tag(obs))
 
-    for i, obs in env.check_apm("raw move, random probe, random location"):
-        env.raw_unit_command("Move_screen", random_probe_tag(obs),
+    for i, obs in env.check_apm('raw move, random probe, random location'):
+        env.raw_unit_command('Move_screen', random_probe_tag(obs),
                              rand_world_coord())
 
     probe = None
-    for i, obs in env.check_apm("raw move, single probe, random location"):
+    for i, obs in env.check_apm('raw move, single probe, random location'):
         if not probe:
             probe = random_probe_tag(obs)
-        env.raw_unit_command("Move_screen", probe, rand_world_coord())
+        env.raw_unit_command('Move_screen', probe, rand_world_coord())
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

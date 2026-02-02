@@ -25,7 +25,7 @@ class PointParser(flags.ArgumentParser):
     """Parse a flag into a pysc2.lib.point.Point."""
 
     def parse(self, argument):
-        if not argument or argument == "0":
+        if not argument or argument == '0':
             return None
 
         if isinstance(argument, int):
@@ -33,7 +33,7 @@ class PointParser(flags.ArgumentParser):
         elif isinstance(argument, (list, tuple)):
             args = argument
         elif isinstance(argument, str):
-            args = argument.split(",")
+            args = argument.split(',')
         else:
             raise ValueError(
                 "Invalid point: '%r'. Valid: '<int>' or '<int>,<int>'." % argument)
@@ -48,7 +48,7 @@ class PointParser(flags.ArgumentParser):
             "Invalid point: '%s'. Valid: '<int>' or '<int>,<int>'." % argument)
 
     def flag_type(self):
-        return "pysc2.lib.point.Point"
+        return 'pysc2.lib.point.Point'
 
 
 class PointSerializer(flags.ArgumentSerializer):

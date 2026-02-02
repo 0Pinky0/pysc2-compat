@@ -40,10 +40,10 @@ class _TestEnvironment(environment.Base):
     object's attributes.
 
     Attributes:
-      next_timestep: The `environment.TimeStep`s to return on the next call to
+        next_timestep: The `environment.TimeStep`s to return on the next call to
         `step`. When necessary, some fields will be overridden to ensure the
         `step_type` contract.
-      episode_length: if the episode length (number of transitions) exceeds
+        episode_length: if the episode length (number of transitions) exceeds
         `episode_length` on a call to `step`, the `step-type` will be set to
         `environment.StepType.LAST`, forcing an end of episode. This allows a
         stub of a production environment to have end_episodes. Will be ignored if
@@ -58,9 +58,9 @@ class _TestEnvironment(environment.Base):
         to `float('inf')`.
 
         Args:
-          num_agents: The number of agents.
-          observation_spec: The observation specs for each player.
-          action_spec: The action specs for each player.
+            num_agents: The number of agents.
+            observation_spec: The observation specs for each player.
+            action_spec: The action specs for each player.
         """
         self._num_agents = num_agents
         self._observation_spec = observation_spec
@@ -78,12 +78,14 @@ class _TestEnvironment(environment.Base):
         self.episode_length = float('inf')
 
     def reset(self):
-        """Restarts episode and returns `next_observation` with `StepType.FIRST`."""
+        """Restarts episode and returns `next_observation` with
+        `StepType.FIRST`."""
         self._episode_steps = 0
         return self.step([None] * self._num_agents)
 
     def step(self, actions, step_mul=None):
-        """Returns `next_observation` modifying its `step_type` if necessary."""
+        """Returns `next_observation` modifying its `step_type` if
+        necessary."""
         del step_mul  # ignored currently
 
         if len(actions) != self._num_agents:
@@ -177,34 +179,34 @@ class SC2TestEnv(_TestEnvironment):
         """Initializes an SC2TestEnv.
 
         Args:
-          map_name: Map name. Ignored.
-          players: A list of Agent and Bot instances that specify who will play.
-          agent_interface_format: A sequence containing one AgentInterfaceFormat per
-            agent, matching the order of agents specified in the players list. Or
-            a single AgentInterfaceFormat to be used for all agents. Note that
-            InterfaceOptions may be supplied in place of AgentInterfaceFormat, in
-            which case no action or observation processing will be carried out by
-            PySC2. The sc_pb.ResponseObservation proto will be returned as the
-            observation for the agent and passed actions must be instances of
-            sc_pb.Action. This is intended for agents which use custom environment
-            conversion code.
-          discount: Unused.
-          discount_zero_after_timeout: Unused.
-          visualize: Unused.
-          step_mul: Unused.
-          realtime: Not supported by the mock environment, throws if set to true.
-          save_replay_episodes: Unused.
-          replay_dir: Unused.
-          game_steps_per_episode: Unused.
-          score_index: Unused.
-          score_multiplier: Unused.
-          random_seed: Unused.
-          disable_fog: Unused.
-          ensure_available_actions: Whether to throw an exception when an
-            unavailable action is passed to step().
-          version: Unused.
+            map_name: Map name. Ignored.
+            players: A list of Agent and Bot instances that specify who will play.
+            agent_interface_format: A sequence containing one AgentInterfaceFormat per
+                agent, matching the order of agents specified in the players list. Or
+                a single AgentInterfaceFormat to be used for all agents. Note that
+                InterfaceOptions may be supplied in place of AgentInterfaceFormat, in
+                which case no action or observation processing will be carried out by
+                PySC2. The sc_pb.ResponseObservation proto will be returned as the
+                observation for the agent and passed actions must be instances of
+                sc_pb.Action. This is intended for agents which use custom environment
+                conversion code.
+            discount: Unused.
+            discount_zero_after_timeout: Unused.
+            visualize: Unused.
+            step_mul: Unused.
+            realtime: Not supported by the mock environment, throws if set to true.
+            save_replay_episodes: Unused.
+            replay_dir: Unused.
+            game_steps_per_episode: Unused.
+            score_index: Unused.
+            score_multiplier: Unused.
+            random_seed: Unused.
+            disable_fog: Unused.
+            ensure_available_actions: Whether to throw an exception when an
+              unavailable action is passed to step().
+            version: Unused.
         Raises:
-          ValueError: if args are passed.
+            ValueError: if args are passed.
         """
         del map_name  # Unused.
         del discount  # Unused.

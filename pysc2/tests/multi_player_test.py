@@ -29,7 +29,7 @@ from pysc2.tests import utils
 
 
 def print_stage(stage):
-    logging.info((" %s " % stage).center(80, "-"))
+    logging.info((' %s ' % stage).center(80, '-'))
 
 
 class TestMultiplayer(utils.TestCase):
@@ -38,7 +38,7 @@ class TestMultiplayer(utils.TestCase):
         players = 2
         run_config = run_configs.get()
         parallel = run_parallel.RunParallel()
-        map_inst = maps.get("Simple64")
+        map_inst = maps.get('Simple64')
 
         screen_size_px = point.Point(64, 64)
         minimap_size_px = point.Point(32, 32)
@@ -48,10 +48,10 @@ class TestMultiplayer(utils.TestCase):
 
         # Reserve a whole bunch of ports for the weird multiplayer implementation.
         ports = portspicker.pick_unused_ports(players * 2)
-        logging.info("Valid Ports: %s", ports)
+        logging.info('Valid Ports: %s', ports)
 
         # Actually launch the game processes.
-        print_stage("start")
+        print_stage('start')
         sc2_procs = [run_config.start(extra_ports=ports, want_rgb=False)
                      for _ in range(players)]
         controllers = [p.controller for p in sc2_procs]
@@ -59,7 +59,7 @@ class TestMultiplayer(utils.TestCase):
         try:
             # Save the maps so they can access it.
             map_path = os.path.basename(map_inst.path)
-            print_stage("save_map")
+            print_stage('save_map')
             for c in controllers:  # Skip parallel due to a race condition on Windows.
                 c.save_map(map_path, map_inst.data(run_config))
 
@@ -79,12 +79,12 @@ class TestMultiplayer(utils.TestCase):
             # Play a few short games.
             for _ in range(2):  # 2 episodes
                 # Create and Join
-                print_stage("create")
+                print_stage('create')
                 controllers[0].create_game(create)
-                print_stage("join")
+                print_stage('join')
                 parallel.run((c.join_game, join) for c in controllers)
 
-                print_stage("run")
+                print_stage('run')
                 for game_loop in range(1, 10):  # steps per episode
                     # Step the game
                     parallel.run(c.step for c in controllers)
@@ -103,10 +103,10 @@ class TestMultiplayer(utils.TestCase):
                     parallel.run((c.act, a) for c, a in zip(controllers, actions))
 
                 # Done this game.
-                print_stage("leave")
+                print_stage('leave')
                 parallel.run(c.leave for c in controllers)
         finally:
-            print_stage("quit")
+            print_stage('quit')
             # Done, shut down. Don't depend on parallel since it might be broken.
             for c in controllers:
                 c.quit()
@@ -116,5 +116,5 @@ class TestMultiplayer(utils.TestCase):
             parallel.shutdown()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

@@ -65,7 +65,7 @@ class NamedNumpyArray(np.ndarray):
         obj = np.array(values, *args, **kwargs)
 
         if len(obj.shape) == 0:  # pylint: disable=g-explicit-length-test
-            raise ValueError("Scalar arrays are unsupported.")
+            raise ValueError('Scalar arrays are unsupported.')
 
         if len(obj.shape) == 1:
             if obj.shape[0] == 0 and names and names[0] is None:
@@ -82,7 +82,7 @@ class NamedNumpyArray(np.ndarray):
         # Validate names!
         if not isinstance(names, (list, tuple)) or len(names) != len(obj.shape):
             raise ValueError(
-                "Names must be a list of length equal to the array shape: %s != %s." %
+                'Names must be a list of length equal to the array shape: %s != %s.' %
                 (len(names), len(obj.shape)))
         index_names = []
         only_none = obj.shape[0] > 0
@@ -100,23 +100,23 @@ class NamedNumpyArray(np.ndarray):
                     try:
                         o = o._fields
                     except AttributeError:
-                        raise ValueError("Bad names. Must be None, a list of strings, "
-                                         "a namedtuple, or IntEnum.")
+                        raise ValueError('Bad names. Must be None, a list of strings, '
+                                         'a namedtuple, or IntEnum.')
                 elif isinstance(o, (list, tuple)):
                     for n in o:
                         if not isinstance(n, str):
                             raise ValueError(
-                                "Bad name, must be a list of strings, not %s" % type(n))
+                                'Bad name, must be a list of strings, not %s' % type(n))
                 else:
-                    raise ValueError("Bad names. Must be None, a list of strings, "
-                                     "a namedtuple, or IntEnum.")
+                    raise ValueError('Bad names. Must be None, a list of strings, '
+                                     'a namedtuple, or IntEnum.')
                 if obj.shape[i] != len(o):
                     raise ValueError(
-                        "Wrong number of names in dimension %s. Got %s, expected %s." % (
+                        'Wrong number of names in dimension %s. Got %s, expected %s.' % (
                             i, len(o), obj.shape[i]))
                 index_names.append({n: j for j, n in enumerate(o)})
         if only_none:
-            raise ValueError("No names given. Use a normal numpy.ndarray instead.")
+            raise ValueError('No names given. Use a normal numpy.ndarray instead.')
 
         # Finally convert to a NamedNumpyArray.
         obj = obj.view(cls)
@@ -126,16 +126,16 @@ class NamedNumpyArray(np.ndarray):
     def __array_finalize__(self, obj):
         if obj is None:
             return
-        self._index_names = getattr(obj, "_index_names", None)
+        self._index_names = getattr(obj, '_index_names', None)
 
     def __getattr__(self, name):
         try:
             return self[name]
         except KeyError:
-            raise AttributeError("Bad attribute name: %s" % name)
+            raise AttributeError('Bad attribute name: %s' % name)
 
     def __setattr__(self, name, value):
-        if name == "_index_names":  # Need special handling to avoid recursion.
+        if name == '_index_names':  # Need special handling to avoid recursion.
             super(NamedNumpyArray, self).__setattr__(name, value)
         else:
             self.__setitem__(name, value)
@@ -177,8 +177,8 @@ class NamedNumpyArray(np.ndarray):
                     dim += 1
                 elif isinstance(index, (slice, list, np.ndarray)):
                     if isinstance(index, np.ndarray) and len(index.shape) > 1:
-                        raise TypeError("What does it mean to index into a named array by "
-                                        "a multidimensional array? %s" % index)
+                        raise TypeError('What does it mean to index into a named array by '
+                                        'a multidimensional array? %s' % index)
                     # Rebuild the index of names for the various forms of slicing.
                     names = sorted(self._index_names[dim].items(),
                                    key=lambda item: item[1])
@@ -191,7 +191,7 @@ class NamedNumpyArray(np.ndarray):
                     new_names.append(indexed)
                     dim += 1
                 else:
-                    raise TypeError("Unknown index: %s; %s" % (type(index), index))
+                    raise TypeError('Unknown index: %s; %s' % (type(index), index))
             obj._index_names = new_names + self._index_names[dim:]
             if len(obj._index_names) != len(obj.shape):
                 raise IndexError("Names don't match object shape: %s != %s" % (
@@ -216,17 +216,17 @@ class NamedNumpyArray(np.ndarray):
                 dim_names = [n for n, _ in sorted(dim_names.items(),
                                                   key=lambda item: item[1])]
                 if len(dim_names) > 11:
-                    dim_names = dim_names[:5] + ["..."] + dim_names[-5:]
+                    dim_names = dim_names[:5] + ['...'] + dim_names[-5:]
             names.append(dim_names)
         if len(names) == 1:
             names = names[0]
 
         # "NamedNumpyArray([1, 3, 6], dtype=int32)" ->
         # ["NamedNumpyArray", "[1, 3, 6]", ", dtype=int32"]
-        matches = re.findall(r"^(\w+)\(([\d\., \n\[\]]*)(,\s+\w+=.+)?\)$",
+        matches = re.findall(r'^(\w+)\(([\d\., \n\[\]]*)(,\s+\w+=.+)?\)$',
                              np.array_repr(self))[0]
-        space = "\n               " if matches[2] and matches[2][1] == "\n" else ""
-        return "%s(%s,%s %s%s)" % (
+        space = '\n               ' if matches[2] and matches[2][1] == '\n' else ''
+        return '%s(%s,%s %s%s)' % (
             matches[0], matches[1], space, names, matches[2])
 
     def __reduce__(self):

@@ -25,7 +25,7 @@ class TestObservationSpec(utils.TestCase):
 
     def test_observation_matches_obs_spec(self):
         with sc2_env.SC2Env(
-                map_name="Simple64",
+                map_name='Simple64',
                 players=[sc2_env.Agent(sc2_env.Race.random),
                          sc2_env.Bot(sc2_env.Race.random, sc2_env.Difficulty.easy)],
                 agent_interface_format=sc2_env.AgentInterfaceFormat(
@@ -60,7 +60,7 @@ class TestObservationSpec(utils.TestCase):
 
     def test_heterogeneous_observations(self):
         with sc2_env.SC2Env(
-                map_name="Simple64",
+                map_name='Simple64',
                 players=[
                     sc2_env.Agent(sc2_env.Race.random),
                     sc2_env.Agent(sc2_env.Race.random)
@@ -112,11 +112,11 @@ class TestObservationSpec(utils.TestCase):
     def check_observation_matches_spec(self, obs, obs_spec):
         self.assertCountEqual(obs_spec.keys(), obs.keys())
         for k, o in obs.items():
-            if k == "map_name":
+            if k == 'map_name':
                 self.assertIsInstance(o, str)
                 continue
 
-            descr = "%s: spec: %s != obs: %s" % (k, obs_spec[k], o.shape)
+            descr = '%s: spec: %s != obs: %s' % (k, obs_spec[k], o.shape)
 
             if o.shape == (0,):  # Empty tensor can't have a shape.
                 self.assertIn(0, obs_spec[k], descr)
@@ -127,5 +127,5 @@ class TestObservationSpec(utils.TestCase):
                         self.assertEqual(a, b, descr)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

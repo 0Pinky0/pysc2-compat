@@ -23,20 +23,20 @@ from pysc2.lib.replay import sc2_replay
 from pysc2.lib.replay import sc2_replay_utils
 
 FLAGS = flags.FLAGS
-PATH = "pysc2/lib/replay/test_data"
+PATH = 'pysc2/lib/replay/test_data'
 
 
 def _read_replay(name):
     replay_path = resources.GetResourceFilename(os.path.join(PATH, name))
-    with gfile.Open(replay_path, mode="rb") as f:
+    with gfile.Open(replay_path, mode='rb') as f:
         replay_data = f.read()
     return sc2_replay.SC2Replay(replay_data)
 
 
 def _read_skips(name):
     skips_path = resources.GetResourceFilename(os.path.join(PATH, name))
-    with gfile.Open(skips_path, mode="r") as f:
-        return [int(i) for i in f.readlines()[0].split(",")]
+    with gfile.Open(skips_path, mode='r') as f:
+        return [int(i) for i in f.readlines()[0].split(',')]
 
 
 class Sc2ReplayUtilsTest(parameterized.TestCase):
@@ -51,5 +51,5 @@ class Sc2ReplayUtilsTest(parameterized.TestCase):
         self.assertEqual(result[1], skips)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

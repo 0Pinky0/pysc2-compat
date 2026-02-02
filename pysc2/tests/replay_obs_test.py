@@ -14,8 +14,8 @@
 # limitations under the License.
 """Test that a game and replay have equivalent observations and actions.
 
-Here we verify that the observations processed by replays match the original
-observations of the gameplay.
+Here we verify that the observations processed by replays match the
+original observations of the gameplay.
 """
 
 from absl.testing import absltest
@@ -106,7 +106,7 @@ class GameController(object):
         """Constructs the game controller object.
 
         Args:
-          config: Interface configuration options.
+            config: Interface configuration options.
         """
         self._config = config
         self._sc2_proc = None

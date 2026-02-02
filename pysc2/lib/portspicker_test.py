@@ -43,5 +43,5 @@ class PortsTest(parameterized.TestCase):
             portspicker.pick_contiguous_unused_ports(0)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

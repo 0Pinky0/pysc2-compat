@@ -26,19 +26,21 @@ from pysc2.lib import remote_controller
 class VsAgent(object):
     """Host a remote agent vs remote agent game.
 
-    Starts two SC2 processes, one for each of two remote agents to connect to.
-    Call create_game, then have the agents connect to their respective port in
-    host_ports, specifying lan_ports in the join game request.
+    Starts two SC2 processes, one for each of two remote agents to
+    connect to. Call create_game, then have the agents connect to their
+    respective port in host_ports, specifying lan_ports in the join game
+    request.
 
-    Agents should leave the game once it has finished, then another game can
-    be created. Note that failure of either agent to leave prior to creating
-    the next game will lead to SC2 crashing.
+    Agents should leave the game once it has finished, then another game
+    can be created. Note that failure of either agent to leave prior to
+    creating the next game will lead to SC2 crashing.
 
-    Best used as a context manager for simple and timely resource release.
+    Best used as a context manager for simple and timely resource
+    release.
 
-    **NOTE THAT** currently re-connecting to the same SC2 process is flaky.
-    If you experience difficulties the workaround is to only create one game
-    per instantiation of VsAgent.
+    **NOTE THAT** currently re-connecting to the same SC2 process is
+    flaky. If you experience difficulties the workaround is to only
+    create one game per instantiation of VsAgent.
     """
 
     def __init__(self):
@@ -70,7 +72,7 @@ class VsAgent(object):
         """Create a game for the agents to join.
 
         Args:
-          map_name: The map to use.
+            map_name: The map to use.
         """
         self._reconnect()
 
@@ -122,7 +124,8 @@ class VsAgent(object):
 
     @property
     def lan_ports(self):
-        """The LAN ports which the remote agents should specify when joining."""
+        """The LAN ports which the remote agents should specify when
+        joining."""
         return self._lan_ports
 
     def close(self):
@@ -146,18 +149,19 @@ class VsAgent(object):
 class VsBot(object):
     """Host a remote agent vs bot game.
 
-    Starts a single SC2 process. Call create_game, then have the agent connect
-    to host_port.
+    Starts a single SC2 process. Call create_game, then have the agent
+    connect to host_port.
 
-    The agent should leave the game once it has finished, then another game can
-    be created. Note that failure of the agent to leave prior to creating
-    the next game will lead to SC2 crashing.
+    The agent should leave the game once it has finished, then another
+    game can be created. Note that failure of the agent to leave prior
+    to creating the next game will lead to SC2 crashing.
 
-    Best used as a context manager for simple and timely resource release.
+    Best used as a context manager for simple and timely resource
+    release.
 
-    **NOTE THAT** currently re-connecting to the same SC2 process is flaky.
-    If you experience difficulties the workaround is to only create one game
-    per instantiation of VsBot.
+    **NOTE THAT** currently re-connecting to the same SC2 process is
+    flaky. If you experience difficulties the workaround is to only
+    create one game per instantiation of VsBot.
     """
 
     def __init__(self):
@@ -185,10 +189,10 @@ class VsBot(object):
         """Create a game, one remote agent vs the specified bot.
 
         Args:
-          map_name: The map to use.
-          bot_difficulty: The difficulty of the bot to play against.
-          bot_race: The race for the bot.
-          bot_first: Whether the bot should be player 1 (else is player 2).
+            map_name: The map to use.
+            bot_difficulty: The difficulty of the bot to play against.
+            bot_race: The race for the bot.
+            bot_first: Whether the bot should be player 1 (else is player 2).
         """
         self._reconnect()
         self._controller.ping()
@@ -244,7 +248,7 @@ class VsBot(object):
 
     def close(self):
         """Shutdown and free all resources."""
-        if hasattr(self, "_process") and self._process is not None:
+        if hasattr(self, '_process') and self._process is not None:
             try:
                 self._reconnect(timeout_seconds=1)
                 self._controller.quit()

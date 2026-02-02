@@ -53,7 +53,7 @@ class ObsTest(utils.GameReplayTestCase):
         obs = self.observe()
 
         # Create a hallucinated archon.
-        self.raw_unit_command(0, "Hallucination_Archon_quick", tag)
+        self.raw_unit_command(0, 'Hallucination_Archon_quick', tag)
 
         self.step()
         obs = self.observe()
@@ -98,8 +98,8 @@ class ObsTest(utils.GameReplayTestCase):
                          cloak=sc_raw.CloakedAllied)
         self.assertIsNone(p2)
 
-        screen1 = self._features.transform_obs(obs[0])["feature_screen"]
-        screen2 = self._features.transform_obs(obs[1])["feature_screen"]
+        screen1 = self._features.transform_obs(obs[0])['feature_screen']
+        screen2 = self._features.transform_obs(obs[1])['feature_screen']
         dt = utils.xy_locs(screen1.unit_type == units.Protoss.DarkTemplar)[0]
         self.assert_layers(screen1, dt, unit_type=units.Protoss.DarkTemplar,
                            unit_hit_points=40, unit_shields=80, cloaked=1)
@@ -120,8 +120,8 @@ class ObsTest(utils.GameReplayTestCase):
         self.assert_unit(p2, display_type=sc_raw.Visible, health=40, shield=80,
                          cloak=sc_raw.CloakedDetected)
 
-        screen1 = self._features.transform_obs(obs[0])["feature_screen"]
-        screen2 = self._features.transform_obs(obs[1])["feature_screen"]
+        screen1 = self._features.transform_obs(obs[0])['feature_screen']
+        screen2 = self._features.transform_obs(obs[1])['feature_screen']
         dt = utils.xy_locs(screen1.unit_type == units.Protoss.DarkTemplar)[0]
         self.assert_layers(screen1, dt, unit_type=units.Protoss.DarkTemplar,
                            unit_hit_points=40, unit_shields=80, cloaked=1)
@@ -151,8 +151,8 @@ class ObsTest(utils.GameReplayTestCase):
         self.assert_unit(p2, display_type=sc_raw.Hidden, health=0, shield=0,
                          cloak=sc_raw.Cloaked)
 
-        screen1 = self._features.transform_obs(obs[0])["feature_screen"]
-        screen2 = self._features.transform_obs(obs[1])["feature_screen"]
+        screen1 = self._features.transform_obs(obs[0])['feature_screen']
+        screen2 = self._features.transform_obs(obs[1])['feature_screen']
         dt = utils.xy_locs(screen1.unit_type == units.Protoss.DarkTemplar)[0]
         self.assert_layers(screen1, dt, unit_type=units.Protoss.DarkTemplar,
                            unit_hit_points=40, unit_shields=80, cloaked=1)
@@ -173,8 +173,8 @@ class ObsTest(utils.GameReplayTestCase):
         self.assert_unit(p2, display_type=sc_raw.Visible, health=40, shield=80,
                          cloak=sc_raw.CloakedDetected)
 
-        screen1 = self._features.transform_obs(obs[0])["feature_screen"]
-        screen2 = self._features.transform_obs(obs[1])["feature_screen"]
+        screen1 = self._features.transform_obs(obs[0])['feature_screen']
+        screen2 = self._features.transform_obs(obs[1])['feature_screen']
         dt = utils.xy_locs(screen1.unit_type == units.Protoss.DarkTemplar)[0]
         self.assert_layers(screen1, dt, unit_type=units.Protoss.DarkTemplar,
                            unit_hit_points=40, unit_shields=80, cloaked=1)
@@ -198,7 +198,7 @@ class ObsTest(utils.GameReplayTestCase):
         self.assertGreater(archon.radius, observer.radius)
 
         # Move them towards the center, make sure they move.
-        self.raw_unit_command(0, "Move_screen", (archon.tag, observer.tag),
+        self.raw_unit_command(0, 'Move_screen', (archon.tag, observer.tag),
                               (30, 25))
 
         self.step(40)
@@ -279,7 +279,7 @@ class ObsTest(utils.GameReplayTestCase):
         self.step()
         obs = self.observe()
 
-        self.raw_unit_command(0, "Effect_GuardianShield_quick", sentry.tag)
+        self.raw_unit_command(0, 'Effect_GuardianShield_quick', sentry.tag)
 
         self.step(16)
         obs = self.observe()
@@ -315,8 +315,8 @@ class ObsTest(utils.GameReplayTestCase):
         # Should show up on the feature layers too.
         transformed_obs1 = self._features.transform_obs(obs[0])
         transformed_obs2 = self._features.transform_obs(obs[1])
-        screen1 = transformed_obs1["feature_screen"]
-        screen2 = transformed_obs2["feature_screen"]
+        screen1 = transformed_obs1['feature_screen']
+        screen2 = transformed_obs2['feature_screen']
         sentry_pos = utils.xy_locs(screen1.unit_type == units.Protoss.Sentry)[0]
         self.assert_layers(screen1, sentry_pos, unit_type=units.Protoss.Sentry,
                            effects=features.Effects.GuardianShield,
@@ -331,7 +331,7 @@ class ObsTest(utils.GameReplayTestCase):
                            effects=features.Effects.GuardianShield, buffs=0)
 
         # Also in the raw_effects.
-        raw1 = transformed_obs1["raw_effects"]
+        raw1 = transformed_obs1['raw_effects']
         e = get_effect_obs(raw1, features.Effects.GuardianShield)
         self.assertIsNotNone(e)
         # Not located at (30, 30) due to map shape and minimap coords.
@@ -341,7 +341,7 @@ class ObsTest(utils.GameReplayTestCase):
         self.assertEqual(e.owner, 1)
         self.assertGreater(e.radius, 3)
 
-        self.raw_unit_command(1, "Effect_GravitonBeam_screen", pheonix.tag,
+        self.raw_unit_command(1, 'Effect_GravitonBeam_screen', pheonix.tag,
                               target=stalker.tag)
 
         self.step(32)
@@ -383,7 +383,7 @@ class ObsTest(utils.GameReplayTestCase):
             self.assertEmpty(nexus.orders)
 
             # Give it an action.
-            self.raw_unit_command(i, "Train_Probe_quick", nexus.tag)
+            self.raw_unit_command(i, 'Train_Probe_quick', nexus.tag)
 
         # P1 can tell P2's Nexus is idle.
         nexus = utils.get_unit(obs[0], unit_type=units.Protoss.Nexus, owner=2)
@@ -446,7 +446,7 @@ class ObsTest(utils.GameReplayTestCase):
             self.assertEmpty(other.orders)
 
             # Give it an action.
-            self.raw_unit_command(i, "Train_Probe_quick", own.tag)
+            self.raw_unit_command(i, 'Train_Probe_quick', own.tag)
 
         self.step(32)
         obs = self.observe()
@@ -472,7 +472,7 @@ class ObsTest(utils.GameReplayTestCase):
         zealot1 = utils.get_unit(obs1[0], unit_type=units.Protoss.Zealot, owner=1)
         self.assertLen(zealot1.orders, 0)
 
-        self.raw_unit_command(0, "Move_screen", zealot1.tag, (30, 30))
+        self.raw_unit_command(0, 'Move_screen', zealot1.tag, (30, 30))
 
         # If the delay is taken down to 1, remove this first step of verifying the
         # actions length is 0.
@@ -488,10 +488,10 @@ class ObsTest(utils.GameReplayTestCase):
         self.assertLen(obs2[0].action_errors, 0)
         self.assertGreaterEqual(len(obs2[0].actions), 1)
         for action in obs2[0].actions:
-            if action.HasField("action_raw"):
+            if action.HasField('action_raw'):
                 break
         else:
-            self.assertFalse("No raw action found")
+            self.assertFalse('No raw action found')
 
         self.assertEqual(action.game_loop, obs1[0].observation.game_loop + 1)  # pylint: disable=undefined-loop-variable
         unit_command = action.action_raw.unit_command  # pylint: disable=undefined-loop-variable
@@ -509,12 +509,12 @@ class ObsTest(utils.GameReplayTestCase):
     @utils.GameReplayTestCase.setup()
     def test_camera_movement_delay(self):
         obs1 = self.observe()
-        screen1 = self._features.transform_obs(obs1[0])["feature_screen"]
+        screen1 = self._features.transform_obs(obs1[0])['feature_screen']
         nexus1 = utils.xy_locs(screen1.unit_type == units.Protoss.Nexus)
 
         self.step(1)
         obs2 = self.observe()
-        screen2 = self._features.transform_obs(obs2[0])["feature_screen"]
+        screen2 = self._features.transform_obs(obs2[0])['feature_screen']
         nexus2 = utils.xy_locs(screen2.unit_type == units.Protoss.Nexus)
 
         self.assertEqual(nexus1, nexus2)  # Same place.
@@ -525,11 +525,11 @@ class ObsTest(utils.GameReplayTestCase):
         self.step(EXPECTED_ACTION_DELAY + 1)
 
         obs3 = self.observe()
-        screen3 = self._features.transform_obs(obs3[0])["feature_screen"]
+        screen3 = self._features.transform_obs(obs3[0])['feature_screen']
         nexus3 = utils.xy_locs(screen3.unit_type == units.Protoss.Nexus)
 
         self.assertNotEqual(nexus1, nexus3)  # Different location due to camera.
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

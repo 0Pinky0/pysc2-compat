@@ -29,11 +29,11 @@ def _get_replay_version(replay_data):
     replay_io.seek(0)
     archive = mpyq.MPQArchive(replay_io).extract()
     metadata = json.loads(
-        bytes.decode(archive[b"replay.gamemetadata.json"], "utf-8"))
+        bytes.decode(archive[b'replay.gamemetadata.json'], 'utf-8'))
     return run_configs.lib.Version(
-        game_version=".".join(metadata["GameVersion"].split(".")[:-1]),
-        build_version=int(metadata["BaseBuild"][4:]),
-        data_version=metadata.get("DataVersion"),  # Only in replays version 4.1+.
+        game_version='.'.join(metadata['GameVersion'].split('.')[:-1]),
+        build_version=int(metadata['BaseBuild'][4:]),
+        data_version=metadata.get('DataVersion'),  # Only in replays version 4.1+.
         binary=None)
 
 
@@ -73,11 +73,11 @@ class ReplayObservationStream(object):
         """Constructs the replay stream object.
 
         Args:
-          interface_options: Interface format to use.
-          step_mul: Number of skipped observations in between environment steps.
-          disable_fog: Bool, True to disable fog of war.
-          game_steps_per_episode: Int, truncate after this many steps (0 for inf.).
-          add_opponent_observations: Bool, True to return the opponent's
+            interface_options: Interface format to use.
+            step_mul: Number of skipped observations in between environment steps.
+            disable_fog: Bool, True to disable fog of war.
+            game_steps_per_episode: Int, truncate after this many steps (0 for inf.).
+            add_opponent_observations: Bool, True to return the opponent's
               observations in addition to the observing player. Note that this will
               start two SC2 processes simultaneously if set to True. By default is
               False and returns observations from one player's perspective.
@@ -92,10 +92,10 @@ class ReplayObservationStream(object):
         self._player_id = None
 
         if not interface_options:
-            raise ValueError("Please specify interface_options")
+            raise ValueError('Please specify interface_options')
 
         self._interface = interface_options
-        self._want_rgb = self._interface.HasField("render")
+        self._want_rgb = self._interface.HasField('render')
 
         self._run_config = None
         self._sc2_procs = []
@@ -129,13 +129,14 @@ class ReplayObservationStream(object):
         self._sc2_procs = []
 
     def start_replay_from_data(self, replay_data, player_id):
-        """Starts the stream of replay observations from an in-memory replay."""
+        """Starts the stream of replay observations from an in-memory
+        replay."""
         self._player_id = player_id
 
         try:
             version = _get_replay_version(replay_data)
         except (ValueError, AttributeError) as err:
-            logging.exception("Error getting replay version from data: %s", err)
+            logging.exception('Error getting replay version from data: %s', err)
             raise ReplayError(err)
 
         if self._add_opponent_observations:
@@ -151,23 +152,23 @@ class ReplayObservationStream(object):
                     disable_fog=self._disable_fog,
                     observed_player_id=p_id))
 
-        logging.info("Starting replay...")
+        logging.info('Starting replay...')
 
         self._controllers = self._get_controllers(version)
         self._info = info = self._controllers[0].replay_info(replay_data)
-        logging.info(" Replay info ".center(60, "-"))
+        logging.info(' Replay info '.center(60, '-'))
         logging.info(info)
-        logging.info("-" * 60)
+        logging.info('-' * 60)
 
         if (info.local_map_path and
-                info.local_map_path.lower().endswith(".sc2map")):
-            logging.info("Map path: %s", info.local_map_path)
+                info.local_map_path.lower().endswith('.sc2map')):
+            logging.info('Map path: %s', info.local_map_path)
             for start_replay in start_requests:
                 start_replay.map_data = self._run_config.map_data(info.local_map_path)
 
         for controller, start_replay in zip(self._controllers, start_requests):
             controller.start_replay(start_replay)
-        logging.info("Getting started...")
+        logging.info('Getting started...')
 
     def replay_info(self):
         return self._info
@@ -185,17 +186,17 @@ class ReplayObservationStream(object):
         observations, one for each player.
 
         Args:
-          step_sequence: A list of integers, the step sizes to apply to the stream.
+            step_sequence: A list of integers, the step sizes to apply to the stream.
         """
         self._packet_count = 0
         period_start = time.time()
         period = 1000  # log packet rate every 1000 packets
-        logging.info("Begin iterating over frames...")
+        logging.info('Begin iterating over frames...')
 
         while True:
             obs = [controller.observe() for controller in self._controllers]
             if self._packet_count == 0:
-                logging.info("The first packet has been read")
+                logging.info('The first packet has been read')
             self._packet_count += 1
             if len(obs) == 1:
                 yield obs[0]
@@ -223,12 +224,12 @@ class ReplayObservationStream(object):
                 time_taken = time.time() - period_start
                 period_start = time.time()
                 logging.info(
-                    "Frame: %d, packets per sec: %.1f",
+                    'Frame: %d, packets per sec: %.1f',
                     obs[0].observation.game_loop, period / time_taken)
 
     def close(self):
         """Close the replay process connection."""
-        logging.info("Quitting...")
+        logging.info('Quitting...')
         self._close()
 
     def __enter__(self):
@@ -236,6 +237,6 @@ class ReplayObservationStream(object):
 
     def __exit__(self, exception_type, exception_value, traceback):
         if exception_value:
-            logging.error("[%s]: %s", exception_type, exception_value)
+            logging.error('[%s]: %s', exception_type, exception_value)
 
         self.close()

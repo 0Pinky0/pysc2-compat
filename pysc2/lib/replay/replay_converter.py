@@ -40,7 +40,8 @@ def _unconverted_observation(observation, actions):
 
 
 def get_flat_action(obs: Dict[str, Any]) -> Dict[str, Any]:
-    """Extracts action, with components starting action/, from an observation."""
+    """Extracts action, with components starting action/, from an
+    observation."""
     result = {
         k[len('action/'):]: v for k, v in obs.items() if k.startswith('action/')
     }
@@ -66,7 +67,10 @@ def _convert_observation(converter, player_observation, force_action_delay,
 
 def converted_observations(observations_iterator, converter, accept_step_fn,
                            force_action_fn=get_flat_action):
-    """Generator of transformed observations (incl. action and time delay)."""
+    """Generator of transformed observations (incl.
+
+    action and time delay).
+    """
     current_observation = next(observations_iterator)
     current_step = current_observation[0].observation.game_loop
     assert current_step == 0
@@ -141,7 +145,10 @@ def converted_observation_stream(
         converter_settings: converter_pb2.ConverterSettings,
         disable_fog: bool = False,
         max_steps: int = int(1e6)):
-    """Generator of transformed observations (incl. action and time delay)."""
+    """Generator of transformed observations (incl.
+
+    action and time delay).
+    """
 
     with replay_observation_stream.ReplayObservationStream(
             step_mul=1,
@@ -204,7 +211,7 @@ def get_step_sequence(action_skips: Iterable[int]) -> Sequence[int]:
     as it is reported late.
 
     Args:
-      action_skips: A sequence of game loops where actions were taken in the
+        action_skips: A sequence of game loops where actions were taken in the
         replay. This contains the game loops of the observations that happened
         before the action was reported by the replay to align it with the time
         step when the player took the action (replays report past actions). Note
@@ -213,7 +220,7 @@ def get_step_sequence(action_skips: Iterable[int]) -> Sequence[int]:
         interest (e.g., with or without camera moves).
 
     Returns:
-      A sequence of step_muls to use in the replay stream.
+        A sequence of step_muls to use in the replay stream.
     """
     prev_game_loop = 0
     steps = []

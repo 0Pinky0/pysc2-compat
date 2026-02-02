@@ -23,7 +23,7 @@ from pysc2.lib import proto_diff
 
 def image_differencer(path, proto_a, proto_b):
     """proto_diff differencer for PySC2 image data."""
-    if path[-1] == "data" and len(path) >= 2:
+    if path[-1] == 'data' and len(path) >= 2:
         image_data_path = proto_diff.ProtoPath(path[:-1])
         image_data_a = image_data_path.get_field(proto_a)
         if isinstance(image_data_a, common_pb2.ImageData):

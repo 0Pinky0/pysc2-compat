@@ -30,7 +30,7 @@ class TestGeneralActions(utils.TestCase):
     def test_general_actions(self):
         run_config = run_configs.get()
         with run_config.start(want_rgb=False) as controller:
-            map_inst = maps.get("Simple64")
+            map_inst = maps.get('Simple64')
             create = sc_pb.RequestCreateGame(
                 realtime=False, disable_fog=False,
                 local_map=sc_pb.LocalMap(map_path=map_inst.path,
@@ -49,22 +49,22 @@ class TestGeneralActions(utils.TestCase):
 
             for f in actions.FUNCTIONS:
                 if abilities[f.ability_id].remaps_to_ability_id != f.general_id:
-                    errors.append("FUNCTIONS %s/%s has abilitiy %s, general %s, expected "
-                                  "general %s" % (
+                    errors.append('FUNCTIONS %s/%s has abilitiy %s, general %s, expected '
+                                  'general %s' % (
                                       f.id, f.name, f.ability_id, f.general_id,
                                       abilities[f.ability_id].remaps_to_ability_id))
 
             for f in actions.RAW_FUNCTIONS:
                 if abilities[f.ability_id].remaps_to_ability_id != f.general_id:
                     errors.append(
-                        "RAW_FUNCTIONS %s/%s has abilitiy %s, general %s, expected "
-                        "general %s" % (
+                        'RAW_FUNCTIONS %s/%s has abilitiy %s, general %s, expected '
+                        'general %s' % (
                             f.id, f.name, f.ability_id, f.general_id,
                             abilities[f.ability_id].remaps_to_ability_id))
 
-            print("\n".join(errors))
+            print('\n'.join(errors))
             self.assertFalse(errors)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     absltest.main()

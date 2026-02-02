@@ -25,10 +25,10 @@ from pysc2 import run_configs
 from pysc2.lib import replay
 from pysc2.lib import stopwatch
 
-flags.DEFINE_integer("count", 1000, "How many observations to run.")
-flags.DEFINE_integer("step_mul", 16, "How many game steps per observation.")
-flags.DEFINE_string("replay", None, "Which replay to run.")
-flags.DEFINE_string("map", "Catalyst", "Which map to run.")
+flags.DEFINE_integer('count', 1000, 'How many observations to run.')
+flags.DEFINE_integer('step_mul', 16, 'How many game steps per observation.')
+flags.DEFINE_string('replay', None, 'Which replay to run.')
+flags.DEFINE_string('map', 'Catalyst', 'Which map to run.')
 FLAGS = flags.FLAGS
 
 
@@ -62,18 +62,18 @@ def interface_options(score=False, raw=False, features=None, rgb=None,
 
 
 configs = [
-    ("raw", interface_options(raw=True)),
-    ("raw-feat-48", interface_options(raw=True, features=48)),
-    ("raw-feat-128", interface_options(raw=True, features=128)),
-    ("raw-feat-128-48", interface_options(raw=True, features=(128, 48))),
-    ("feat-32", interface_options(features=32)),
-    ("feat-48", interface_options(features=48)),
-    ("feat-72-no-crop", interface_options(features=72, crop=False)),
-    ("feat-72", interface_options(features=72)),
-    ("feat-96", interface_options(features=96)),
-    ("feat-128", interface_options(features=128)),
-    ("rgb-64", interface_options(rgb=64)),
-    ("rgb-128", interface_options(rgb=128)),
+    ('raw', interface_options(raw=True)),
+    ('raw-feat-48', interface_options(raw=True, features=48)),
+    ('raw-feat-128', interface_options(raw=True, features=128)),
+    ('raw-feat-128-48', interface_options(raw=True, features=(128, 48))),
+    ('feat-32', interface_options(features=32)),
+    ('feat-48', interface_options(features=48)),
+    ('feat-72-no-crop', interface_options(features=72, crop=False)),
+    ('feat-72', interface_options(features=72)),
+    ('feat-96', interface_options(features=96)),
+    ('feat-128', interface_options(features=128)),
+    ('rgb-64', interface_options(rgb=64)),
+    ('rgb-128', interface_options(rgb=128)),
 ]
 
 
@@ -83,7 +83,7 @@ def main(unused_argv):
     results = []
     try:
         for config, interface in configs:
-            print((" Starting: %s " % config).center(60, "-"))
+            print((' Starting: %s ' % config).center(60, '-'))
             timeline = []
 
             run_config = run_configs.get()
@@ -107,13 +107,13 @@ def main(unused_argv):
                 join = sc_pb.RequestJoinGame(options=interface, race=sc_common.Protoss)
 
             with run_config.start(
-                    want_rgb=interface.HasField("render")) as controller:
+                    want_rgb=interface.HasField('render')) as controller:
 
                 if FLAGS.replay:
                     info = controller.replay_info(replay_data)
-                    print(" Replay info ".center(60, "-"))
+                    print(' Replay info '.center(60, '-'))
                     print(info)
-                    print("-" * 60)
+                    print('-' * 60)
                     if info.local_map_path:
                         start_replay.map_data = run_config.map_data(info.local_map_path)
                     controller.start_replay(start_replay)
@@ -135,13 +135,13 @@ def main(unused_argv):
 
     names, values = zip(*results)
 
-    print("\n\nTimeline:\n")
-    print(",".join(names))
+    print('\n\nTimeline:\n')
+    print(','.join(names))
     for times in zip(*values):
-        print(",".join("%0.2f" % (t * 1000) for t in times))
+        print(','.join('%0.2f' % (t * 1000) for t in times))
 
     print(stopwatch.sw)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

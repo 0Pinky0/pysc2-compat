@@ -29,39 +29,39 @@ from pysc2.lib import stopwatch
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_bool("diff", False, "Whether to diff the observations.")
-flags.DEFINE_integer("truncate", 0,
-                     "Number of characters to truncate diff values to, or 0 "
-                     "for no truncation.")
+flags.DEFINE_bool('diff', False, 'Whether to diff the observations.')
+flags.DEFINE_integer('truncate', 0,
+                     'Number of characters to truncate diff values to, or 0 '
+                     'for no truncation.')
 
-flags.DEFINE_integer("step_mul", 8, "Game steps per observation.")
-flags.DEFINE_integer("count", 100000, "How many observations to run.")
-flags.DEFINE_string("replay", None, "Name of a replay to show.")
+flags.DEFINE_integer('step_mul', 8, 'Game steps per observation.')
+flags.DEFINE_integer('count', 100000, 'How many observations to run.')
+flags.DEFINE_string('replay', None, 'Name of a replay to show.')
 
 
 def _clear_non_deterministic_fields(obs):
     for unit in obs.observation.raw_data.units:
-        unit.ClearField("tag")
+        unit.ClearField('tag')
         for order in unit.orders:
-            order.ClearField("target_unit_tag")
+            order.ClearField('target_unit_tag')
 
     for action in obs.actions:
-        if action.HasField("action_raw"):
-            if action.action_raw.HasField("unit_command"):
-                action.action_raw.unit_command.ClearField("target_unit_tag")
+        if action.HasField('action_raw'):
+            if action.action_raw.HasField('unit_command'):
+                action.action_raw.unit_command.ClearField('target_unit_tag')
 
 
 def _is_remote(arg):
-    return ":" in arg
+    return ':' in arg
 
 
 def main(argv):
     """Compare the observations from multiple binaries."""
     if len(argv) <= 1:
         sys.exit(
-            "Please specify binaries to run / to connect to. For binaries to run, "
-            "specify the executable name. For remote connections, specify "
-            "<hostname>:<port>. The version must match the replay.")
+            'Please specify binaries to run / to connect to. For binaries to run, '
+            'specify the executable name. For remote connections, specify '
+            '<hostname>:<port>. The version must match the replay.')
 
     targets = argv[1:]
 
@@ -95,9 +95,9 @@ def main(argv):
     for target in targets:
         timer = stopwatch.StopWatch()
         timers.append(timer)
-        with timer("launch"):
+        with timer('launch'):
             if _is_remote(target):
-                host, port = target.split(":")
+                host, port = target.split(':')
                 controllers.append(remote_controller.RemoteController(host, int(port)))
             else:
                 proc = run_configs.get(
@@ -109,25 +109,25 @@ def main(argv):
     diff_paths = collections.Counter()
 
     try:
-        print("-" * 80)
+        print('-' * 80)
         print(controllers[0].replay_info(replay_data))
-        print("-" * 80)
+        print('-' * 80)
 
         for controller, t in zip(controllers, timers):
-            with t("start_replay"):
+            with t('start_replay'):
                 controller.start_replay(start_replay)
 
         # Check the static data.
         static_data = []
         for controller, t in zip(controllers, timers):
-            with t("data"):
+            with t('data'):
                 static_data.append(controller.data_raw())
 
         if FLAGS.diff:
             diffs = {i: proto_diff.compute_diff(static_data[0], d)
                      for i, d in enumerate(static_data[1:], 1)}
             if any(diffs.values()):
-                print(" Diff in static data ".center(80, "-"))
+                print(' Diff in static data '.center(80, '-'))
                 for i, diff in diffs.items():
                     if diff:
                         print(targets[i])
@@ -136,17 +136,17 @@ def main(argv):
                         for path in diff.all_diffs():
                             diff_paths[path.with_anonymous_array_indices()] += 1
             else:
-                print("No diffs in static data.")
+                print('No diffs in static data.')
 
         # Run some steps, checking speed and diffing the observations.
         for _ in range(FLAGS.count):
             for controller, t in zip(controllers, timers):
-                with t("step"):
+                with t('step'):
                     controller.step(FLAGS.step_mul)
 
             obs = []
             for controller, t in zip(controllers, timers):
-                with t("observe"):
+                with t('observe'):
                     obs.append(controller.observe())
 
             if FLAGS.diff:
@@ -156,8 +156,8 @@ def main(argv):
                 diffs = {i: proto_diff.compute_diff(obs[0], o)
                          for i, o in enumerate(obs[1:], 1)}
                 if any(diffs.values()):
-                    print((" Diff on step: %s " %
-                           obs[0].observation.game_loop).center(80, "-"))
+                    print((' Diff on step: %s ' %
+                           obs[0].observation.game_loop).center(80, '-'))
                     for i, diff in diffs.items():
                         if diff:
                             print(targets[i])
@@ -180,21 +180,21 @@ def main(argv):
             p.close()
 
     if FLAGS.diff:
-        print(" Diff Counts by target ".center(80, "-"))
+        print(' Diff Counts by target '.center(80, '-'))
         for target, count in zip(targets, diff_counts):
-            print(" %5d %s" % (count, target))
+            print(' %5d %s' % (count, target))
         print()
 
-        print(" Diff Counts by observation path ".center(80, "-"))
+        print(' Diff Counts by observation path '.center(80, '-'))
         for path, count in diff_paths.most_common(100):
-            print(" %5d %s" % (count, path))
+            print(' %5d %s' % (count, path))
         print()
 
-    print(" Timings ".center(80, "-"))
+    print(' Timings '.center(80, '-'))
     for v, t in zip(targets, timers):
         print(v)
         print(t)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)

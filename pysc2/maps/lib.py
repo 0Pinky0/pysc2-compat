@@ -45,21 +45,21 @@ class Map(object):
     """Base map object to configure a map. To define a map just subclass this.
 
     Attributes:
-      name: The name of the map/class.
-      path: Where to find the map file.
-      directory: Directory for the map
-      filename: Actual filename. You can skip the ".SC2Map" file ending.
-      download: Where to download the map.
-      game_steps_per_episode: Game steps per episode, independent of the step_mul.
+        name: The name of the map/class.
+        path: Where to find the map file.
+        directory: Directory for the map
+        filename: Actual filename. You can skip the ".SC2Map" file ending.
+        download: Where to download the map.
+        game_steps_per_episode: Game steps per episode, independent of the step_mul.
           0 (default) means no limit.
-      step_mul: How many game steps per agent step?
-      score_index: Which score to give for this map. -1 means the win/loss
+        step_mul: How many game steps per agent step?
+        score_index: Which score to give for this map. -1 means the win/loss
           reward. >=0 is the index into score_cumulative.
-      score_multiplier: A score multiplier to allow make small scores good.
-      players: Max number of players for this map.
-      battle_net: The map name on battle.net, if it exists.
+        score_multiplier: A score multiplier to allow make small scores good.
+        players: Max number of players for this map.
+        battle_net: The map name on battle.net, if it exists.
     """
-    directory = ""
+    directory = ''
     filename = None
     download = None
     game_steps_per_episode = 0
@@ -74,8 +74,8 @@ class Map(object):
         """The full path to the map file: directory, filename and file ending."""
         if self.filename:
             map_path = os.path.join(self.directory, self.filename)
-            if not map_path.endswith(".SC2Map"):
-                map_path += ".SC2Map"
+            if not map_path.endswith('.SC2Map'):
+                map_path += '.SC2Map'
             return map_path
 
     def data(self, run_config):
@@ -83,9 +83,9 @@ class Map(object):
         try:
             return run_config.map_data(self.path, self.players)
         except (IOError, OSError) as e:  # Catch both for python 2/3 compatibility.
-            if self.download and hasattr(e, "filename"):
+            if self.download and hasattr(e, 'filename'):
                 logging.error("Error reading map '%s' from: %s", self.name, e.filename)
-                logging.error("Download the map from: %s", self.download)
+                logging.error('Download the map from: %s', self.download)
             raise
 
     @property
@@ -93,13 +93,13 @@ class Map(object):
         return self.__class__.__name__
 
     def __str__(self):
-        return "\n".join(filter(None, [
+        return '\n'.join(filter(None, [
             self.name,
             ("    file: '%s'" % self.path) if self.path else None,
             ("    battle_net: '%s'" % self.battle_net) if self.battle_net else None,
-            "    players: %s, score_index: %s, score_multiplier: %s" % (
+            '    players: %s, score_index: %s, score_multiplier: %s' % (
                 self.players, self.score_index, self.score_multiplier),
-            "    step_mul: %s, game_steps_per_episode: %s" % (
+            '    step_mul: %s, game_steps_per_episode: %s' % (
                 self.step_mul, self.game_steps_per_episode),
         ]))
 
@@ -119,13 +119,16 @@ def get_maps():
         if mp.filename or mp.battle_net:
             map_name = mp.__name__
             if map_name in maps:
-                raise DuplicateMapError("Duplicate map found: " + map_name)
+                raise DuplicateMapError('Duplicate map found: ' + map_name)
             maps[map_name] = mp
     return maps
 
 
 def get(map_name):
-    """Get an instance of a map by name. Errors if the map doesn't exist."""
+    """Get an instance of a map by name.
+
+    Errors if the map doesn't exist.
+    """
     if isinstance(map_name, Map):
         return map_name
 

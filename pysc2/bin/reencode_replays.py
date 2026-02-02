@@ -24,15 +24,15 @@ from pysc2.lib import replay
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("input_dir", None, "Directory of replays to modify.")
-flags.DEFINE_string("output_dir", None, "Where to write them.")
+flags.DEFINE_string('input_dir', None, 'Directory of replays to modify.')
+flags.DEFINE_string('output_dir', None, 'Where to write them.')
 
 
 def main(_):
     run_config = run_configs.get()
 
     replay_list = sorted(run_config.replay_paths(FLAGS.input_dir))
-    print(len(replay_list), "replays found.\n")
+    print(len(replay_list), 'replays found.\n')
 
     version = replay.get_replay_version(run_config.replay_data(replay_list[0]))
     run_config = run_configs.get(version=version)  # Replace the run config.
@@ -42,12 +42,12 @@ def main(_):
             replay_data = run_config.replay_data(replay_path)
             info = controller.replay_info(replay_data)
 
-            print(" Starting replay: ".center(60, "-"))
-            print("Path:", replay_path)
-            print("Size:", len(replay_data), "bytes")
-            print(" Replay info: ".center(60, "-"))
+            print(' Starting replay: '.center(60, '-'))
+            print('Path:', replay_path)
+            print('Size:', len(replay_data), 'bytes')
+            print(' Replay info: '.center(60, '-'))
             print(info)
-            print("-" * 60)
+            print('-' * 60)
 
             start_replay = sc_pb.RequestStartReplay(
                 replay_data=replay_data,
@@ -63,18 +63,18 @@ def main(_):
                 controller.step(1000)
                 obs = controller.observe()
                 if obs.player_result:
-                    print("Stepped", obs.observation.game_loop, "game loops")
+                    print('Stepped', obs.observation.game_loop, 'game loops')
                     break
 
             replay_data = controller.save_replay()
 
             replay_save_loc = os.path.join(FLAGS.output_dir,
                                            os.path.basename(replay_path))
-            with open(replay_save_loc, "wb") as f:
+            with open(replay_save_loc, 'wb') as f:
                 f.write(replay_data)
 
-            print("Wrote replay, ", len(replay_data), " bytes to:", replay_save_loc)
+            print('Wrote replay, ', len(replay_data), ' bytes to:', replay_save_loc)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(main)
