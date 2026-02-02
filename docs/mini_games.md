@@ -10,25 +10,25 @@ is teleported to a random location (at least 5 units away from Marine).
 
 #### Initial State
 
-*   1 Marine at random location (unselected)
-*   1 Beacon at random location (at least 4 units away from Marine)
+* 1 Marine at random location (unselected)
+* 1 Beacon at random location (at least 4 units away from Marine)
 
 #### Rewards
 
-*   Marine reaches Beacon: +1
+* Marine reaches Beacon: +1
 
 #### End Condition
 
-*   Time elapsed
+* Time elapsed
 
 #### Time Limit
 
-*   120 seconds
+* 120 seconds
 
 #### Additional Notes
 
-*   Fog of War disabled
-*   No camera movement required (single-screen)
+* Fog of War disabled
+* No camera movement required (single-screen)
 
 ## CollectMineralShards
 
@@ -42,28 +42,28 @@ spawned at random locations (at least 2 units away from all Marines).
 
 #### Initial State
 
-*   2 Marines at random locations (unselected)
-*   20 Mineral Shards at random locations (at least 2 units away from all
-    Marines)
+* 2 Marines at random locations (unselected)
+* 20 Mineral Shards at random locations (at least 2 units away from all
+  Marines)
 
 #### Rewards
 
-*   Marine collects Mineral Shard: +1
+* Marine collects Mineral Shard: +1
 
 #### End Condition
 
-*   Time elapsed
+* Time elapsed
 
 #### Time Limit
 
-*   120 seconds
+* 120 seconds
 
 #### Additional Notes
 
-*   Fog of War disabled
-*   No camera movement required (single-screen)
-*   This is the only map in the set to require the Liberty (Campaign) mod, which
-    is needed for the Mineral Shard unit.
+* Fog of War disabled
+* No camera movement required (single-screen)
+* This is the only map in the set to require the Liberty (Campaign) mod, which
+  is needed for the Mineral Shard unit.
 
 ## FindAndDefeatZerglings
 
@@ -78,32 +78,32 @@ all other Zerglings).
 
 #### Initial State
 
-*   3 Marines at map center (preselected)
-*   2 Zerglings spawned at random locations inside player's vision range
-    (between 7.5 and 9.5 units away from map center and at least 5 units away
-    from all other Zerglings)
-*   23 Zerglings spawned at random locations outside player's vision range (at
-    least 10.5 units away from map center and at least 5 units away from all
-    other Zerglings)
+* 3 Marines at map center (preselected)
+* 2 Zerglings spawned at random locations inside player's vision range
+  (between 7.5 and 9.5 units away from map center and at least 5 units away
+  from all other Zerglings)
+* 23 Zerglings spawned at random locations outside player's vision range (at
+  least 10.5 units away from map center and at least 5 units away from all
+  other Zerglings)
 
 #### Rewards
 
-*   Zergling defeated: +1
-*   Marine defeated: -1
+* Zergling defeated: +1
+* Marine defeated: -1
 
 #### End Conditions
 
-*   Time elapsed
-*   All Marines defeated
+* Time elapsed
+* All Marines defeated
 
 #### Time Limit
 
-*   180 seconds
+* 180 seconds
 
 #### Additional Notes
 
-*   Fog of War enabled
-*   Camera movement required (map is larger than single-screen)
+* Fog of War enabled
+* Camera movement required (map is larger than single-screen)
 
 ## DefeatRoaches
 
@@ -119,35 +119,35 @@ all unit positions are reset to opposite sides of the map.
 
 #### Initial State
 
-*   9 Marines in a vertical line at a random side of the map (preselected)
-*   4 Roaches in a vertical line at the opposite side of the map from the
-    Marines
+* 9 Marines in a vertical line at a random side of the map (preselected)
+* 4 Roaches in a vertical line at the opposite side of the map from the
+  Marines
 
 #### Rewards
 
-*   Roach defeated: +10
-*   Marine defeated: -1
+* Roach defeated: +10
+* Marine defeated: -1
 
 #### End Conditions
 
-*   Time elapsed
-*   All Marines defeated
+* Time elapsed
+* All Marines defeated
 
 #### Time Limit
 
-*   120 seconds
+* 120 seconds
 
 #### Additional Notes
 
-*   Fog of War disabled
-*   No camera movement required (single-screen)
-*   This map and DefeatZerglingsAndBanelings are currently the only maps in the
-    set that can include an automatic, mid-episode state change for
-    player-controlled units. The Marine units are automatically moved back to a
-    neutral position (at a random side of the map opposite the Roaches) when new
-    units are spawned, which occurs whenever the current set of Roaches is
-    defeated. This is done in order to guarantee that new units do not spawn
-    within combat range of one another.
+* Fog of War disabled
+* No camera movement required (single-screen)
+* This map and DefeatZerglingsAndBanelings are currently the only maps in the
+  set that can include an automatic, mid-episode state change for
+  player-controlled units. The Marine units are automatically moved back to a
+  neutral position (at a random side of the map opposite the Roaches) when new
+  units are spawned, which occurs whenever the current set of Roaches is
+  defeated. This is done in order to guarantee that new units do not spawn
+  within combat range of one another.
 
 ## DefeatZerglingsAndBanelings
 
@@ -163,36 +163,36 @@ are reset to opposite sides of the map.
 
 #### Initial State
 
-*   9 Marines in a vertical line at a random side of the map (preselected)
-*   6 Zerglings and 4 Banelings in a group at the opposite side of the map from
-    the Marines
+* 9 Marines in a vertical line at a random side of the map (preselected)
+* 6 Zerglings and 4 Banelings in a group at the opposite side of the map from
+  the Marines
 
 #### Rewards
 
-*   Zergling defeated: +5
-*   Baneling defeated: +5
-*   Marine defeated: -1
+* Zergling defeated: +5
+* Baneling defeated: +5
+* Marine defeated: -1
 
 #### End Conditions
 
-*   Time elapsed
-*   All Marines defeated
+* Time elapsed
+* All Marines defeated
 
 #### Time Limit
 
-*   120 seconds
+* 120 seconds
 
 #### Additional Notes
 
-*   Fog of War disabled
-*   No camera movement required (single-screen)
-*   This map and DefeatRoaches are currently the only maps in the set that can
-    include an automatic, mid-episode state change for player-controlled units.
-    The Marine units are automatically moved back to a neutral position (at a
-    random side of the map opposite the Roaches) when new units are spawned,
-    which occurs whenever the current set of Zerglings and Banelings is
-    defeated. This is done in order to guarantee that new units do not spawn
-    within combat range of one another.
+* Fog of War disabled
+* No camera movement required (single-screen)
+* This map and DefeatRoaches are currently the only maps in the set that can
+  include an automatic, mid-episode state change for player-controlled units.
+  The Marine units are automatically moved back to a neutral position (at a
+  random side of the map opposite the Roaches) when new units are spawned,
+  which occurs whenever the current set of Zerglings and Banelings is
+  defeated. This is done in order to guarantee that new units do not spawn
+  within combat range of one another.
 
 ## CollectMineralsAndGas
 
@@ -207,11 +207,11 @@ Command Center.
 
 #### Initial State
 
-*   12 SCVs beside the Command Center (unselected)
-*   1 Command Center at a fixed location
-*   16 Mineral Fields at fixed locations
-*   4 Vespene Geysers at fixed locations
-*   Player Resources: 50 Minerals, 0 Vespene, 12/15 Supply
+* 12 SCVs beside the Command Center (unselected)
+* 1 Command Center at a fixed location
+* 16 Mineral Fields at fixed locations
+* 4 Vespene Geysers at fixed locations
+* Player Resources: 50 Minerals, 0 Vespene, 12/15 Supply
 
 #### Rewards
 
@@ -236,10 +236,10 @@ Marines.
 
 #### Initial State
 
-*   12 SCVs beside the Command Center (unselected)
-*   1 Command Center at a fixed location
-*   8 Mineral Fields at fixed locations
-*   Player Resources: 50 Minerals, 0 Vespene, 12/15 Supply
+* 12 SCVs beside the Command Center (unselected)
+* 1 Command Center at a fixed location
+* 8 Mineral Fields at fixed locations
+* Player Resources: 50 Minerals, 0 Vespene, 12/15 Supply
 
 #### Rewards
 
@@ -255,8 +255,8 @@ Time elapsed
 
 #### Additional Notes
 
-*   Fog of War disabled
-*   No camera movement required (single-screen)
-*   This is the only map in the set that explicitly limits the available actions
-    of the units to disallow actions which are not pertinent to the goal of the
-    map. Actions that are not required for building Marines have been removed.
+* Fog of War disabled
+* No camera movement required (single-screen)
+* This is the only map in the set that explicitly limits the available actions
+  of the units to disallow actions which are not pertinent to the goal of the
+  map. Actions that are not required for building Marines have been removed.

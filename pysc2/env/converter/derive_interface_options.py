@@ -14,30 +14,30 @@
 
 """Derives SC2 interface options from converter settings."""
 
-from pysc2.env.converter.proto import converter_pb2
-
 from s2clientprotocol import common_pb2
 from s2clientprotocol import sc2api_pb2
 
+from pysc2.env.converter.proto import converter_pb2
+
 
 def from_settings(settings: converter_pb2.ConverterSettings):
-  """Derives SC2 interface options from converter settings."""
-  if settings.HasField('visual_settings'):
-    resolution = settings.visual_settings.screen
-  else:
-    resolution = common_pb2.Size2DI(x=1, y=1)
+    """Derives SC2 interface options from converter settings."""
+    if settings.HasField('visual_settings'):
+        resolution = settings.visual_settings.screen
+    else:
+        resolution = common_pb2.Size2DI(x=1, y=1)
 
-  return sc2api_pb2.InterfaceOptions(
-      feature_layer=sc2api_pb2.SpatialCameraSetup(
-          width=settings.camera_width_world_units,
-          allow_cheating_layers=False,
-          resolution=resolution,
-          minimap_resolution=settings.minimap,
-          crop_to_playable_area=settings.crop_to_playable_area),
-      raw=settings.HasField('raw_settings'),
-      score=True,
-      raw_affects_selection=True,
-      show_cloaked=True,
-      show_placeholders=True,
-      show_burrowed_shadows=True,
-      raw_crop_to_playable_area=settings.crop_to_playable_area)
+    return sc2api_pb2.InterfaceOptions(
+        feature_layer=sc2api_pb2.SpatialCameraSetup(
+            width=settings.camera_width_world_units,
+            allow_cheating_layers=False,
+            resolution=resolution,
+            minimap_resolution=settings.minimap,
+            crop_to_playable_area=settings.crop_to_playable_area),
+        raw=settings.HasField('raw_settings'),
+        score=True,
+        raw_affects_selection=True,
+        show_cloaked=True,
+        show_placeholders=True,
+        show_burrowed_shadows=True,
+        raw_crop_to_playable_area=settings.crop_to_playable_area)

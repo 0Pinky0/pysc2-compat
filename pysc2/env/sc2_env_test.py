@@ -22,32 +22,32 @@ from pysc2.env import sc2_env
 
 class TestNameCroppingAndDeduplication(parameterized.TestCase):
 
-  @parameterized.named_parameters(
-      ("empty", [], []),
-      ("single_no_crop", ["agent_1"], ["agent_1"]),
-      ("single_cropped",
-       ["very_long_agent_name_experimental_1"],
-       ["very_long_agent_name_experimenta"]),
-      ("no_dupes_no_crop",
-       ["agent_1", "agent_2"],
-       ["agent_1", "agent_2"]),
-      ("no_dupes_cropped",
-       ["a_very_long_agent_name_experimental",
-        "b_very_long_agent_name_experimental"],
-       ["a_very_long_agent_name_experimen",
-        "b_very_long_agent_name_experimen"]),
-      ("dupes_no_crop",
-       ["agent_1", "agent_1"],
-       ["(1) agent_1", "(2) agent_1"]),
-      ("dupes_cropped",
-       ["very_long_agent_name_experimental_c123",
-        "very_long_agent_name_experimental_c456"],
-       ["(1) very_long_agent_name_experim",
-        "(2) very_long_agent_name_experim"]),
-  )
-  def test(self, names, expected_output):
-    self.assertEqual(sc2_env.crop_and_deduplicate_names(names), expected_output)
+    @parameterized.named_parameters(
+        ("empty", [], []),
+        ("single_no_crop", ["agent_1"], ["agent_1"]),
+        ("single_cropped",
+         ["very_long_agent_name_experimental_1"],
+         ["very_long_agent_name_experimenta"]),
+        ("no_dupes_no_crop",
+         ["agent_1", "agent_2"],
+         ["agent_1", "agent_2"]),
+        ("no_dupes_cropped",
+         ["a_very_long_agent_name_experimental",
+          "b_very_long_agent_name_experimental"],
+         ["a_very_long_agent_name_experimen",
+          "b_very_long_agent_name_experimen"]),
+        ("dupes_no_crop",
+         ["agent_1", "agent_1"],
+         ["(1) agent_1", "(2) agent_1"]),
+        ("dupes_cropped",
+         ["very_long_agent_name_experimental_c123",
+          "very_long_agent_name_experimental_c456"],
+         ["(1) very_long_agent_name_experim",
+          "(2) very_long_agent_name_experim"]),
+    )
+    def test(self, names, expected_output):
+        self.assertEqual(sc2_env.crop_and_deduplicate_names(names), expected_output)
 
 
 if __name__ == "__main__":
-  absltest.main()
+    absltest.main()

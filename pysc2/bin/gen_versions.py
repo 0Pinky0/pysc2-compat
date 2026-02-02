@@ -14,8 +14,8 @@
 # limitations under the License.
 """Generate the list of versions for run_configs."""
 
-from absl import app
 import requests
+from absl import app
 
 # raw version of:
 # https://github.com/Blizzard/s2client-proto/blob/master/buildinfo/versions.json
@@ -23,17 +23,17 @@ VERSIONS_FILE = "https://raw.githubusercontent.com/Blizzard/s2client-proto/maste
 
 
 def main(argv):
-  del argv  # Unused.
+    del argv  # Unused.
 
-  versions = requests.get(VERSIONS_FILE).json()
+    versions = requests.get(VERSIONS_FILE).json()
 
-  for v in versions:
-    version_str = v["label"]
-    if version_str.count(".") == 1:
-      version_str += ".0"
-    print('    Version("%s", %i, "%s", None),' % (
-        version_str, v["base-version"], v["data-hash"]))
+    for v in versions:
+        version_str = v["label"]
+        if version_str.count(".") == 1:
+            version_str += ".0"
+        print('    Version("%s", %i, "%s", None),' % (
+            version_str, v["base-version"], v["data-hash"]))
 
 
 if __name__ == "__main__":
-  app.run(main)
+    app.run(main)

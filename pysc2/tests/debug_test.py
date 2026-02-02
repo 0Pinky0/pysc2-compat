@@ -15,84 +15,82 @@
 """Test that the debug commands work."""
 
 from absl.testing import absltest
+from s2clientprotocol import common_pb2 as sc_common
+from s2clientprotocol import debug_pb2 as sc_debug
+from s2clientprotocol import sc2api_pb2 as sc_pb
 
 from pysc2 import maps
 from pysc2 import run_configs
 from pysc2.lib import units
 
-from s2clientprotocol import common_pb2 as sc_common
-from s2clientprotocol import debug_pb2 as sc_debug
-from s2clientprotocol import sc2api_pb2 as sc_pb
-
 
 class DebugTest(absltest.TestCase):
 
-  def test_multi_player(self):
-    run_config = run_configs.get()
-    map_inst = maps.get("Simple64")
+    def test_multi_player(self):
+        run_config = run_configs.get()
+        map_inst = maps.get("Simple64")
 
-    with run_config.start(want_rgb=False) as controller:
+        with run_config.start(want_rgb=False) as controller:
+            create = sc_pb.RequestCreateGame(
+                local_map=sc_pb.LocalMap(
+                    map_path=map_inst.path, map_data=map_inst.data(run_config)))
+            create.player_setup.add(type=sc_pb.Participant)
+            create.player_setup.add(
+                type=sc_pb.Computer,
+                race=sc_common.Terran,
+                difficulty=sc_pb.VeryEasy)
+            join = sc_pb.RequestJoinGame(race=sc_common.Terran,
+                                         options=sc_pb.InterfaceOptions(raw=True))
 
-      create = sc_pb.RequestCreateGame(
-          local_map=sc_pb.LocalMap(
-              map_path=map_inst.path, map_data=map_inst.data(run_config)))
-      create.player_setup.add(type=sc_pb.Participant)
-      create.player_setup.add(
-          type=sc_pb.Computer,
-          race=sc_common.Terran,
-          difficulty=sc_pb.VeryEasy)
-      join = sc_pb.RequestJoinGame(race=sc_common.Terran,
-                                   options=sc_pb.InterfaceOptions(raw=True))
+            controller.create_game(create)
+            controller.join_game(join)
 
-      controller.create_game(create)
-      controller.join_game(join)
+            info = controller.game_info()
+            map_size = info.start_raw.map_size
 
-      info = controller.game_info()
-      map_size = info.start_raw.map_size
+            controller.step(2)
 
-      controller.step(2)
+            obs = controller.observe()
 
-      obs = controller.observe()
+            def get_marines(obs):
+                return {u.tag: u for u in obs.observation.raw_data.units
+                        if u.unit_type == units.Terran.Marine}
 
-      def get_marines(obs):
-        return {u.tag: u for u in obs.observation.raw_data.units
-                if u.unit_type == units.Terran.Marine}
+            self.assertEmpty(get_marines(obs))
 
-      self.assertEmpty(get_marines(obs))
+            controller.debug(sc_debug.DebugCommand(
+                create_unit=sc_debug.DebugCreateUnit(
+                    unit_type=units.Terran.Marine,
+                    owner=1,
+                    pos=sc_common.Point2D(x=map_size.x // 2, y=map_size.y // 2),
+                    quantity=5)))
 
-      controller.debug(sc_debug.DebugCommand(
-          create_unit=sc_debug.DebugCreateUnit(
-              unit_type=units.Terran.Marine,
-              owner=1,
-              pos=sc_common.Point2D(x=map_size.x // 2, y=map_size.y // 2),
-              quantity=5)))
+            controller.step(2)
 
-      controller.step(2)
+            obs = controller.observe()
 
-      obs = controller.observe()
+            marines = get_marines(obs)
+            self.assertLen(marines, 5)
 
-      marines = get_marines(obs)
-      self.assertLen(marines, 5)
+            tags = sorted(marines.keys())
 
-      tags = sorted(marines.keys())
+            controller.debug([
+                sc_debug.DebugCommand(kill_unit=sc_debug.DebugKillUnit(
+                    tag=[tags[0]])),
+                sc_debug.DebugCommand(unit_value=sc_debug.DebugSetUnitValue(
+                    unit_value=sc_debug.DebugSetUnitValue.Life, value=5,
+                    unit_tag=tags[1])),
+            ])
 
-      controller.debug([
-          sc_debug.DebugCommand(kill_unit=sc_debug.DebugKillUnit(
-              tag=[tags[0]])),
-          sc_debug.DebugCommand(unit_value=sc_debug.DebugSetUnitValue(
-              unit_value=sc_debug.DebugSetUnitValue.Life, value=5,
-              unit_tag=tags[1])),
-      ])
+            controller.step(2)
 
-      controller.step(2)
+            obs = controller.observe()
 
-      obs = controller.observe()
-
-      marines = get_marines(obs)
-      self.assertLen(marines, 4)
-      self.assertNotIn(tags[0], marines)
-      self.assertEqual(marines[tags[1]].health, 5)
+            marines = get_marines(obs)
+            self.assertLen(marines, 4)
+            self.assertNotIn(tags[0], marines)
+            self.assertEqual(marines[tags[1]].health, 5)
 
 
 if __name__ == "__main__":
-  absltest.main()
+    absltest.main()

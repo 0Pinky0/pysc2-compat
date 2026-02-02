@@ -17,29 +17,29 @@ from pysc2.env import environment
 
 
 class BaseEnvWrapper(environment.Base):
-  """A base env wrapper so we don't need to override everything every time."""
+    """A base env wrapper so we don't need to override everything every time."""
 
-  def __init__(self, env):
-    self._env = env
+    def __init__(self, env):
+        self._env = env
 
-  def close(self, *args, **kwargs):
-    return self._env.close(*args, **kwargs)
+    def close(self, *args, **kwargs):
+        return self._env.close(*args, **kwargs)
 
-  def action_spec(self, *args, **kwargs):
-    return self._env.action_spec(*args, **kwargs)
+    def action_spec(self, *args, **kwargs):
+        return self._env.action_spec(*args, **kwargs)
 
-  def observation_spec(self, *args, **kwargs):
-    return self._env.observation_spec(*args, **kwargs)
+    def observation_spec(self, *args, **kwargs):
+        return self._env.observation_spec(*args, **kwargs)
 
-  def reset(self, *args, **kwargs):
-    return self._env.reset(*args, **kwargs)
+    def reset(self, *args, **kwargs):
+        return self._env.reset(*args, **kwargs)
 
-  def step(self, *args, **kwargs):
-    return self._env.step(*args, **kwargs)
+    def step(self, *args, **kwargs):
+        return self._env.step(*args, **kwargs)
 
-  def save_replay(self, *args, **kwargs):
-    return self._env.save_replay(*args, **kwargs)
+    def save_replay(self, *args, **kwargs):
+        return self._env.save_replay(*args, **kwargs)
 
-  @property
-  def state(self):
-    return self._env.state
+    @property
+    def state(self):
+        return self._env.state

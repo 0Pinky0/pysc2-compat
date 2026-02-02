@@ -29,7 +29,6 @@ This is a collaboration between DeepMind and Blizzard to develop StarCraft II
 into a rich environment for RL research. PySC2 provides an interface for RL
 agents to interact with StarCraft 2, getting observations and sending actions.
 
-
 We have published an accompanying
 [blogpost](https://deepmind.com/blog/deepmind-and-blizzard-open-starcraft-ii-ai-research-environment/)
 and [paper](https://arxiv.org/abs/1708.04782), which outlines our
@@ -44,7 +43,6 @@ If you use the StarCraft II Machine Learning API and/or PySC2 in your research,
 please cite the [StarCraft II Paper](https://arxiv.org/abs/1708.04782)
 
 You can reach us at [pysc2@deepmind.com](mailto:pysc2@deepmind.com).
-
 
 # Quick Start Guide
 
@@ -64,7 +62,7 @@ dependencies. You may also need to upgrade pip: `pip install --upgrade pip`
 for the `pysc2` install to work. If you're running on an older system you may
 need to install `libsdl` libraries for the `pygame` dependency.
 
-Pip will install a few of the  binaries to your bin directory. `pysc2_play` can
+Pip will install a few of the binaries to your bin directory. `pysc2_play` can
 be used as a shortcut to `python -m pysc2.bin.play`.
 
 ### From Source

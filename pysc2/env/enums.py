@@ -20,31 +20,31 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 
 
 class Race(enum.IntEnum):
-  random = sc_common.Random
-  protoss = sc_common.Protoss
-  terran = sc_common.Terran
-  zerg = sc_common.Zerg
+    random = sc_common.Random
+    protoss = sc_common.Protoss
+    terran = sc_common.Terran
+    zerg = sc_common.Zerg
 
 
 class Difficulty(enum.IntEnum):
-  """Bot difficulties."""
-  very_easy = sc_pb.VeryEasy
-  easy = sc_pb.Easy
-  medium = sc_pb.Medium
-  medium_hard = sc_pb.MediumHard
-  hard = sc_pb.Hard
-  harder = sc_pb.Harder
-  very_hard = sc_pb.VeryHard
-  cheat_vision = sc_pb.CheatVision
-  cheat_money = sc_pb.CheatMoney
-  cheat_insane = sc_pb.CheatInsane
+    """Bot difficulties."""
+    very_easy = sc_pb.VeryEasy
+    easy = sc_pb.Easy
+    medium = sc_pb.Medium
+    medium_hard = sc_pb.MediumHard
+    hard = sc_pb.Hard
+    harder = sc_pb.Harder
+    very_hard = sc_pb.VeryHard
+    cheat_vision = sc_pb.CheatVision
+    cheat_money = sc_pb.CheatMoney
+    cheat_insane = sc_pb.CheatInsane
 
 
 class BotBuild(enum.IntEnum):
-  """Bot build strategies."""
-  random = sc_pb.RandomBuild
-  rush = sc_pb.Rush
-  timing = sc_pb.Timing
-  power = sc_pb.Power
-  macro = sc_pb.Macro
-  air = sc_pb.Air
+    """Bot build strategies."""
+    random = sc_pb.RandomBuild
+    rush = sc_pb.Rush
+    timing = sc_pb.Timing
+    power = sc_pb.Power
+    macro = sc_pb.Macro
+    air = sc_pb.Air

@@ -20,11 +20,11 @@ from pysc2 import maps
 
 
 def main(unused_argv):
-  for _, map_class in sorted(maps.get_maps().items()):
-    mp = map_class()
-    if mp.path:
-      print(mp, "\n")
+    for _, map_class in sorted(maps.get_maps().items()):
+        mp = map_class()
+        if mp.path:
+            print(mp, "\n")
 
 
 if __name__ == "__main__":
-  app.run(main)
+    app.run(main)

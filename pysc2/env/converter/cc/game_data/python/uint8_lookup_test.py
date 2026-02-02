@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from absl.testing import absltest
+
 from pysc2.env.converter.cc.game_data.proto import buffs_pb2
 from pysc2.env.converter.cc.game_data.proto import units_pb2
 from pysc2.env.converter.cc.game_data.proto import upgrades_pb2
@@ -21,30 +22,30 @@ from pysc2.env.converter.cc.game_data.python import uint8_lookup
 
 class Uint8LookupTest(absltest.TestCase):
 
-  def test_pysc2_to_uint8(self):
-    self.assertEqual(
-        uint8_lookup.PySc2ToUint8(units_pb2.Zerg.InfestedTerran), 4)
+    def test_pysc2_to_uint8(self):
+        self.assertEqual(
+            uint8_lookup.PySc2ToUint8(units_pb2.Zerg.InfestedTerran), 4)
 
-  def test_pysc2_to_uint8_buffs(self):
-    self.assertEqual(
-        uint8_lookup.PySc2ToUint8Buffs(buffs_pb2.Buffs.BlindingCloudStructure),
-        3)
+    def test_pysc2_to_uint8_buffs(self):
+        self.assertEqual(
+            uint8_lookup.PySc2ToUint8Buffs(buffs_pb2.Buffs.BlindingCloudStructure),
+            3)
 
-  def test_pysc2_to_uint8_upgrades(self):
-    self.assertEqual(
-        uint8_lookup.PySc2ToUint8Upgrades(upgrades_pb2.Upgrades.Blink), 5)
+    def test_pysc2_to_uint8_upgrades(self):
+        self.assertEqual(
+            uint8_lookup.PySc2ToUint8Upgrades(upgrades_pb2.Upgrades.Blink), 5)
 
-  def test_uint8_to_pysc2(self):
-    self.assertEqual(
-        uint8_lookup.Uint8ToPySc2(4), units_pb2.Zerg.InfestedTerran)
+    def test_uint8_to_pysc2(self):
+        self.assertEqual(
+            uint8_lookup.Uint8ToPySc2(4), units_pb2.Zerg.InfestedTerran)
 
-  def test_uint8_to_pysc2_upgrades(self):
-    self.assertEqual(
-        uint8_lookup.Uint8ToPySc2Upgrades(5), upgrades_pb2.Upgrades.Blink)
+    def test_uint8_to_pysc2_upgrades(self):
+        self.assertEqual(
+            uint8_lookup.Uint8ToPySc2Upgrades(5), upgrades_pb2.Upgrades.Blink)
 
-  def test_effect_id_identity(self):
-    self.assertEqual(uint8_lookup.EffectIdIdentity(17), 17)
+    def test_effect_id_identity(self):
+        self.assertEqual(uint8_lookup.EffectIdIdentity(17), 17)
 
 
 if __name__ == '__main__':
-  absltest.main()
+    absltest.main()

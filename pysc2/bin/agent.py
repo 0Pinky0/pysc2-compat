@@ -16,7 +16,6 @@
 
 import importlib
 import threading
-
 from absl import app
 from absl import flags
 
@@ -26,7 +25,6 @@ from pysc2.env import run_loop
 from pysc2.env import sc2_env
 from pysc2.lib import point_flag
 from pysc2.lib import stopwatch
-
 
 FLAGS = flags.FLAGS
 flags.DEFINE_bool("render", True, "Whether to render with pygame.")
@@ -81,79 +79,79 @@ flags.mark_flag_as_required("map")
 
 
 def run_thread(agent_classes, players, map_name, visualize):
-  """Run one thread worth of the environment with agents."""
-  with sc2_env.SC2Env(
-      map_name=map_name,
-      battle_net_map=FLAGS.battle_net_map,
-      players=players,
-      agent_interface_format=sc2_env.parse_agent_interface_format(
-          feature_screen=FLAGS.feature_screen_size,
-          feature_minimap=FLAGS.feature_minimap_size,
-          rgb_screen=FLAGS.rgb_screen_size,
-          rgb_minimap=FLAGS.rgb_minimap_size,
-          action_space=FLAGS.action_space,
-          use_feature_units=FLAGS.use_feature_units,
-          use_raw_units=FLAGS.use_raw_units),
-      step_mul=FLAGS.step_mul,
-      game_steps_per_episode=FLAGS.game_steps_per_episode,
-      disable_fog=FLAGS.disable_fog,
-      visualize=visualize) as env:
-    env = available_actions_printer.AvailableActionsPrinter(env)
-    agents = [agent_cls() for agent_cls in agent_classes]
-    run_loop.run_loop(agents, env, FLAGS.max_agent_steps, FLAGS.max_episodes)
-    if FLAGS.save_replay:
-      env.save_replay(agent_classes[0].__name__)
+    """Run one thread worth of the environment with agents."""
+    with sc2_env.SC2Env(
+            map_name=map_name,
+            battle_net_map=FLAGS.battle_net_map,
+            players=players,
+            agent_interface_format=sc2_env.parse_agent_interface_format(
+                feature_screen=FLAGS.feature_screen_size,
+                feature_minimap=FLAGS.feature_minimap_size,
+                rgb_screen=FLAGS.rgb_screen_size,
+                rgb_minimap=FLAGS.rgb_minimap_size,
+                action_space=FLAGS.action_space,
+                use_feature_units=FLAGS.use_feature_units,
+                use_raw_units=FLAGS.use_raw_units),
+            step_mul=FLAGS.step_mul,
+            game_steps_per_episode=FLAGS.game_steps_per_episode,
+            disable_fog=FLAGS.disable_fog,
+            visualize=visualize) as env:
+        env = available_actions_printer.AvailableActionsPrinter(env)
+        agents = [agent_cls() for agent_cls in agent_classes]
+        run_loop.run_loop(agents, env, FLAGS.max_agent_steps, FLAGS.max_episodes)
+        if FLAGS.save_replay:
+            env.save_replay(agent_classes[0].__name__)
 
 
 def main(unused_argv):
-  """Run an agent."""
-  if FLAGS.trace:
-    stopwatch.sw.trace()
-  elif FLAGS.profile:
-    stopwatch.sw.enable()
+    """Run an agent."""
+    if FLAGS.trace:
+        stopwatch.sw.trace()
+    elif FLAGS.profile:
+        stopwatch.sw.enable()
 
-  map_inst = maps.get(FLAGS.map)
+    map_inst = maps.get(FLAGS.map)
 
-  agent_classes = []
-  players = []
+    agent_classes = []
+    players = []
 
-  agent_module, agent_name = FLAGS.agent.rsplit(".", 1)
-  agent_cls = getattr(importlib.import_module(agent_module), agent_name)
-  agent_classes.append(agent_cls)
-  players.append(sc2_env.Agent(sc2_env.Race[FLAGS.agent_race],
-                               FLAGS.agent_name or agent_name))
+    agent_module, agent_name = FLAGS.agent.rsplit(".", 1)
+    agent_cls = getattr(importlib.import_module(agent_module), agent_name)
+    agent_classes.append(agent_cls)
+    players.append(sc2_env.Agent(sc2_env.Race[FLAGS.agent_race],
+                                 FLAGS.agent_name or agent_name))
 
-  if map_inst.players >= 2:
-    if FLAGS.agent2 == "Bot":
-      players.append(sc2_env.Bot(sc2_env.Race[FLAGS.agent2_race],
-                                 sc2_env.Difficulty[FLAGS.difficulty],
-                                 sc2_env.BotBuild[FLAGS.bot_build]))
-    else:
-      agent_module, agent_name = FLAGS.agent2.rsplit(".", 1)
-      agent_cls = getattr(importlib.import_module(agent_module), agent_name)
-      agent_classes.append(agent_cls)
-      players.append(sc2_env.Agent(sc2_env.Race[FLAGS.agent2_race],
-                                   FLAGS.agent2_name or agent_name))
+    if map_inst.players >= 2:
+        if FLAGS.agent2 == "Bot":
+            players.append(sc2_env.Bot(sc2_env.Race[FLAGS.agent2_race],
+                                       sc2_env.Difficulty[FLAGS.difficulty],
+                                       sc2_env.BotBuild[FLAGS.bot_build]))
+        else:
+            agent_module, agent_name = FLAGS.agent2.rsplit(".", 1)
+            agent_cls = getattr(importlib.import_module(agent_module), agent_name)
+            agent_classes.append(agent_cls)
+            players.append(sc2_env.Agent(sc2_env.Race[FLAGS.agent2_race],
+                                         FLAGS.agent2_name or agent_name))
 
-  threads = []
-  for _ in range(FLAGS.parallel - 1):
-    t = threading.Thread(target=run_thread,
-                         args=(agent_classes, players, FLAGS.map, False))
-    threads.append(t)
-    t.start()
+    threads = []
+    for _ in range(FLAGS.parallel - 1):
+        t = threading.Thread(target=run_thread,
+                             args=(agent_classes, players, FLAGS.map, False))
+        threads.append(t)
+        t.start()
 
-  run_thread(agent_classes, players, FLAGS.map, FLAGS.render)
+    run_thread(agent_classes, players, FLAGS.map, FLAGS.render)
 
-  for t in threads:
-    t.join()
+    for t in threads:
+        t.join()
 
-  if FLAGS.profile:
-    print(stopwatch.sw)
+    if FLAGS.profile:
+        print(stopwatch.sw)
 
 
 def entry_point():  # Needed so setup.py scripts work.
-  app.run(main)
+    app.run(main)
 
 
 if __name__ == "__main__":
-  app.run(main)
+    app.run(main)

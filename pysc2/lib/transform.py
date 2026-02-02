@@ -29,95 +29,94 @@ from pysc2.lib import point
 
 
 class Transform(object):
-  """Base class for coordinate transforms."""
+    """Base class for coordinate transforms."""
 
-  def fwd_dist(self, dist):
-    raise NotImplementedError()
+    def fwd_dist(self, dist):
+        raise NotImplementedError()
 
-  def fwd_pt(self, pt):
-    raise NotImplementedError()
+    def fwd_pt(self, pt):
+        raise NotImplementedError()
 
-  def back_dist(self, dist):
-    raise NotImplementedError()
+    def back_dist(self, dist):
+        raise NotImplementedError()
 
-  def back_pt(self, pt):
-    raise NotImplementedError()
+    def back_pt(self, pt):
+        raise NotImplementedError()
 
 
 class Linear(Transform):
-  """A linear transform with a scale and offset."""
+    """A linear transform with a scale and offset."""
 
-  def __init__(self, scale=None, offset=None):
-    if scale is None:
-      self.scale = point.Point(1, 1)
-    elif isinstance(scale, numbers.Number):
-      self.scale = point.Point(scale, scale)
-    else:
-      self.scale = scale
-    assert self.scale.x != 0 and self.scale.y != 0
-    self.offset = offset or point.Point(0, 0)
+    def __init__(self, scale=None, offset=None):
+        if scale is None:
+            self.scale = point.Point(1, 1)
+        elif isinstance(scale, numbers.Number):
+            self.scale = point.Point(scale, scale)
+        else:
+            self.scale = scale
+        assert self.scale.x != 0 and self.scale.y != 0
+        self.offset = offset or point.Point(0, 0)
 
-  def fwd_dist(self, dist):
-    return dist * self.scale.x
+    def fwd_dist(self, dist):
+        return dist * self.scale.x
 
-  def fwd_pt(self, pt):
-    return pt * self.scale + self.offset
+    def fwd_pt(self, pt):
+        return pt * self.scale + self.offset
 
-  def back_dist(self, dist):
-    return dist / self.scale.x
+    def back_dist(self, dist):
+        return dist / self.scale.x
 
-  def back_pt(self, pt):
-    return (pt - self.offset) / self.scale
+    def back_pt(self, pt):
+        return (pt - self.offset) / self.scale
 
-  def __str__(self):
-    return "Linear(scale=%s, offset=%s)" % (self.scale, self.offset)
+    def __str__(self):
+        return "Linear(scale=%s, offset=%s)" % (self.scale, self.offset)
 
 
 class Chain(Transform):
-  """Chain a set of transforms: Chain(a_to_b, b_to_c) => a_to_c."""
+    """Chain a set of transforms: Chain(a_to_b, b_to_c) => a_to_c."""
 
-  def __init__(self, *args):
-    self.transforms = args
+    def __init__(self, *args):
+        self.transforms = args
 
-  def fwd_dist(self, dist):
-    for transform in self.transforms:
-      dist = transform.fwd_dist(dist)
-    return dist
+    def fwd_dist(self, dist):
+        for transform in self.transforms:
+            dist = transform.fwd_dist(dist)
+        return dist
 
-  def fwd_pt(self, pt):
-    for transform in self.transforms:
-      pt = transform.fwd_pt(pt)
-    return pt
+    def fwd_pt(self, pt):
+        for transform in self.transforms:
+            pt = transform.fwd_pt(pt)
+        return pt
 
-  def back_dist(self, dist):
-    for transform in reversed(self.transforms):
-      dist = transform.back_dist(dist)
-    return dist
+    def back_dist(self, dist):
+        for transform in reversed(self.transforms):
+            dist = transform.back_dist(dist)
+        return dist
 
-  def back_pt(self, pt):
-    for transform in reversed(self.transforms):
-      pt = transform.back_pt(pt)
-    return pt
+    def back_pt(self, pt):
+        for transform in reversed(self.transforms):
+            pt = transform.back_pt(pt)
+        return pt
 
-  def __str__(self):
-    return "Chain(%s)" % (self.transforms,)
+    def __str__(self):
+        return "Chain(%s)" % (self.transforms,)
 
 
 class PixelToCoord(Transform):
-  """Take a point within a pixel and use the tl, or tl to pixel center."""
+    """Take a point within a pixel and use the tl, or tl to pixel center."""
 
-  def fwd_dist(self, dist):
-    return dist
+    def fwd_dist(self, dist):
+        return dist
 
-  def fwd_pt(self, pt):
-    return pt.floor()
+    def fwd_pt(self, pt):
+        return pt.floor()
 
-  def back_dist(self, dist):
-    return dist
+    def back_dist(self, dist):
+        return dist
 
-  def back_pt(self, pt):
-    return pt.floor() + 0.5
+    def back_pt(self, pt):
+        return pt.floor() + 0.5
 
-  def __str__(self):
-    return "PixelToCoord()"
-
+    def __str__(self):
+        return "PixelToCoord()"

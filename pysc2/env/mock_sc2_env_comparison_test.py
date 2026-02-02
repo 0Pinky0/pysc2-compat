@@ -22,49 +22,49 @@ from pysc2.env import sc2_env
 
 class TestCompareEnvironments(absltest.TestCase):
 
-  @classmethod
-  def setUpClass(cls):
-    super(TestCompareEnvironments, cls).setUpClass()
-    players = [
-        sc2_env.Agent(race=sc2_env.Race.terran),
-        sc2_env.Agent(race=sc2_env.Race.protoss),
-    ]
-    kwargs = {
-        'map_name': 'Flat64',
-        'players': players,
-        'agent_interface_format': [
-            sc2_env.AgentInterfaceFormat(
-                feature_dimensions=sc2_env.Dimensions(
-                    screen=(32, 64),
-                    minimap=(8, 16)
-                ),
-                rgb_dimensions=sc2_env.Dimensions(
-                    screen=(31, 63),
-                    minimap=(7, 15)
-                ),
-                action_space=sc2_env.ActionSpace.FEATURES
-            ),
-            sc2_env.AgentInterfaceFormat(
-                rgb_dimensions=sc2_env.Dimensions(screen=64, minimap=32)
-            )
+    @classmethod
+    def setUpClass(cls):
+        super(TestCompareEnvironments, cls).setUpClass()
+        players = [
+            sc2_env.Agent(race=sc2_env.Race.terran),
+            sc2_env.Agent(race=sc2_env.Race.protoss),
         ]
-    }
-    cls._env = sc2_env.SC2Env(**kwargs)
-    cls._mock_env = mock_sc2_env.SC2TestEnv(**kwargs)
+        kwargs = {
+            'map_name': 'Flat64',
+            'players': players,
+            'agent_interface_format': [
+                sc2_env.AgentInterfaceFormat(
+                    feature_dimensions=sc2_env.Dimensions(
+                        screen=(32, 64),
+                        minimap=(8, 16)
+                    ),
+                    rgb_dimensions=sc2_env.Dimensions(
+                        screen=(31, 63),
+                        minimap=(7, 15)
+                    ),
+                    action_space=sc2_env.ActionSpace.FEATURES
+                ),
+                sc2_env.AgentInterfaceFormat(
+                    rgb_dimensions=sc2_env.Dimensions(screen=64, minimap=32)
+                )
+            ]
+        }
+        cls._env = sc2_env.SC2Env(**kwargs)
+        cls._mock_env = mock_sc2_env.SC2TestEnv(**kwargs)
 
-  @classmethod
-  def tearDownClass(cls):
-    super(TestCompareEnvironments, cls).tearDownClass()
-    cls._env.close()
-    cls._mock_env.close()
+    @classmethod
+    def tearDownClass(cls):
+        super(TestCompareEnvironments, cls).tearDownClass()
+        cls._env.close()
+        cls._mock_env.close()
 
-  def test_observation_spec(self):
-    self.assertEqual(self._env.observation_spec(),
-                     self._mock_env.observation_spec())
+    def test_observation_spec(self):
+        self.assertEqual(self._env.observation_spec(),
+                         self._mock_env.observation_spec())
 
-  def test_action_spec(self):
-    self.assertEqual(self._env.action_spec(), self._mock_env.action_spec())
+    def test_action_spec(self):
+        self.assertEqual(self._env.action_spec(), self._mock_env.action_spec())
 
 
 if __name__ == '__main__':
-  absltest.main()
+    absltest.main()

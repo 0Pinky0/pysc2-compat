@@ -16,8 +16,8 @@
 from absl import flags
 
 from pysc2.lib import sc_process
-from pysc2.run_configs import platforms
 from pysc2.run_configs import lib
+from pysc2.run_configs import platforms
 
 flags.DEFINE_string("sc2_run_config", None,
                     "Which run_config to use to spawn the binary.")
@@ -25,19 +25,19 @@ FLAGS = flags.FLAGS
 
 
 def get(version=None):
-  """Get the config chosen by the flags."""
-  configs = {c.name(): c
-             for c in lib.RunConfig.all_subclasses() if c.priority()}
+    """Get the config chosen by the flags."""
+    configs = {c.name(): c
+               for c in lib.RunConfig.all_subclasses() if c.priority()}
 
-  if not configs:
-    raise sc_process.SC2LaunchError("No valid run_configs found.")
+    if not configs:
+        raise sc_process.SC2LaunchError("No valid run_configs found.")
 
-  if FLAGS.sc2_run_config is None:  # Find the highest priority as default.
-    return max(configs.values(), key=lambda c: c.priority())(version=version)
+    if FLAGS.sc2_run_config is None:  # Find the highest priority as default.
+        return max(configs.values(), key=lambda c: c.priority())(version=version)
 
-  try:
-    return configs[FLAGS.sc2_run_config](version=version)
-  except KeyError:
-    raise sc_process.SC2LaunchError(
-        "Invalid run_config. Valid configs are: %s" % (
-            ", ".join(sorted(configs.keys()))))
+    try:
+        return configs[FLAGS.sc2_run_config](version=version)
+    except KeyError:
+        raise sc_process.SC2LaunchError(
+            "Invalid run_config. Valid configs are: %s" % (
+                ", ".join(sorted(configs.keys()))))

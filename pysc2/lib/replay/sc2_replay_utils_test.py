@@ -13,44 +13,43 @@
 # limitations under the License.
 
 import os
-
 from absl import flags
 from absl.testing import absltest
 from absl.testing import parameterized
-from pysc2.lib.replay import sc2_replay
-from pysc2.lib.replay import sc2_replay_utils
 
 from pysc2.lib import gfile
 from pysc2.lib import resources
+from pysc2.lib.replay import sc2_replay
+from pysc2.lib.replay import sc2_replay_utils
 
 FLAGS = flags.FLAGS
 PATH = "pysc2/lib/replay/test_data"
 
 
 def _read_replay(name):
-  replay_path = resources.GetResourceFilename(os.path.join(PATH, name))
-  with gfile.Open(replay_path, mode="rb") as f:
-    replay_data = f.read()
-  return sc2_replay.SC2Replay(replay_data)
+    replay_path = resources.GetResourceFilename(os.path.join(PATH, name))
+    with gfile.Open(replay_path, mode="rb") as f:
+        replay_data = f.read()
+    return sc2_replay.SC2Replay(replay_data)
 
 
 def _read_skips(name):
-  skips_path = resources.GetResourceFilename(os.path.join(PATH, name))
-  with gfile.Open(skips_path, mode="r") as f:
-    return [int(i) for i in f.readlines()[0].split(",")]
+    skips_path = resources.GetResourceFilename(os.path.join(PATH, name))
+    with gfile.Open(skips_path, mode="r") as f:
+        return [int(i) for i in f.readlines()[0].split(",")]
 
 
 class Sc2ReplayUtilsTest(parameterized.TestCase):
 
-  @parameterized.parameters(
-      ((f"replay_0{i}.SC2Replay", f"replay_0{i}.skips.txt")
-       for i in range(1, 10)))
-  def test_raw_action_skips(self, replay_name, skips_file):
-    replay = _read_replay(replay_name)
-    skips = _read_skips(skips_file)
-    result = sc2_replay_utils.raw_action_skips(replay)
-    self.assertEqual(result[1], skips)
+    @parameterized.parameters(
+        ((f"replay_0{i}.SC2Replay", f"replay_0{i}.skips.txt")
+         for i in range(1, 10)))
+    def test_raw_action_skips(self, replay_name, skips_file):
+        replay = _read_replay(replay_name)
+        skips = _read_skips(skips_file)
+        result = sc2_replay_utils.raw_action_skips(replay)
+        self.assertEqual(result[1], skips)
 
 
 if __name__ == "__main__":
-  absltest.main()
+    absltest.main()

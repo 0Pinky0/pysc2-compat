@@ -14,130 +14,131 @@
 # limitations under the License.
 """Tests for stopwatch."""
 
+import mock
 import os
-
 from absl.testing import absltest
 
-import mock
 from pysc2.lib import stopwatch
 
 
 def ham_dist(str1, str2):
-  """Hamming distance. Count the number of differences between str1 and str2."""
-  assert len(str1) == len(str2)
-  return sum(c1 != c2 for c1, c2 in zip(str1, str2))
+    """Hamming distance. Count the number of differences between str1 and str2."""
+    assert len(str1) == len(str2)
+    return sum(c1 != c2 for c1, c2 in zip(str1, str2))
 
 
 class StatTest(absltest.TestCase):
 
-  def testRange(self):
-    stat = stopwatch.Stat()
-    stat.add(1)
-    stat.add(5)
-    stat.add(3)
-    self.assertEqual(stat.num, 3)
-    self.assertEqual(stat.sum, 9)
-    self.assertEqual(stat.min, 1)
-    self.assertEqual(stat.max, 5)
-    self.assertEqual(stat.avg, 3)
+    def testRange(self):
+        stat = stopwatch.Stat()
+        stat.add(1)
+        stat.add(5)
+        stat.add(3)
+        self.assertEqual(stat.num, 3)
+        self.assertEqual(stat.sum, 9)
+        self.assertEqual(stat.min, 1)
+        self.assertEqual(stat.max, 5)
+        self.assertEqual(stat.avg, 3)
 
-  def testParse(self):
-    stat = stopwatch.Stat()
-    stat.add(1)
-    stat.add(3)
-    out = str(stat)
-    self.assertEqual(out, "sum: 4.0000, avg: 2.0000, dev: 1.0000, "
-                          "min: 1.0000, max: 3.0000, num: 2")
-    # Allow a few small rounding errors
-    self.assertLess(ham_dist(out, str(stopwatch.Stat.parse(out))), 5)
+    def testParse(self):
+        stat = stopwatch.Stat()
+        stat.add(1)
+        stat.add(3)
+        out = str(stat)
+        self.assertEqual(out, "sum: 4.0000, avg: 2.0000, dev: 1.0000, "
+                              "min: 1.0000, max: 3.0000, num: 2")
+        # Allow a few small rounding errors
+        self.assertLess(ham_dist(out, str(stopwatch.Stat.parse(out))), 5)
 
 
 class StopwatchTest(absltest.TestCase):
 
-  @mock.patch("time.time")
-  def testStopwatch(self, mock_time):
-    mock_time.return_value = 0
-    sw = stopwatch.StopWatch()
-    with sw("one"):
-      mock_time.return_value += 0.002
-    with sw("one"):
-      mock_time.return_value += 0.004
-    with sw("two"):
-      with sw("three"):
-        mock_time.return_value += 0.006
+    @mock.patch("time.time")
+    def testStopwatch(self, mock_time):
+        mock_time.return_value = 0
+        sw = stopwatch.StopWatch()
+        with sw("one"):
+            mock_time.return_value += 0.002
+        with sw("one"):
+            mock_time.return_value += 0.004
+        with sw("two"):
+            with sw("three"):
+                mock_time.return_value += 0.006
 
-    @sw.decorate
-    def four():
-      mock_time.return_value += 0.004
-    four()
+        @sw.decorate
+        def four():
+            mock_time.return_value += 0.004
 
-    @sw.decorate("five")
-    def foo():
-      mock_time.return_value += 0.005
-    foo()
+        four()
 
-    out = str(sw)
+        @sw.decorate("five")
+        def foo():
+            mock_time.return_value += 0.005
 
-    # The names should be in sorted order.
-    names = [l.split(None)[0] for l in out.splitlines()[1:]]
-    self.assertEqual(names, ["five", "four", "one", "two", "two.three"])
+        foo()
 
-    one_line = out.splitlines()[3].split(None)
-    self.assertLess(one_line[5], one_line[6])  # min < max
-    self.assertEqual(one_line[7], "2")  # num
-    # Can't test the rest since they'll be flaky.
+        out = str(sw)
 
-    # Allow a few small rounding errors for the round trip.
-    round_trip = str(stopwatch.StopWatch.parse(out))
-    self.assertLess(ham_dist(out, round_trip), 15,
-                    "%s != %s" % (out, round_trip))
+        # The names should be in sorted order.
+        names = [l.split(None)[0] for l in out.splitlines()[1:]]
+        self.assertEqual(names, ["five", "four", "one", "two", "two.three"])
 
-  def testDivideZero(self):
-    sw = stopwatch.StopWatch()
-    with sw("zero"):
-      pass
+        one_line = out.splitlines()[3].split(None)
+        self.assertLess(one_line[5], one_line[6])  # min < max
+        self.assertEqual(one_line[7], "2")  # num
+        # Can't test the rest since they'll be flaky.
 
-    # Just make sure this doesn't have a divide by 0 for when the total is 0.
-    self.assertIn("zero", str(sw))
+        # Allow a few small rounding errors for the round trip.
+        round_trip = str(stopwatch.StopWatch.parse(out))
+        self.assertLess(ham_dist(out, round_trip), 15,
+                        "%s != %s" % (out, round_trip))
 
-  @mock.patch.dict(os.environ, {"SC2_NO_STOPWATCH": "1"})
-  def testDecoratorDisabled(self):
-    sw = stopwatch.StopWatch()
-    self.assertEqual(round, sw.decorate(round))
-    self.assertEqual(round, sw.decorate("name")(round))
+    def testDivideZero(self):
+        sw = stopwatch.StopWatch()
+        with sw("zero"):
+            pass
 
-  @mock.patch.dict(os.environ, {"SC2_NO_STOPWATCH": ""})
-  def testDecoratorEnabled(self):
-    sw = stopwatch.StopWatch()
-    self.assertNotEqual(round, sw.decorate(round))
-    self.assertNotEqual(round, sw.decorate("name")(round))
+        # Just make sure this doesn't have a divide by 0 for when the total is 0.
+        self.assertIn("zero", str(sw))
 
-  def testSpeed(self):
-    count = 100
+    @mock.patch.dict(os.environ, {"SC2_NO_STOPWATCH": "1"})
+    def testDecoratorDisabled(self):
+        sw = stopwatch.StopWatch()
+        self.assertEqual(round, sw.decorate(round))
+        self.assertEqual(round, sw.decorate("name")(round))
 
-    def run():
-      for _ in range(count):
-        with sw("name"):
-          pass
+    @mock.patch.dict(os.environ, {"SC2_NO_STOPWATCH": ""})
+    def testDecoratorEnabled(self):
+        sw = stopwatch.StopWatch()
+        self.assertNotEqual(round, sw.decorate(round))
+        self.assertNotEqual(round, sw.decorate("name")(round))
 
-    sw = stopwatch.StopWatch()
-    for _ in range(10):
-      sw.enable()
-      with sw("enabled"):
-        run()
+    def testSpeed(self):
+        count = 100
 
-      sw.trace()
-      with sw("trace"):
-        run()
+        def run():
+            for _ in range(count):
+                with sw("name"):
+                    pass
 
-      sw.enable()  # To catch "disabled".
-      with sw("disabled"):
-        sw.disable()
-        run()
+        sw = stopwatch.StopWatch()
+        for _ in range(10):
+            sw.enable()
+            with sw("enabled"):
+                run()
 
-    # No asserts. Succeed but print the timings.
-    print(sw)
+            sw.trace()
+            with sw("trace"):
+                run()
+
+            sw.enable()  # To catch "disabled".
+            with sw("disabled"):
+                sw.disable()
+                run()
+
+        # No asserts. Succeed but print the timings.
+        print(sw)
 
 
 if __name__ == "__main__":
-  absltest.main()
+    absltest.main()

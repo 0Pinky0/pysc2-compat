@@ -52,4 +52,6 @@ becomes...
 $ bazel run --cxxopt='-std=c++17' pysc2/bin:agent -- --map Simple64
 ```
 
-You may wish to use a [.bazelrc file](https://docs.bazel.build/versions/main/guide.html#bazelrc-the-bazel-configuration-file) to avoid the need to repeatedly specify command-line options, for instance `--cxxopt='-std=c++17'`.
+You may wish to use
+a [.bazelrc file](https://docs.bazel.build/versions/main/guide.html#bazelrc-the-bazel-configuration-file) to avoid the
+need to repeatedly specify command-line options, for instance `--cxxopt='-std=c++17'`.

@@ -13,14 +13,14 @@
 # limitations under the License.
 """A no-op agent for starcraft."""
 
-from pysc2.agents import base_agent
-
 from s2clientprotocol import sc2api_pb2 as sc_pb
+
+from pysc2.agents import base_agent
 
 
 class NoOpAgent(base_agent.BaseAgent):
-  """A no-op agent for starcraft."""
+    """A no-op agent for starcraft."""
 
-  def step(self, obs):
-    super(NoOpAgent, self).step(obs)
-    return sc_pb.Action()
+    def step(self, obs):
+        super(NoOpAgent, self).step(obs)
+        return sc_pb.Action()

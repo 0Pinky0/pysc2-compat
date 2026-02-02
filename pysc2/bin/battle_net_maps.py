@@ -20,17 +20,17 @@ from pysc2 import run_configs
 
 
 def main(unused_argv):
-  with run_configs.get().start(want_rgb=False) as controller:
-    available_maps = controller.available_maps()
-  print("\n")
-  print("Local map paths:")
-  for m in sorted(available_maps.local_map_paths):
-    print(" ", m)
-  print()
-  print("Battle.net maps:")
-  for m in sorted(available_maps.battlenet_map_names):
-    print(" ", m)
+    with run_configs.get().start(want_rgb=False) as controller:
+        available_maps = controller.available_maps()
+    print("\n")
+    print("Local map paths:")
+    for m in sorted(available_maps.local_map_paths):
+        print(" ", m)
+    print()
+    print("Battle.net maps:")
+    for m in sorted(available_maps.battlenet_map_names):
+        print(" ", m)
 
 
 if __name__ == "__main__":
-  app.run(main)
+    app.run(main)

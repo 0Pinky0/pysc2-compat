@@ -22,12 +22,12 @@ from pysc2.lib import gfile
 
 class Version(collections.namedtuple("Version", [
     "game_version", "build_version", "data_version", "binary"])):
-  """Represents a single version of the game."""
-  __slots__ = ()
+    """Represents a single version of the game."""
+    __slots__ = ()
 
 
 def version_dict(versions):
-  return {ver.game_version: ver for ver in versions}
+    return {ver.game_version: ver for ver in versions}
 
 
 # https://github.com/Blizzard/s2client-proto/blob/master/buildinfo/versions.json
@@ -106,132 +106,132 @@ VERSIONS = version_dict([
 
 
 class RunConfig(object):
-  """Base class for different run configs."""
+    """Base class for different run configs."""
 
-  def __init__(self, replay_dir, data_dir, tmp_dir, version,
-               cwd=None, env=None):
-    """Initialize the runconfig with the various directories needed.
+    def __init__(self, replay_dir, data_dir, tmp_dir, version,
+                 cwd=None, env=None):
+        """Initialize the runconfig with the various directories needed.
 
-    Args:
-      replay_dir: Where to find replays. Might not be accessible to SC2.
-      data_dir: Where SC2 should find the data and battle.net cache.
-      tmp_dir: The temporary directory. None is system default.
-      version: The game version to run, a string.
-      cwd: Where to set the current working directory.
-      env: What to pass as the environment variables.
-    """
-    self.replay_dir = replay_dir
-    self.data_dir = data_dir
-    self.tmp_dir = tmp_dir
-    self.cwd = cwd
-    self.env = env
-    self.version = self._get_version(version)
+        Args:
+          replay_dir: Where to find replays. Might not be accessible to SC2.
+          data_dir: Where SC2 should find the data and battle.net cache.
+          tmp_dir: The temporary directory. None is system default.
+          version: The game version to run, a string.
+          cwd: Where to set the current working directory.
+          env: What to pass as the environment variables.
+        """
+        self.replay_dir = replay_dir
+        self.data_dir = data_dir
+        self.tmp_dir = tmp_dir
+        self.cwd = cwd
+        self.env = env
+        self.version = self._get_version(version)
 
-  def map_data(self, map_name, players=None):
-    """Return the map data for a map by name or path."""
-    map_names = [map_name]
-    if players:
-      map_names.append(os.path.join(
-          os.path.dirname(map_name),
-          "(%s)%s" % (players, os.path.basename(map_name))))
-    for name in map_names:
-      path = os.path.join(self.data_dir, "Maps", name)
-      if gfile.Exists(path):
-        with gfile.Open(path, "rb") as f:
-          return f.read()
-    raise ValueError(f"Map {map_name} not found in {self.data_dir}/Maps.")
+    def map_data(self, map_name, players=None):
+        """Return the map data for a map by name or path."""
+        map_names = [map_name]
+        if players:
+            map_names.append(os.path.join(
+                os.path.dirname(map_name),
+                "(%s)%s" % (players, os.path.basename(map_name))))
+        for name in map_names:
+            path = os.path.join(self.data_dir, "Maps", name)
+            if gfile.Exists(path):
+                with gfile.Open(path, "rb") as f:
+                    return f.read()
+        raise ValueError(f"Map {map_name} not found in {self.data_dir}/Maps.")
 
-  def abs_replay_path(self, replay_path):
-    """Return the absolute path to the replay, outside the sandbox."""
-    return os.path.join(self.replay_dir, replay_path)
+    def abs_replay_path(self, replay_path):
+        """Return the absolute path to the replay, outside the sandbox."""
+        return os.path.join(self.replay_dir, replay_path)
 
-  def replay_data(self, replay_path):
-    """Return the replay data given a path to the replay."""
-    with gfile.Open(self.abs_replay_path(replay_path), "rb") as f:
-      return f.read()
+    def replay_data(self, replay_path):
+        """Return the replay data given a path to the replay."""
+        with gfile.Open(self.abs_replay_path(replay_path), "rb") as f:
+            return f.read()
 
-  def replay_paths(self, replay_dir):
-    """A generator yielding the full path to the replays under `replay_dir`."""
-    replay_dir = self.abs_replay_path(replay_dir)
-    if replay_dir.lower().endswith(".sc2replay"):
-      yield replay_dir
-      return
-    for f in gfile.ListDir(replay_dir):
-      if f.lower().endswith(".sc2replay"):
-        yield os.path.join(replay_dir, f)
+    def replay_paths(self, replay_dir):
+        """A generator yielding the full path to the replays under `replay_dir`."""
+        replay_dir = self.abs_replay_path(replay_dir)
+        if replay_dir.lower().endswith(".sc2replay"):
+            yield replay_dir
+            return
+        for f in gfile.ListDir(replay_dir):
+            if f.lower().endswith(".sc2replay"):
+                yield os.path.join(replay_dir, f)
 
-  def save_replay(self, replay_data, replay_dir, prefix=None):
-    """Save a replay to a directory, returning the path to the replay.
+    def save_replay(self, replay_data, replay_dir, prefix=None):
+        """Save a replay to a directory, returning the path to the replay.
 
-    Args:
-      replay_data: The result of controller.save_replay(), ie the binary data.
-      replay_dir: Where to save the replay. This can be absolute or relative.
-      prefix: Optional prefix for the replay filename.
+        Args:
+          replay_data: The result of controller.save_replay(), ie the binary data.
+          replay_dir: Where to save the replay. This can be absolute or relative.
+          prefix: Optional prefix for the replay filename.
 
-    Returns:
-      The full path where the replay is saved.
+        Returns:
+          The full path where the replay is saved.
 
-    Raises:
-      ValueError: If the prefix contains the path seperator.
-    """
-    if not prefix:
-      replay_filename = ""
-    elif os.path.sep in prefix:
-      raise ValueError("Prefix '%s' contains '%s', use replay_dir instead." % (
-          prefix, os.path.sep))
-    else:
-      replay_filename = prefix + "_"
-    now = datetime.datetime.utcnow().replace(microsecond=0)
-    replay_filename += "%s.SC2Replay" % now.isoformat("-").replace(":", "-")
-    replay_dir = self.abs_replay_path(replay_dir)
-    if not gfile.Exists(replay_dir):
-      gfile.MakeDirs(replay_dir)
-    replay_path = os.path.join(replay_dir, replay_filename)
-    with gfile.Open(replay_path, "wb") as f:
-      f.write(replay_data)
-    return replay_path
+        Raises:
+          ValueError: If the prefix contains the path seperator.
+        """
+        if not prefix:
+            replay_filename = ""
+        elif os.path.sep in prefix:
+            raise ValueError("Prefix '%s' contains '%s', use replay_dir instead." % (
+                prefix, os.path.sep))
+        else:
+            replay_filename = prefix + "_"
+        now = datetime.datetime.utcnow().replace(microsecond=0)
+        replay_filename += "%s.SC2Replay" % now.isoformat("-").replace(":", "-")
+        replay_dir = self.abs_replay_path(replay_dir)
+        if not gfile.Exists(replay_dir):
+            gfile.MakeDirs(replay_dir)
+        replay_path = os.path.join(replay_dir, replay_filename)
+        with gfile.Open(replay_path, "wb") as f:
+            f.write(replay_data)
+        return replay_path
 
-  def start(self, version=None, **kwargs):
-    """Launch the game. Find the version and run sc_process.StarcraftProcess."""
-    raise NotImplementedError()
+    def start(self, version=None, **kwargs):
+        """Launch the game. Find the version and run sc_process.StarcraftProcess."""
+        raise NotImplementedError()
 
-  @classmethod
-  def all_subclasses(cls):
-    """An iterator over all subclasses of `cls`."""
-    for s in cls.__subclasses__():
-      yield s
-      for c in s.all_subclasses():
-        yield c
+    @classmethod
+    def all_subclasses(cls):
+        """An iterator over all subclasses of `cls`."""
+        for s in cls.__subclasses__():
+            yield s
+            for c in s.all_subclasses():
+                yield c
 
-  @classmethod
-  def name(cls):
-    return cls.__name__
+    @classmethod
+    def name(cls):
+        return cls.__name__
 
-  @classmethod
-  def priority(cls):
-    """None means this isn't valid. Run the one with the max priority."""
-    return None
+    @classmethod
+    def priority(cls):
+        """None means this isn't valid. Run the one with the max priority."""
+        return None
 
-  def get_versions(self, containing=None):
-    """Return a dict of all versions that can be run."""
-    if containing is not None and containing not in VERSIONS:
-      raise ValueError("Unknown game version: %s. Known versions: %s." % (
-          containing, sorted(VERSIONS.keys())))
-    return VERSIONS
+    def get_versions(self, containing=None):
+        """Return a dict of all versions that can be run."""
+        if containing is not None and containing not in VERSIONS:
+            raise ValueError("Unknown game version: %s. Known versions: %s." % (
+                containing, sorted(VERSIONS.keys())))
+        return VERSIONS
 
-  def _get_version(self, game_version):
-    """Get the full details for the specified game version."""
-    if isinstance(game_version, Version):
-      if not game_version.game_version:
-        raise ValueError(
-            "Version '%r' supplied without a game version." % (game_version,))
-      if (game_version.data_version and
-          game_version.binary and
-          game_version.build_version):
-        return game_version
-      # Some fields might be missing from serialized versions. Look them up.
-      game_version = game_version.game_version
-    if game_version.count(".") == 1:
-      game_version += ".0"
-    versions = self.get_versions(containing=game_version)
-    return versions[game_version]
+    def _get_version(self, game_version):
+        """Get the full details for the specified game version."""
+        if isinstance(game_version, Version):
+            if not game_version.game_version:
+                raise ValueError(
+                    "Version '%r' supplied without a game version." % (game_version,))
+            if (game_version.data_version and
+                    game_version.binary and
+                    game_version.build_version):
+                return game_version
+            # Some fields might be missing from serialized versions. Look them up.
+            game_version = game_version.game_version
+        if game_version.count(".") == 1:
+            game_version += ".0"
+        versions = self.get_versions(containing=game_version)
+        return versions[game_version]

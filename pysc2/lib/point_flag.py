@@ -22,43 +22,44 @@ flags.disclaim_key_flags()
 
 
 class PointParser(flags.ArgumentParser):
-  """Parse a flag into a pysc2.lib.point.Point."""
+    """Parse a flag into a pysc2.lib.point.Point."""
 
-  def parse(self, argument):
-    if not argument or argument == "0":
-      return None
+    def parse(self, argument):
+        if not argument or argument == "0":
+            return None
 
-    if isinstance(argument, int):
-      args = [argument]
-    elif isinstance(argument, (list, tuple)):
-      args = argument
-    elif isinstance(argument, str):
-      args = argument.split(",")
-    else:
-      raise ValueError(
-          "Invalid point: '%r'. Valid: '<int>' or '<int>,<int>'." % argument)
+        if isinstance(argument, int):
+            args = [argument]
+        elif isinstance(argument, (list, tuple)):
+            args = argument
+        elif isinstance(argument, str):
+            args = argument.split(",")
+        else:
+            raise ValueError(
+                "Invalid point: '%r'. Valid: '<int>' or '<int>,<int>'." % argument)
 
-    args = [int(v) for v in args]
+        args = [int(v) for v in args]
 
-    if len(args) == 1:
-      args *= 2
-    if len(args) == 2:
-      return point.Point(args[0], args[1])
-    raise ValueError(
-        "Invalid point: '%s'. Valid: '<int>' or '<int>,<int>'." % argument)
+        if len(args) == 1:
+            args *= 2
+        if len(args) == 2:
+            return point.Point(args[0], args[1])
+        raise ValueError(
+            "Invalid point: '%s'. Valid: '<int>' or '<int>,<int>'." % argument)
 
-  def flag_type(self):
-    return "pysc2.lib.point.Point"
+    def flag_type(self):
+        return "pysc2.lib.point.Point"
 
 
 class PointSerializer(flags.ArgumentSerializer):
-  """Custom serializer for pysc2.lib.point.Point."""
+    """Custom serializer for pysc2.lib.point.Point."""
 
-  def serialize(self, value):
-    return str(value)
+    def serialize(self, value):
+        return str(value)
 
 
-def DEFINE_point(name, default, help_string, flag_values=flags.FLAGS, **args):  # pylint: disable=invalid-name,redefined-builtin
-  """Registers a flag whose value parses as a point."""
-  flags.DEFINE(PointParser(), name, default, help_string, flag_values,
-               PointSerializer(), **args)
+def DEFINE_point(name, default, help_string, flag_values=flags.FLAGS,
+                 **args):  # pylint: disable=invalid-name,redefined-builtin
+    """Registers a flag whose value parses as a point."""
+    flags.DEFINE(PointParser(), name, default, help_string, flag_values,
+                 PointSerializer(), **args)

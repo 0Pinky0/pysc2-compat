@@ -15,4 +15,4 @@
 
 
 def GetResourceFilename(path):
-  return path
+    return path

@@ -23,9 +23,9 @@ from pysc2.maps import lib
 
 
 class Ladder(lib.Map):
-  players = 2
-  game_steps_per_episode = 16 * 60 * 30  # 30 minute limit.
-  download = "https://github.com/Blizzard/s2client-proto#map-packs"
+    players = 2
+    game_steps_per_episode = 16 * 60 * 30  # 30 minute limit.
+    download = "https://github.com/Blizzard/s2client-proto#map-packs"
 
 
 ladder_seasons = [
@@ -43,8 +43,7 @@ ladder_seasons = [
 ]
 
 for name in ladder_seasons:
-  globals()[name] = type(name, (Ladder,), dict(directory=name))
-
+    globals()[name] = type(name, (Ladder,), dict(directory=name))
 
 # pylint: disable=bad-whitespace, undefined-variable
 # pytype: disable=name-error
@@ -107,8 +106,7 @@ ladder_maps = [
 # Create the classes dynamically, putting them into the module scope. They all
 # inherit from a parent and set the players based on the map filename.
 for parent, bnet, players in ladder_maps:
-  name = re.sub(r"[ '-]|[LTRS]E$", "", bnet)
-  map_file = re.sub(r"[ ']", "", bnet)
-  globals()[name] = type(name, (parent,), dict(
-      filename=map_file, players=players, battle_net=bnet))
-
+    name = re.sub(r"[ '-]|[LTRS]E$", "", bnet)
+    map_file = re.sub(r"[ ']", "", bnet)
+    globals()[name] = type(name, (parent,), dict(
+        filename=map_file, players=players, battle_net=bnet))

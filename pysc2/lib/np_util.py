@@ -17,17 +17,17 @@ import numpy as np
 
 
 def summarize_array_diffs(lhs, rhs):
-  """Output value differences, with index for each, between two arrays."""
-  result = []
-  indices = np.transpose(np.nonzero(lhs - rhs))
-  for row in indices:
-    index = tuple(np.array([e]) for e in row.tolist())
-    lhs_element = lhs[index]
-    rhs_element = rhs[index]
-    result.append("{}: {} -> {}".format(
-        "".join("[{}]".format(i) for i in row), lhs_element[0], rhs_element[0]))
+    """Output value differences, with index for each, between two arrays."""
+    result = []
+    indices = np.transpose(np.nonzero(lhs - rhs))
+    for row in indices:
+        index = tuple(np.array([e]) for e in row.tolist())
+        lhs_element = lhs[index]
+        rhs_element = rhs[index]
+        result.append("{}: {} -> {}".format(
+            "".join("[{}]".format(i) for i in row), lhs_element[0], rhs_element[0]))
 
-  if indices.size:
-    return "{} element(s) changed - ".format(len(indices)) + "; ".join(result)
-  else:
-    return ""
+    if indices.size:
+        return "{} element(s) changed - ".format(len(indices)) + "; ".join(result)
+    else:
+        return ""
