@@ -14,7 +14,7 @@
 # limitations under the License.
 """Tests for stopwatch."""
 
-import mock
+from unittest import mock
 import os
 from absl.testing import absltest
 

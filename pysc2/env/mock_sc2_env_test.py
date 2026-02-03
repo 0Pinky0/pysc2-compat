@@ -14,7 +14,7 @@
 # limitations under the License.
 """Tests of the StarCraft2 mock environment."""
 
-import mock
+from unittest import mock
 import numpy as np
 from absl.testing import absltest
 from s2clientprotocol import common_pb2

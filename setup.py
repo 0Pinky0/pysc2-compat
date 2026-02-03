@@ -25,6 +25,4 @@ class BuildCommand(_build):
         self.build_base = '_build'
 
 
-setup(
-    cmdclass={'build': BuildCommand},
-)
+setup(cmdclass={'build': BuildCommand})

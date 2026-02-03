@@ -7,7 +7,6 @@ name = 'PySC2-Compat'
 version = '4.0.0'
 description = 'Starcraft II environment and library for training agents.'
 readme = 'README.md'
-requires-python = '>=3.10'
 license = { text = 'Apache License, Version 2.0' }
 keywords = ['StarCraft', 'AI']
 authors = [{ name = 'DeepMind', email = 'pysc2@deepmind.com' }]
@@ -27,6 +26,7 @@ classifiers = [
     'Programming Language :: Python :: 3.14',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
 ]
+requires-python = '>=3.10'
 dependencies = [
     'absl-py >=1.0.0',
     'deepdiff',
@@ -34,7 +34,7 @@ dependencies = [
     'mpyq',
     'numpy >=1.21',
     'portpicker >=1.2.0',
-    'protobuf >=3.19.1,<4',
+    'protobuf >=3.19.1',
     'requests',
     's2clientprotocol >=4.10.1.75800.0',
     's2protocol',
