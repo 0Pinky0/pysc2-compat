@@ -185,11 +185,10 @@ $ python -m pysc2.bin.map_list
 
 ## Run the tests
 
-If you want to submit a pull request, please make sure the tests pass on both
-python 2 and 3.
+If you want to submit a pull request, please make sure the tests pass on python 3.
 
 ```shell
-$ python -m pysc2.bin.run_tests
+$ python -m tests.run_tests
 ```
 
 # Environment Details
