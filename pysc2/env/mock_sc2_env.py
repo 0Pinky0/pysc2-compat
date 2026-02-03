@@ -22,7 +22,7 @@ from pysc2.env import environment
 from pysc2.env import sc2_env
 from pysc2.lib import features
 from pysc2.lib import units
-from pysc2.tests import dummy_observation
+from tests.core import dummy_observation
 
 DUMMY_MAP_SIZE = 256
 

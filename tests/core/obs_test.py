@@ -22,7 +22,7 @@ from pysc2.lib import actions
 from pysc2.lib import buffs
 from pysc2.lib import features
 from pysc2.lib import units
-from pysc2.tests import utils
+from tests.core import utils
 
 # It seems the time from issuing an action until it has an effect is 2 frames.
 # It'd be nice if that was faster, and it is 1 in single-player, but in

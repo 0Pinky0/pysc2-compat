@@ -22,7 +22,7 @@ from pysc2.lib import actions
 from pysc2.lib import features
 from pysc2.lib import point
 from pysc2.lib import units
-from pysc2.tests import dummy_observation
+from tests.core import dummy_observation
 
 _PROBE = dummy_observation.Unit(
     units.Protoss.Probe, features.PlayerRelative.SELF, 20, 20, 0, 0, 1.0)

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # Copyright 2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,29 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Benchmark the ping rate of SC2."""
-
-from absl.testing import absltest
-
-from pysc2 import run_configs
-from pysc2.lib import stopwatch
-from pysc2.tests import utils
-
-
-class TestPing(utils.TestCase):
-
-    def test_ping(self):
-        count = 100
-
-        with run_configs.get().start(want_rgb=False) as controller:
-            with stopwatch.sw('first'):
-                controller.ping()
-
-            for _ in range(count):
-                controller.ping()
-
-        self.assertEqual(stopwatch.sw['ping'].num, count)
-
-
-if __name__ == '__main__':
-    absltest.main()

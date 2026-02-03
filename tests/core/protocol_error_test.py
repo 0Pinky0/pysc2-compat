@@ -22,7 +22,7 @@ from pysc2 import maps
 from pysc2 import run_configs
 from pysc2.lib import protocol
 from pysc2.lib import remote_controller
-from pysc2.tests import utils
+from tests.core import utils
 
 
 class TestProtocolError(utils.TestCase):

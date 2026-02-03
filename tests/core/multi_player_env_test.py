@@ -23,7 +23,7 @@ from pysc2.agents import no_op_agent
 from pysc2.agents import random_agent
 from pysc2.env import run_loop
 from pysc2.env import sc2_env
-from pysc2.tests import utils
+from tests.core import utils
 
 
 class TestMultiplayerEnv(parameterized.TestCase, utils.TestCase):

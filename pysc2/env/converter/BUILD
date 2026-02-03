@@ -17,23 +17,6 @@ pytype_library(
     ],
 )
 
-py_test(
-    name = "converter_test",
-    srcs = ["converter_test.py"],
-    legacy_create_init = False,
-    deps = [
-        ":converter",
-        "@absl_py//absl/testing:absltest",
-        "@absl_py//absl/testing:parameterized",
-        requirement("numpy"),
-        "//pysc2/env/converter/proto:converter_py_pb2",
-        "@s2client_proto//s2clientprotocol:common_py_pb2",
-        "@s2client_proto//s2clientprotocol:raw_py_pb2",
-        "@s2client_proto//s2clientprotocol:sc2api_py_pb2",
-        "@s2client_proto//s2clientprotocol:spatial_py_pb2",
-    ],
-)
-
 pytype_library(
     name = "derive_interface_options",
     srcs = ["derive_interface_options.py"],

@@ -36,26 +36,6 @@ pytype_library(
     ],
 )
 
-py_test(
-    name = "converted_env_test",
-    srcs = ["converted_env_test.py"],
-    legacy_create_init = False,
-    deps = [
-        ":converted_env",
-        "@absl_py//absl/testing:absltest",
-        "@dm_env_archive//:dm_env",
-        "@dm_env_archive//:test_utils",
-        requirement("numpy"),
-        "//pysc2/env:mock_sc2_env",
-        "//pysc2/env:sc2_env",
-        "//pysc2/env/converter",
-        "//pysc2/env/converter/proto:converter_py_pb2",
-        "//pysc2/lib:features",
-        "@s2client_proto//s2clientprotocol:common_py_pb2",
-        "@s2client_proto//s2clientprotocol:sc2api_py_pb2",
-    ],
-)
-
 pytype_library(
     name = "enums",
     srcs = ["enums.py"],
@@ -106,20 +86,6 @@ pytype_library(
     ],
 )
 
-py_test(
-    name = "sc2_env_test",
-    size = "small",
-    srcs = ["sc2_env_test.py"],
-    legacy_create_init = False,
-    python_version = "PY3",
-    srcs_version = "PY3",
-    deps = [
-        ":sc2_env",
-        "@absl_py//absl/testing:absltest",
-        "@absl_py//absl/testing:parameterized",
-    ],
-)
-
 pytype_library(
     name = "remote_sc2_env",
     srcs = ["remote_sc2_env.py"],
@@ -164,39 +130,6 @@ pytype_library(
         "@s2client_proto//s2clientprotocol:common_py_pb2",
         "@s2client_proto//s2clientprotocol:raw_py_pb2",
         "@s2client_proto//s2clientprotocol:sc2api_py_pb2",
-    ],
-)
-
-py_test(
-    name = "mock_sc2_env_test",
-    size = "small",
-    srcs = ["mock_sc2_env_test.py"],
-    legacy_create_init = False,
-    python_version = "PY3",
-    srcs_version = "PY3",
-    deps = [
-        ":enums",
-        ":environment",
-        ":mock_sc2_env",
-        ":sc2_env",
-        "@absl_py//absl/testing:absltest",
-        requirement("mock"),
-        requirement("numpy"),
-        "//pysc2/lib:features",
-    ],
-)
-
-py_test(
-    name = "mock_sc2_env_comparison_test",
-    size = "large",
-    srcs = ["mock_sc2_env_comparison_test.py"],
-    legacy_create_init = False,
-    python_version = "PY3",
-    srcs_version = "PY3",
-    deps = [
-        ":mock_sc2_env",
-        ":sc2_env",
-        "@absl_py//absl/testing:absltest",
     ],
 )
 

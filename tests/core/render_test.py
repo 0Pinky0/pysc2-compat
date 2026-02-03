@@ -22,7 +22,7 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 from pysc2 import maps
 from pysc2 import run_configs
 from pysc2.lib import features
-from pysc2.tests import utils
+from tests.core import utils
 
 
 class TestRender(utils.TestCase):

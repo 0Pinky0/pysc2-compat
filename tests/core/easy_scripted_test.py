@@ -19,7 +19,7 @@ from absl.testing import absltest
 from pysc2.agents import scripted_agent
 from pysc2.env import run_loop
 from pysc2.env import sc2_env
-from pysc2.tests import utils
+from tests.core import utils
 
 
 class TestEasy(utils.TestCase):

@@ -29,7 +29,7 @@ from pysc2.lib import features
 from pysc2.lib import point
 from pysc2.lib import renderer_ascii
 from pysc2.lib import units
-from pysc2.tests import utils
+from tests.core import utils
 
 _EMPTY = 0
 

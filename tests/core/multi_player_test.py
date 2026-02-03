@@ -25,7 +25,7 @@ from pysc2 import run_configs
 from pysc2.lib import point
 from pysc2.lib import portspicker
 from pysc2.lib import run_parallel
-from pysc2.tests import utils
+from tests.core import utils
 
 
 def print_stage(stage):

@@ -21,7 +21,7 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 from pysc2.env import host_remote_agent
 from pysc2.lib import remote_controller
 from pysc2.lib import run_parallel
-from pysc2.tests import utils
+from tests.core import utils
 
 NUM_MATCHES = 2
 STEPS = 100
