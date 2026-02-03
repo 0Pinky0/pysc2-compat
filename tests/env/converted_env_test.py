@@ -13,20 +13,21 @@
 # limitations under the License.
 
 import concurrent.futures
+import random
+
 import dm_env
 import numpy as np
-import random
 from absl.testing import absltest
 from dm_env import test_utils
 from s2clientprotocol import common_pb2
 from s2clientprotocol import sc2api_pb2
 
 from pysc2.env import converted_env
-from pysc2.env import mock_sc2_env
 from pysc2.env import sc2_env
 from pysc2.env.converter import converter
 from pysc2.env.converter.proto import converter_pb2
 from pysc2.lib import features
+from tests.env import mock_sc2_env
 
 
 def _action(delay: int):

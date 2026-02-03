@@ -15,6 +15,7 @@
 """Tests of the StarCraft2 mock environment."""
 
 from unittest import mock
+
 import numpy as np
 from absl.testing import absltest
 from s2clientprotocol import common_pb2
@@ -23,9 +24,9 @@ from s2clientprotocol import sc2api_pb2
 
 from pysc2.env import enums
 from pysc2.env import environment
-from pysc2.env import mock_sc2_env
 from pysc2.env import sc2_env
 from pysc2.lib import features
+from tests.env import mock_sc2_env
 
 
 class _TestMixin(object):

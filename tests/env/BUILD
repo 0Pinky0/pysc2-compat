@@ -5,6 +5,23 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
+pytype_library(
+    name = "mock_sc2_env",
+    srcs = ["mock_sc2_env.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":environment",
+        ":sc2_env",
+        requirement("numpy"),
+        "//pysc2/lib:features",
+        "//pysc2/lib:units",
+        "//pysc2/tests:dummy_observation",
+        "@s2client_proto//s2clientprotocol:common_py_pb2",
+        "@s2client_proto//s2clientprotocol:raw_py_pb2",
+        "@s2client_proto//s2clientprotocol:sc2api_py_pb2",
+    ],
+)
+
 py_test(
     name = "converted_env_test",
     srcs = ["converted_env_test.py"],
