@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from absl import flags
 from absl.testing import absltest
 
@@ -20,7 +22,8 @@ from pysc2.lib import resources
 from pysc2.lib.replay import sc2_replay
 
 FLAGS = flags.FLAGS
-PATH = 'pysc2/lib/replay/test_data/replay_01.SC2Replay'
+BASE_DIR = os.path.dirname(__file__)
+PATH = os.path.join(BASE_DIR, 'test_data', 'replay_01.SC2Replay')
 
 
 class Sc2ReplayTest(absltest.TestCase):

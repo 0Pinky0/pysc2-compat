@@ -23,7 +23,8 @@ from pysc2.lib.replay import sc2_replay
 from pysc2.lib.replay import sc2_replay_utils
 
 FLAGS = flags.FLAGS
-PATH = 'pysc2/lib/replay/test_data'
+BASE_DIR = os.path.dirname(__file__)
+PATH = os.path.join(BASE_DIR, 'test_data')
 
 
 def _read_replay(name):

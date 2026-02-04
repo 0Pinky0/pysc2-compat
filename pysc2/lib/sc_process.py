@@ -189,6 +189,9 @@ class StarcraftProcess(object):
 
     def _launch(self, run_config, args, **kwargs):
         """Launch the process and return the process object."""
+        # Drop higher-level params (e.g. multiplayer extra_ports) that Popen
+        # doesn't understand.
+        kwargs.pop('extra_ports', None)
         try:
             with sw('popen'):
                 return subprocess.Popen(

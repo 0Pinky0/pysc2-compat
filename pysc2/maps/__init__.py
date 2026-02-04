@@ -26,6 +26,7 @@ name, as long as it is imported somewhere.
 from pysc2.maps import ladder
 from pysc2.maps import lib
 from pysc2.maps import melee
+from pysc2.maps import mini_games  # noqa
 
 # Use `get` to create a map by name.
 get = lib.get
