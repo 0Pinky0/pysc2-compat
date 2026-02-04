@@ -6,9 +6,9 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 py_test(
-    name = "named_array_test",
+    name = "test_named_array",
     size = "small",
-    srcs = ["named_array_test.py"],
+    srcs = ["test_named_array.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -21,9 +21,9 @@ py_test(
 )
 
 py_test(
-    name = "features_test",
+    name = "test_features",
     size = "small",
-    srcs = ["features_test.py"],
+    srcs = ["test_features.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -39,8 +39,8 @@ py_test(
 )
 
 py_test(
-    name = "image_differencer_test",
-    srcs = ["image_differencer_test.py"],
+    name = "test_image_differencer",
+    srcs = ["test_image_differencer.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -54,8 +54,8 @@ py_test(
 )
 
 py_test(
-    name = "np_util_test",
-    srcs = ["np_util_test.py"],
+    name = "test_np_util",
+    srcs = ["test_np_util.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -68,9 +68,9 @@ py_test(
 )
 
 py_test(
-    name = "portspicker_test",
+    name = "test_portspicker",
     size = "small",
-    srcs = ["portspicker_test.py"],
+    srcs = ["test_portspicker.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -82,8 +82,8 @@ py_test(
 )
 
 py_test(
-    name = "proto_diff_test",
-    srcs = ["proto_diff_test.py"],
+    name = "test_proto_diff",
+    srcs = ["test_proto_diff.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -96,9 +96,9 @@ py_test(
 )
 
 py_test(
-    name = "run_parallel_test",
+    name = "test_run_parallel",
     size = "small",
-    srcs = ["run_parallel_test.py"],
+    srcs = ["test_run_parallel.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -109,8 +109,8 @@ py_test(
 )
 
 py_test(
-    name = "point_test",
-    srcs = ["point_test.py"],
+    name = "test_point",
+    srcs = ["test_point.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -121,8 +121,8 @@ py_test(
 )
 
 py_test(
-    name = "stopwatch_test",
-    srcs = ["stopwatch_test.py"],
+    name = "test_stopwatch",
+    srcs = ["test_stopwatch.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",

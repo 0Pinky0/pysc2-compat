@@ -16,9 +16,9 @@ exports_files([
 ])
 
 py_test(
-    name = "sc2_replay_test",
-    srcs = ["sc2_replay_test.py"],
-    data = ["//pysc2/lib/replay:test_data/replay_01.SC2Replay"],
+    name = "test_sc2_replay",
+    srcs = ["test_sc2_replay.py"],
+    data = ["//tests/replay:test_data/replay_01.SC2Replay"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -32,13 +32,13 @@ py_test(
 )
 
 py_test(
-    name = "sc2_replay_utils_test",
-    srcs = ["sc2_replay_utils_test.py"],
+    name = "test_sc2_replay_utils",
+    srcs = ["test_sc2_replay_utils.py"],
     data = [
-        "//pysc2/lib/replay:test_data/replay_0" + str(i) + ".SC2Replay"
+        "//tests/replay:test_data/replay_0" + str(i) + ".SC2Replay"
         for i in range(1, 10)
     ] + [
-        "//pysc2/lib/replay:test_data/replay_0" + str(i) + ".skips.txt"
+        "//tests/replay:test_data/replay_0" + str(i) + ".skips.txt"
         for i in range(1, 10)
     ],
     legacy_create_init = False,

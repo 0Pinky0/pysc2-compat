@@ -23,8 +23,8 @@ pytype_library(
 )
 
 py_test(
-    name = "converted_env_test",
-    srcs = ["converted_env_test.py"],
+    name = "test_converted_env",
+    srcs = ["test_converted_env.py"],
     legacy_create_init = False,
     deps = [
         ":converted_env",
@@ -43,9 +43,9 @@ py_test(
 )
 
 py_test(
-    name = "sc2_env_test",
+    name = "test_sc2_env",
     size = "small",
-    srcs = ["sc2_env_test.py"],
+    srcs = ["test_sc2_env.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -57,9 +57,9 @@ py_test(
 )
 
 py_test(
-    name = "mock_sc2_env_test",
+    name = "test_mock_sc2_env",
     size = "small",
-    srcs = ["mock_sc2_env_test.py"],
+    srcs = ["test_mock_sc2_env.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -76,9 +76,9 @@ py_test(
 )
 
 py_test(
-    name = "mock_sc2_env_comparison_test",
+    name = "test_mock_sc2_env_comparison",
     size = "large",
-    srcs = ["mock_sc2_env_comparison_test.py"],
+    srcs = ["test_mock_sc2_env_comparison.py"],
     legacy_create_init = False,
     python_version = "PY3",
     srcs_version = "PY3",
@@ -90,8 +90,8 @@ py_test(
 )
 
 py_test(
-    name = "converter_test",
-    srcs = ["converter_test.py"],
+    name = "test_converter",
+    srcs = ["test_converter.py"],
     legacy_create_init = False,
     deps = [
         ":converter",
