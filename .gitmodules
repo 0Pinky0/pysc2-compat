@@ -1,0 +1,6 @@
+[submodule "proto/s2client-proto"]
+	path = proto/s2client-proto
+	url = https://github.com/Blizzard/s2client-proto.git
+[submodule "proto/s2protocol"]
+	path = proto/s2protocol
+	url = https://github.com/0Pinky0/s2protocol-compat.git

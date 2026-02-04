@@ -38,6 +38,7 @@ flags.DEFINE_integer('sc2_port', None,
 FLAGS = flags.FLAGS
 
 sw = stopwatch.sw
+_SC2_SHOW_STDERR = os.environ.get('SC2_SHOW_STDERR', '')
 
 
 class SC2LaunchError(Exception):
@@ -192,6 +193,9 @@ class StarcraftProcess(object):
         # Drop higher-level params (e.g. multiplayer extra_ports) that Popen
         # doesn't understand.
         kwargs.pop('extra_ports', None)
+        if 'stderr' not in kwargs:
+            show = str(_SC2_SHOW_STDERR).lower() in ('1', 'true', 'yes', 'on', 'debug')
+            kwargs['stderr'] = None if show else subprocess.DEVNULL
         try:
             with sw('popen'):
                 return subprocess.Popen(
