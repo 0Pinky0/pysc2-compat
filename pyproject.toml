@@ -32,7 +32,7 @@ dependencies = [
     'mpyq',
     'numpy >=1.21',
     'portpicker >=1.2.0',
-    'protobuf >=3.19.1,<4',
+    'protobuf >=3.19.1',
     'requests',
     's2clientprotocol >=4.10.1.75800.0',
     's2protocol',
