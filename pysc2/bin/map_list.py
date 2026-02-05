@@ -14,7 +14,7 @@
 # limitations under the License.
 """Print the list of defined maps."""
 
-from absl import app
+from pysc2.lib import app
 
 from pysc2 import maps
 

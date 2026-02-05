@@ -16,8 +16,8 @@
 
 import importlib
 import threading
-from absl import app
-from absl import flags
+from pysc2.lib import app
+from pysc2.lib import flags
 
 from pysc2 import maps
 from pysc2.env import available_actions_printer

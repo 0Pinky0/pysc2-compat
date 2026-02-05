@@ -13,7 +13,7 @@
 # limitations under the License.
 """A Starcraft II environment for playing using remote SC2 instances."""
 
-from absl import logging
+from pysc2.lib import logging
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from typing import Sequence
 

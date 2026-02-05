@@ -19,8 +19,8 @@ import socket
 import sys
 import time
 import websocket
-from absl import flags
-from absl import logging
+from pysc2.lib import flags
+from pysc2.lib import logging
 from s2clientprotocol import debug_pb2 as sc_debug
 from s2clientprotocol import sc2api_pb2 as sc_pb
 

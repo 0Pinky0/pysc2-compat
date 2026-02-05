@@ -21,8 +21,8 @@ import binascii
 import mpyq
 import os
 import urllib
-from absl import app
-from absl import flags
+from pysc2.lib import app
+from pysc2.lib import flags
 from s2protocol import versions as s2versions
 
 from pysc2 import run_configs

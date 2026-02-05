@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import numpy as np
 from absl.testing import absltest
 from absl.testing import parameterized
@@ -19,6 +20,13 @@ from s2clientprotocol import common_pb2
 from s2clientprotocol import raw_pb2
 from s2clientprotocol import sc2api_pb2
 from s2clientprotocol import spatial_pb2
+
+pytest.importorskip('dm_env', reason='converter tests require dm_env (install PySC2-Compat[converter]).')
+pytest.importorskip('dm_env_rpc', reason='converter tests require dm_env_rpc (install PySC2-Compat[converter]).')
+pytest.importorskip(
+    'pysc2.env.converter.cc.python.converter',
+    reason='converter tests require the pybind converter extension.'
+)
 
 from pysc2.env.converter import converter
 from pysc2.env.converter.proto import converter_pb2

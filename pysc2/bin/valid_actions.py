@@ -14,8 +14,8 @@
 # limitations under the License.
 """Print the valid actions."""
 
-from absl import app
-from absl import flags
+from pysc2.lib import app
+from pysc2.lib import flags
 
 from pysc2.lib import actions
 from pysc2.lib import features

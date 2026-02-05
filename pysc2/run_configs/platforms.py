@@ -18,8 +18,8 @@ import os
 import platform
 import subprocess
 import sys
-from absl import flags
-from absl import logging
+from pysc2.lib import flags
+from pysc2.lib import logging
 
 from pysc2.lib import sc_process
 from pysc2.run_configs import lib

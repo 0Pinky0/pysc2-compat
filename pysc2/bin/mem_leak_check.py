@@ -21,8 +21,8 @@ import random
 import sys
 import time
 
-from absl import app
-from absl import flags
+from pysc2.lib import app
+from pysc2.lib import flags
 
 try:
     import psutil

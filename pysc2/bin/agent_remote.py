@@ -46,9 +46,9 @@ import importlib
 import platform
 import sys
 import time
-from absl import app
-from absl import flags
-from absl import logging
+from pysc2.lib import app
+from pysc2.lib import flags
+from pysc2.lib import logging
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
 from pysc2 import maps

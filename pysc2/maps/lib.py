@@ -30,7 +30,7 @@ if you've imported the map module somewhere.
 
 import os
 
-from absl import logging
+from pysc2.lib import logging
 
 
 class DuplicateMapError(Exception):

@@ -14,7 +14,7 @@
 # limitations under the License.
 """Print the list of available maps according to the game."""
 
-from absl import app
+from pysc2.lib import app
 
 from pysc2 import run_configs
 

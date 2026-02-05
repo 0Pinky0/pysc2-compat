@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from absl.testing import absltest
+import unittest
 
 from pysc2.env.converter.cc.game_data.proto import buffs_pb2
 from pysc2.env.converter.cc.game_data.proto import units_pb2
@@ -20,7 +20,7 @@ from pysc2.env.converter.cc.game_data.proto import upgrades_pb2
 from pysc2.env.converter.cc.game_data.python import uint8_lookup
 
 
-class Uint8LookupTest(absltest.TestCase):
+class Uint8LookupTest(unittest.TestCase):
 
     def test_pysc2_to_uint8(self):
         self.assertEqual(
@@ -48,4 +48,4 @@ class Uint8LookupTest(absltest.TestCase):
 
 
 if __name__ == '__main__':
-    absltest.main()
+    unittest.main()

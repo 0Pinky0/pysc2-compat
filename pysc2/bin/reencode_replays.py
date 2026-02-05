@@ -15,8 +15,8 @@
 """Run through a set of replays, generating new replays from them."""
 
 import os
-from absl import app
-from absl import flags
+from pysc2.lib import app
+from pysc2.lib import flags
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
 from pysc2 import run_configs

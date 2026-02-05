@@ -20,8 +20,8 @@ import shutil
 import subprocess
 import tempfile
 import time
-from absl import flags
-from absl import logging
+from pysc2.lib import flags
+from pysc2.lib import logging
 
 from pysc2.lib import remote_controller
 from pysc2.lib import stopwatch

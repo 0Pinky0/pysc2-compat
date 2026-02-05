@@ -15,7 +15,7 @@
 """Generate the list of versions for run_configs."""
 
 import requests
-from absl import app
+from pysc2.lib import app
 
 # raw version of:
 # https://github.com/Blizzard/s2client-proto/blob/master/buildinfo/versions.json

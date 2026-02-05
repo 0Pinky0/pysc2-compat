@@ -18,7 +18,7 @@ import collections
 import enum
 import numpy as np
 import random
-from absl import logging
+from pysc2.lib import logging
 from s2clientprotocol import raw_pb2 as sc_raw
 from s2clientprotocol import sc2api_pb2 as sc_pb
 

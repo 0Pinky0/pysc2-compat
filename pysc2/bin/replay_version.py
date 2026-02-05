@@ -15,7 +15,7 @@
 """Generate version information from replays."""
 
 import os
-from absl import app
+from pysc2.lib import app
 
 from pysc2 import run_configs
 from pysc2.lib import replay

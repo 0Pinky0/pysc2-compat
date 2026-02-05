@@ -14,11 +14,22 @@
 
 """Environment which uses converters to transform an underlying environment."""
 
-import dm_env
+from __future__ import annotations
+
+try:
+    import dm_env
+except ModuleNotFoundError:
+    dm_env = None
+
 import functools
 import numpy as np
 import threading
-import tree
+
+try:
+    import tree
+except ModuleNotFoundError:
+    tree = None
+
 import typing_extensions
 from s2clientprotocol import common_pb2
 from s2clientprotocol import raw_pb2
@@ -30,6 +41,23 @@ from pysc2.env.converter.proto import converter_pb2
 from pysc2.lib import actions as sc2_actions
 
 _BARRIER_TIMEOUT = 30.0
+
+
+def _require_converter_deps():
+    missing = []
+    if dm_env is None:
+        missing.append("dm_env")
+    if tree is None:
+        missing.append("dm-tree (import 名: tree)")
+    if missing:
+        raise ImportError(
+            "ConvertedEnvironment 相关依赖未安装: "
+            + ", ".join(missing)
+            + ". 请安装 PySC2-Compat[converter]。"
+        )
+
+
+_DMEnvBase = dm_env.Environment if dm_env is not None else object
 
 
 def squeeze_if_necessary(x: np.ndarray) -> np.ndarray:
@@ -54,7 +82,7 @@ class ConverterFactory(typing_extensions.Protocol):
         """Returns an environment converter given a game info."""
 
 
-class ConvertedEnvironment(dm_env.Environment):
+class ConvertedEnvironment(_DMEnvBase):
     """Env which uses converters to transform an underlying environment.
 
     Note that this is a multiplayer environment. The returned timesteps contain
@@ -80,6 +108,7 @@ class ConvertedEnvironment(dm_env.Environment):
             allow_out_of_turn_actions: Whether to allow agents to act when it's not
                 their turns. Used for testing.
         """
+        _require_converter_deps()
         self._env = env
         self._num_players = len(converter_factories)
         self._converter_factories = converter_factories
@@ -186,7 +215,7 @@ class ConvertedEnvironment(dm_env.Environment):
             ])
 
 
-class _Stream(dm_env.Environment):
+class _Stream(_DMEnvBase):
     """A stream for a single player interacting with a multiplayer
     environment."""
 

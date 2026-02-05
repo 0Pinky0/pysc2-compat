@@ -15,7 +15,7 @@
 """Generate the unit definitions for units.py."""
 
 import collections
-from absl import app
+from pysc2.lib import app
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import sc2api_pb2 as sc_pb
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Configs for various ways to run starcraft."""
 
-from absl import flags
+from pysc2.lib import flags
 
 from pysc2.lib import sc_process
 from pysc2.run_configs import lib

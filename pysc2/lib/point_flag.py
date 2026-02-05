@@ -13,11 +13,10 @@
 # limitations under the License.
 """Define a flag type for points."""
 
-from absl import flags
+from pysc2.lib import flags
 
 from pysc2.lib import point
 
-# Let absl.flags know that DEFINE_point should show up in the caller's module.
 flags.disclaim_key_flags()
 
 

@@ -15,12 +15,20 @@
 import concurrent.futures
 import random
 
-import dm_env
+import pytest
 import numpy as np
 from absl.testing import absltest
-from dm_env import test_utils
 from s2clientprotocol import common_pb2
 from s2clientprotocol import sc2api_pb2
+
+dm_env = pytest.importorskip('dm_env', reason='converted_env tests require dm_env (install PySC2-Compat[converter]).')
+test_utils = pytest.importorskip('dm_env.test_utils', reason='converted_env tests require dm_env (install PySC2-Compat[converter]).')
+
+pytest.importorskip('dm_env_rpc', reason='converted_env tests require dm_env_rpc (install PySC2-Compat[converter]).')
+pytest.importorskip(
+    'pysc2.env.converter.cc.python.converter',
+    reason='converted_env tests require the pybind converter extension.'
+)
 
 from pysc2.env import converted_env
 from pysc2.env import sc2_env

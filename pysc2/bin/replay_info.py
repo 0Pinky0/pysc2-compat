@@ -15,8 +15,8 @@
 """Query one or more replays for information."""
 
 import os
-from absl import app
-from absl import flags
+from pysc2.lib import app
+from pysc2.lib import flags
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import sc2api_pb2 as sc_pb
 

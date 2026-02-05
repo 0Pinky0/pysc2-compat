@@ -14,7 +14,7 @@
 """Test the apm values of various actions."""
 
 import random
-from absl import app
+from pysc2.lib import app
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import error_pb2 as sc_error
 from s2clientprotocol import sc2api_pb2 as sc_pb

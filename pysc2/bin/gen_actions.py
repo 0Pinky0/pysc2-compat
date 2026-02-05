@@ -15,8 +15,8 @@
 """Generate the action definitions for actions.py."""
 
 import itertools
-from absl import app
-from absl import flags
+from pysc2.lib import app
+from pysc2.lib import flags
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import data_pb2 as sc_data
 from s2clientprotocol import sc2api_pb2 as sc_pb

@@ -18,15 +18,45 @@ specs and numpy arrays in place of dm_env_rpc protos; also supports
 documentation more naturally.
 """
 
-from dm_env import specs
-from dm_env_rpc.v1 import dm_env_rpc_pb2
-from dm_env_rpc.v1 import dm_env_utils
-from dm_env_rpc.v1 import tensor_utils
 from s2clientprotocol import sc2api_pb2
 from typing import Any, Mapping
 
-from pysc2.env.converter.cc.python import converter
+try:
+    from dm_env import specs as _specs
+except ModuleNotFoundError:
+    _specs = None
+
+try:
+    from dm_env_rpc.v1 import dm_env_rpc_pb2 as _dm_env_rpc_pb2
+    from dm_env_rpc.v1 import dm_env_utils as _dm_env_utils
+    from dm_env_rpc.v1 import tensor_utils as _tensor_utils
+except ModuleNotFoundError:
+    _dm_env_rpc_pb2 = None
+    _dm_env_utils = None
+    _tensor_utils = None
+
+try:
+    from pysc2.env.converter.cc.python import converter as _cc_converter
+except Exception:
+    _cc_converter = None
+
 from pysc2.env.converter.proto import converter_pb2
+
+
+def _require_converter_deps():
+    missing = []
+    if _specs is None:
+        missing.append("dm_env")
+    if _dm_env_rpc_pb2 is None:
+        missing.append("dm_env_rpc (pip 包名: dm-env-rpc)")
+    if _cc_converter is None:
+        missing.append("pybind converter 扩展 (pysc2.env.converter.cc.python.converter)")
+    if missing:
+        raise ImportError(
+            "Converter 相关依赖未安装或不可用: "
+            + ", ".join(missing)
+            + ". 请安装 PySC2-Compat[converter] 并确保 converter 扩展已构建/可导入。"
+        )
 
 
 class Converter:
@@ -49,11 +79,12 @@ class Converter:
 
     def __init__(self, settings: converter_pb2.ConverterSettings,
                  environment_info: converter_pb2.EnvironmentInfo):
-        self._converter = converter.MakeConverter(
+        _require_converter_deps()
+        self._converter = _cc_converter.MakeConverter(
             settings=settings.SerializeToString(),
             environment_info=environment_info.SerializeToString())
 
-    def observation_spec(self) -> Mapping[str, specs.Array]:
+    def observation_spec(self) -> Mapping[str, Any]:
         """Returns the observation spec.
 
         This is a flat mapping of string label to dm_env array spec and
@@ -62,12 +93,12 @@ class Converter:
         """
         spec = {}
         for k, v in self._converter.ObservationSpec().items():
-            value = dm_env_rpc_pb2.TensorSpec()
+            value = _dm_env_rpc_pb2.TensorSpec()
             value.ParseFromString(v)
-            spec[k] = dm_env_utils.tensor_spec_to_dm_env_spec(value)
+            spec[k] = _dm_env_utils.tensor_spec_to_dm_env_spec(value)
         return spec
 
-    def action_spec(self) -> Mapping[str, specs.Array]:
+    def action_spec(self) -> Mapping[str, Any]:
         """Returns the action spec.
 
         This is a flat mapping of string label to dm_env array spec and
@@ -76,9 +107,9 @@ class Converter:
         """
         spec = {}
         for k, v in self._converter.ActionSpec().items():
-            value = dm_env_rpc_pb2.TensorSpec()
+            value = _dm_env_rpc_pb2.TensorSpec()
             value.ParseFromString(v)
-            spec[k] = dm_env_utils.tensor_spec_to_dm_env_spec(value)
+            spec[k] = _dm_env_utils.tensor_spec_to_dm_env_spec(value)
         return spec
 
     def convert_observation(
@@ -100,10 +131,10 @@ class Converter:
 
         deserialized_converted_obs = {}
         for k, v in serialized_converted_obs.items():
-            value = dm_env_rpc_pb2.Tensor()
+            value = _dm_env_rpc_pb2.Tensor()
             value.ParseFromString(v)
             try:
-                unpacked_value = tensor_utils.unpack_tensor(value)
+                unpacked_value = _tensor_utils.unpack_tensor(value)
                 deserialized_converted_obs[k] = unpacked_value
             except Exception as e:
                 raise Exception(f'Unpacking failed for {k}:{v} - {e}')

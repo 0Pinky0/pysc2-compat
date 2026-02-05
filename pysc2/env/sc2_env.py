@@ -18,7 +18,7 @@ import collections
 import copy
 import random
 import time
-from absl import logging
+from pysc2.lib import logging
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
 from pysc2 import maps
