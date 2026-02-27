@@ -32,6 +32,44 @@
 - 本次“最新版”用于验证评测链路可用，仍是单次 run，且使用随机对局流程；
 - 后续应使用 `repeats>=3`（建议 5）+ 固定 race/seed，采用中位数作为主结论。
 
+### 已落地（Phase 0 - 观测裁剪第 2 步）
+
+在 `pysc2/lib/features.py` 与 `pysc2/bin/benchmark_env_step.py` 中落地了可选观测裁剪开关：
+- `include_ui_data`（默认 `True`）
+- `include_score_details`（默认 `True`，仅控制 `score_by_category/score_by_vital`）
+- `include_last_actions`（默认 `True`）
+
+说明：
+- 为保持兼容，`score_cumulative` 保持始终输出（避免影响 score-based reward 逻辑）。
+- 默认值均为 `True`，不改变现有用户行为；只在显式关闭时生效。
+
+本轮对照数据（同参数，同 seed，`steps=2000, repeats=3`）：
+- 默认配置输出：
+  - `tests/profiles/profile_env_step_phase0_default_smacnt_raw.txt`
+  - `tests/profiles/profile_env_step_phase0_default_smacnt.json`
+  - `tests/profiles/profile_env_step_phase0_default_smacnt.csv`
+- 轻量配置输出（`--obs_include_ui_data=false --obs_include_score_details=false --obs_include_last_actions=false`）：
+  - `tests/profiles/profile_env_step_phase0_light_smacnt_raw.txt`
+  - `tests/profiles/profile_env_step_phase0_light_smacnt.json`
+  - `tests/profiles/profile_env_step_phase0_light_smacnt.csv`
+
+聚合结果（light vs default）：
+- `Total Time mean`: `17.2551 -> 17.1352 s`（`-0.70%`）
+- `Total Time median`: `17.3664 -> 16.8307 s`（`-3.08%`）
+- `SPS mean`: `116.08 -> 116.86`（`+0.67%`）
+- `SPS median`: `115.16 -> 118.83`（`+3.18%`）
+- `Latency Mean mean`: `7.8665 -> 7.8052 ms`（`-0.78%`）
+
+热点项变化（按 run 平均）：
+- `step_env.transform_obs`: `-5.92%`
+- `step_env.transform_obs.score`: `-77.18%`
+- `step_env.transform_obs.ui`: `-100.00%`
+- `step_env.transform_obs.last_actions`: `-100.00%`
+
+结论：
+- “按需关闭非必要观测字段”在当前链路下已得到可测收益（约 `+0.7%` mean，`+3.2%` median）。
+- 下一步应继续做 `sc2_env` 单智能体 fast-path，叠加收益。
+
 ## 1. 目标与基线
 
 本阶段目标：以 `smacnt`（Python 3.14 + protobuf `upb`）为主优化目标，对 `pysc2-compat` 的 `env.step` 路径做持续提速，并能稳定对比“最新版 vs 历史版”。

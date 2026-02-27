@@ -58,6 +58,21 @@ flags.DEFINE_string(
     "",
     "If set, auto-writes timestamped JSON/CSV under this directory.",
 )
+flags.DEFINE_bool(
+    "obs_include_ui_data",
+    True,
+    "Whether to include UI-derived observation fields (single_select, etc.).",
+)
+flags.DEFINE_bool(
+    "obs_include_score_details",
+    True,
+    "Whether to include score_by_category and score_by_vital observations.",
+)
+flags.DEFINE_bool(
+    "obs_include_last_actions",
+    True,
+    "Whether to include last_actions observation.",
+)
 
 
 def _parse_race(value):
@@ -125,6 +140,9 @@ def _run_once(run_id, res, players):
         agent_interface_format=sc2_env.AgentInterfaceFormat(
             feature_dimensions=sc2_env.Dimensions(screen=res, minimap=res),
             use_feature_units=True,
+            include_ui_data=FLAGS.obs_include_ui_data,
+            include_score_details=FLAGS.obs_include_score_details,
+            include_last_actions=FLAGS.obs_include_last_actions,
         ),
     ) as env:
         agent.setup(env.observation_spec()[0], env.action_spec()[0])
@@ -326,6 +344,9 @@ def main(unused_argv):
             "seed": FLAGS.seed,
             "agent_race": FLAGS.agent_race,
             "bot_race": FLAGS.bot_race,
+            "obs_include_ui_data": FLAGS.obs_include_ui_data,
+            "obs_include_score_details": FLAGS.obs_include_score_details,
+            "obs_include_last_actions": FLAGS.obs_include_last_actions,
         },
         "environment": {
             "python_version": sys.version.split()[0],

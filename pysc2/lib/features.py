@@ -489,7 +489,10 @@ class AgentInterfaceFormat(object):
             crop_to_playable_area=False,
             raw_crop_to_playable_area=False,
             allow_cheating_layers=False,
-            add_cargo_to_units=False):
+            add_cargo_to_units=False,
+            include_ui_data=True,
+            include_score_details=True,
+            include_last_actions=True):
         """Initializer.
 
         Args:
@@ -552,6 +555,13 @@ class AgentInterfaceFormat(object):
               layers on the minimap.
             add_cargo_to_units: Whether to add the units that are currently in cargo
               to the feature_units and raw_units lists.
+            include_ui_data: Whether to include UI-derived observation fields such as
+              `single_select`, `multi_select`, `control_groups`, etc.
+            include_score_details: Whether to include `score_by_category` and
+              `score_by_vital`. `score_cumulative` is always included for
+              compatibility with score-based rewards.
+            include_last_actions: Whether to include the `last_actions` observation
+              field.
 
         Raises:
             ValueError: if the parameters are inconsistent.
@@ -627,6 +637,9 @@ class AgentInterfaceFormat(object):
         self._crop_to_playable_area = crop_to_playable_area
         self._raw_crop_to_playable_area = raw_crop_to_playable_area
         self._allow_cheating_layers = allow_cheating_layers
+        self._include_ui_data = include_ui_data
+        self._include_score_details = include_score_details
+        self._include_last_actions = include_last_actions
 
         if action_space == actions.ActionSpace.FEATURES:
             self._action_dimensions = feature_dimensions
@@ -728,6 +741,18 @@ class AgentInterfaceFormat(object):
     @property
     def allow_cheating_layers(self):
         return self._allow_cheating_layers
+
+    @property
+    def include_ui_data(self):
+        return self._include_ui_data
+
+    @property
+    def include_score_details(self):
+        return self._include_score_details
+
+    @property
+    def include_last_actions(self):
+        return self._include_last_actions
 
 
 def parse_agent_interface_format(
@@ -1052,20 +1077,10 @@ class Features(object):
         obs_spec = named_array.NamedDict({
             'action_result': (0,),  # See error.proto: ActionResult.
             'alerts': (0,),  # See sc2api.proto: Alert.
-            'build_queue': (0, len(UnitLayer)),
-            'cargo': (0, len(UnitLayer)),
-            'cargo_slots_available': (1,),
-            'control_groups': (10, 2),
             'game_loop': (1,),
-            'last_actions': (0,),
             'map_name': (0,),
-            'multi_select': (0, len(UnitLayer)),
             'player': (len(Player),),
-            'production_queue': (0, len(ProductionQueue)),
             'score_cumulative': (len(ScoreCumulative),),
-            'score_by_category': (len(ScoreByCategory), len(ScoreCategories)),
-            'score_by_vital': (len(ScoreByVital), len(ScoreVitals)),
-            'single_select': (0, len(UnitLayer)),  # Only (n, 7) for n in (0, 1).
         })
         # pytype: enable=wrong-arg-types
 
@@ -1073,6 +1088,21 @@ class Features(object):
             obs_spec['available_actions'] = (0,)
 
         aif = self._agent_interface_format
+        if aif.include_ui_data:
+            obs_spec['build_queue'] = (0, len(UnitLayer))
+            obs_spec['cargo'] = (0, len(UnitLayer))
+            obs_spec['cargo_slots_available'] = (1,)
+            obs_spec['control_groups'] = (10, 2)
+            obs_spec['multi_select'] = (0, len(UnitLayer))
+            obs_spec['production_queue'] = (0, len(ProductionQueue))
+            obs_spec['single_select'] = (0, len(UnitLayer))  # Only (n, 7) for n in (0, 1).
+
+        if aif.include_score_details:
+            obs_spec['score_by_category'] = (len(ScoreByCategory), len(ScoreCategories))
+            obs_spec['score_by_vital'] = (len(ScoreByVital), len(ScoreVitals))
+
+        if aif.include_last_actions:
+            obs_spec['last_actions'] = (0,)
 
         if aif.feature_dimensions:
             obs_spec['feature_screen'] = (len(SCREEN_FEATURES),
@@ -1131,28 +1161,31 @@ class Features(object):
     @sw.decorate
     def transform_obs(self, obs):
         """Render some SC2 observations into something an agent can handle."""
-        empty_unit = np.array([], dtype=np.int32).reshape((0, len(UnitLayer)))
-        out = named_array.NamedDict({  # Fill out some that are sometimes empty.
-            'single_select': empty_unit,
-            'multi_select': empty_unit,
-            'build_queue': empty_unit,
-            'cargo': empty_unit,
-            'production_queue': np.array([], dtype=np.int32).reshape(
-                (0, len(ProductionQueue))),
-            'last_actions': np.array([], dtype=np.int32),
-            'cargo_slots_available': np.array([0], dtype=np.int32),
+        aif = self._agent_interface_format
+        out = named_array.NamedDict({
             'home_race_requested': np.array([0], dtype=np.int32),
             'away_race_requested': np.array([0], dtype=np.int32),
             'map_name': self._map_name,
         })
+        if aif.include_last_actions:
+            out['last_actions'] = np.array([], dtype=np.int32)
+        if aif.include_ui_data:
+            empty_unit = np.array([], dtype=np.int32).reshape((0, len(UnitLayer)))
+            out.update({  # Fill out some that are sometimes empty.
+                'single_select': empty_unit,
+                'multi_select': empty_unit,
+                'build_queue': empty_unit,
+                'cargo': empty_unit,
+                'production_queue': np.array([], dtype=np.int32).reshape(
+                    (0, len(ProductionQueue))),
+                'cargo_slots_available': np.array([0], dtype=np.int32),
+            })
 
         def or_zeros(layer, size):
             if layer is not None:
                 return layer.astype(np.int32, copy=False)
             else:
                 return np.zeros((size.y, size.x), dtype=np.int32)
-
-        aif = self._agent_interface_format
 
         if aif.feature_dimensions:
             with sw('feature_screen'):
@@ -1176,7 +1209,7 @@ class Features(object):
                 out['rgb_minimap'] = Feature.unpack_rgb_image(
                     obs.observation.render_data.minimap).astype(np.int32)
 
-        if not self._raw:
+        if aif.include_last_actions and not self._raw:
             with sw('last_actions'):
                 out['last_actions'] = np.array(
                     [self.reverse_action(a).function for a in obs.actions],
@@ -1207,19 +1240,20 @@ class Features(object):
                 score_details.spent_vespene,
             ], names=ScoreCumulative, dtype=np.int32)
 
-            def get_score_details(key, details, categories):
-                row = getattr(details, key.name)
-                return [getattr(row, category.name) for category in categories]
+            if aif.include_score_details:
+                def get_score_details(key, details, categories):
+                    row = getattr(details, key.name)
+                    return [getattr(row, category.name) for category in categories]
 
-            out['score_by_category'] = named_array.NamedNumpyArray([
-                get_score_details(key, score_details, ScoreCategories)
-                for key in ScoreByCategory
-            ], names=[ScoreByCategory, ScoreCategories], dtype=np.int32)
+                out['score_by_category'] = named_array.NamedNumpyArray([
+                    get_score_details(key, score_details, ScoreCategories)
+                    for key in ScoreByCategory
+                ], names=[ScoreByCategory, ScoreCategories], dtype=np.int32)
 
-            out['score_by_vital'] = named_array.NamedNumpyArray([
-                get_score_details(key, score_details, ScoreVitals)
-                for key in ScoreByVital
-            ], names=[ScoreByVital, ScoreVitals], dtype=np.int32)
+                out['score_by_vital'] = named_array.NamedNumpyArray([
+                    get_score_details(key, score_details, ScoreVitals)
+                    for key in ScoreByVital
+                ], names=[ScoreByVital, ScoreVitals], dtype=np.int32)
 
         player = obs.observation.player_common
         out['player'] = named_array.NamedNumpyArray([
@@ -1247,39 +1281,39 @@ class Features(object):
                 int(u.build_progress * 100),  # discretize
             ), dtype=np.int32)
 
-        ui = obs.observation.ui_data
+        if aif.include_ui_data:
+            ui = obs.observation.ui_data
+            with sw('ui'):
+                groups = np.zeros((10, 2), dtype=np.int32)
+                for g in ui.groups:
+                    groups[g.control_group_index, :] = (g.leader_unit_type, g.count)
+                out['control_groups'] = groups
 
-        with sw('ui'):
-            groups = np.zeros((10, 2), dtype=np.int32)
-            for g in ui.groups:
-                groups[g.control_group_index, :] = (g.leader_unit_type, g.count)
-            out['control_groups'] = groups
-
-            if ui.HasField('single'):
-                out['single_select'] = named_array.NamedNumpyArray(
-                    [unit_vec(ui.single.unit)], [None, UnitLayer])
-            elif ui.HasField('multi'):
-                out['multi_select'] = named_array.NamedNumpyArray(
-                    [unit_vec(u) for u in ui.multi.units], [None, UnitLayer])
-            elif ui.HasField('cargo'):
-                out['single_select'] = named_array.NamedNumpyArray(
-                    [unit_vec(ui.cargo.unit)], [None, UnitLayer])
-                out['cargo'] = named_array.NamedNumpyArray(
-                    [unit_vec(u) for u in ui.cargo.passengers], [None, UnitLayer])
-                out['cargo_slots_available'] = np.array([ui.cargo.slots_available],
-                                                        dtype=np.int32)
-            elif ui.HasField('production'):
-                out['single_select'] = named_array.NamedNumpyArray(
-                    [unit_vec(ui.production.unit)], [None, UnitLayer])
-                if ui.production.build_queue:
-                    out['build_queue'] = named_array.NamedNumpyArray(
-                        [unit_vec(u) for u in ui.production.build_queue],
-                        [None, UnitLayer], dtype=np.int32)
-                if ui.production.production_queue:
-                    out['production_queue'] = named_array.NamedNumpyArray(
-                        [(item.ability_id, item.build_progress * 100)
-                         for item in ui.production.production_queue],
-                        [None, ProductionQueue], dtype=np.int32)
+                if ui.HasField('single'):
+                    out['single_select'] = named_array.NamedNumpyArray(
+                        [unit_vec(ui.single.unit)], [None, UnitLayer])
+                elif ui.HasField('multi'):
+                    out['multi_select'] = named_array.NamedNumpyArray(
+                        [unit_vec(u) for u in ui.multi.units], [None, UnitLayer])
+                elif ui.HasField('cargo'):
+                    out['single_select'] = named_array.NamedNumpyArray(
+                        [unit_vec(ui.cargo.unit)], [None, UnitLayer])
+                    out['cargo'] = named_array.NamedNumpyArray(
+                        [unit_vec(u) for u in ui.cargo.passengers], [None, UnitLayer])
+                    out['cargo_slots_available'] = np.array([ui.cargo.slots_available],
+                                                            dtype=np.int32)
+                elif ui.HasField('production'):
+                    out['single_select'] = named_array.NamedNumpyArray(
+                        [unit_vec(ui.production.unit)], [None, UnitLayer])
+                    if ui.production.build_queue:
+                        out['build_queue'] = named_array.NamedNumpyArray(
+                            [unit_vec(u) for u in ui.production.build_queue],
+                            [None, UnitLayer], dtype=np.int32)
+                    if ui.production.production_queue:
+                        out['production_queue'] = named_array.NamedNumpyArray(
+                            [(item.ability_id, item.build_progress * 100)
+                             for item in ui.production.production_queue],
+                            [None, ProductionQueue], dtype=np.int32)
 
         tag_types = {}  # Only populate the cache if it's needed.
 
