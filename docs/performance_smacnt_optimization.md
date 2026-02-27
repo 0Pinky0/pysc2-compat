@@ -70,6 +70,44 @@
 - “按需关闭非必要观测字段”在当前链路下已得到可测收益（约 `+0.7%` mean，`+3.2%` median）。
 - 下一步应继续做 `sc2_env` 单智能体 fast-path，叠加收益。
 
+### 已落地（Phase 0 - 单控制器 fast-path + feature layer 预分配）
+
+本轮在 `pysc2/env/sc2_env.py` 与 `pysc2/lib/features.py` 继续推进：
+- `sc2_env.py`：单控制器路径直调（`join_game/game_info/actions/act/step/observe`）
+- `features.py`：`feature_screen/feature_minimap` 改为预分配数组并逐层填充（替换 `np.stack([...])` 临时列表）
+
+对照口径（同参数、同 seed、`steps=2000, repeats=3`）：
+- fast-path 基线：
+  - `tests/profiles/profile_env_step_phase0_fastpath_default_smacnt.json`
+  - `tests/profiles/profile_env_step_phase0_fastpath_light_smacnt.json`
+- 叠加预分配后：
+  - `tests/profiles/profile_env_step_phase0_prealloc_default_smacnt.json`
+  - `tests/profiles/profile_env_step_phase0_prealloc_light_smacnt.json`
+
+结果摘要：
+- **default（prealloc vs fast-path 基线）**
+  - `Total Time mean`: `-2.39%`
+  - `SPS mean`: `+2.48%`
+  - `Latency Mean mean`: `-2.77%`
+  - `step_env.transform_obs`: `-7.52%`
+  - `step_env.transform_obs.feature_screen`: `-24.76%`
+- **light（prealloc vs fast-path 基线）**
+  - `Total Time mean`: `-1.96%`
+  - `SPS mean`: `+2.06%`
+  - `Latency Mean mean`: `-2.21%`
+  - `step_env.transform_obs`: `-15.71%`
+  - `step_env.transform_obs.feature_screen`: `-32.38%`
+
+与 Phase 0 第2步提交时的 default 基线相比：
+- `Total Time mean`: `-0.58%`
+- `SPS mean`: `+0.55%`
+- `Latency Mean mean`: `-0.67%`
+- `Latency P99 mean`: `+3.53%`（尾延迟仍有波动）
+
+阶段结论：
+- feature layer 预分配是有效优化点，且在 `transform_obs` 子项上有稳定收益。
+- 单控制器 fast-path 的收益不够稳定，需继续用更长窗口（建议 `repeats=5~7`）确认其净效应。
+
 ## 1. 目标与基线
 
 本阶段目标：以 `smacnt`（Python 3.14 + protobuf `upb`）为主优化目标，对 `pysc2-compat` 的 `env.step` 路径做持续提速，并能稳定对比“最新版 vs 历史版”。

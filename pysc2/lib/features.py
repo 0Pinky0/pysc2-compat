@@ -1181,25 +1181,33 @@ class Features(object):
                 'cargo_slots_available': np.array([0], dtype=np.int32),
             })
 
-        def or_zeros(layer, size):
-            if layer is not None:
-                return layer.astype(np.int32, copy=False)
-            else:
-                return np.zeros((size.y, size.x), dtype=np.int32)
-
         if aif.feature_dimensions:
             with sw('feature_screen'):
+                screen_h = aif.feature_dimensions.screen.y
+                screen_w = aif.feature_dimensions.screen.x
+                screen_layers = np.empty(
+                    (len(SCREEN_FEATURES), screen_h, screen_w), dtype=np.int32)
+                for i, f in enumerate(SCREEN_FEATURES):
+                    layer = f.unpack(obs.observation)
+                    if layer is None:
+                        screen_layers[i].fill(0)
+                    else:
+                        screen_layers[i] = layer
                 out['feature_screen'] = named_array.NamedNumpyArray(
-                    np.stack([or_zeros(f.unpack(obs.observation),
-                                       aif.feature_dimensions.screen)
-                              for f in SCREEN_FEATURES]),
-                    names=[ScreenFeatures, None, None])
+                    screen_layers, names=[ScreenFeatures, None, None])
             with sw('feature_minimap'):
+                minimap_h = aif.feature_dimensions.minimap.y
+                minimap_w = aif.feature_dimensions.minimap.x
+                minimap_layers = np.empty(
+                    (len(MINIMAP_FEATURES), minimap_h, minimap_w), dtype=np.int32)
+                for i, f in enumerate(MINIMAP_FEATURES):
+                    layer = f.unpack(obs.observation)
+                    if layer is None:
+                        minimap_layers[i].fill(0)
+                    else:
+                        minimap_layers[i] = layer
                 out['feature_minimap'] = named_array.NamedNumpyArray(
-                    np.stack([or_zeros(f.unpack(obs.observation),
-                                       aif.feature_dimensions.minimap)
-                              for f in MINIMAP_FEATURES]),
-                    names=[MinimapFeatures, None, None])
+                    minimap_layers, names=[MinimapFeatures, None, None])
 
         if aif.rgb_dimensions:
             with sw('rgb_screen'):

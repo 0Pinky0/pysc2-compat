@@ -416,10 +416,14 @@ class SC2Env(environment.Base):
 
         # Join the game. This must be run in parallel because Join is a blocking
         # call to the game that waits until all clients have joined.
-        self._parallel.run((c.join_game, join)
-                           for c, join in zip(self._controllers, join_reqs))
-
-        self._game_info = self._parallel.run(c.game_info for c in self._controllers)
+        if len(self._controllers) == 1:
+            self._controllers[0].join_game(join_reqs[0])
+            self._game_info = [self._controllers[0].game_info()]
+        else:
+            self._parallel.run((c.join_game, join)
+                               for c, join in zip(self._controllers, join_reqs))
+            self._game_info = self._parallel.run(
+                c.game_info for c in self._controllers)
         for g, interface in zip(self._game_info, self._interface_options):
             if g.options.render != interface.render:
                 logging.warning(
@@ -524,15 +528,28 @@ class SC2Env(environment.Base):
             return self.reset()
 
         skip = not self._ensure_available_actions
-        actions = [[f.transform_action(o.observation, a, skip_available=skip)
-                    for a in to_list(acts)]
-                   for f, o, acts in zip(self._features, self._obs, actions)]
+        if self._num_agents == 1:
+            f = self._features[0]
+            o = self._obs[0]
+            if isinstance(actions, (list, tuple)) and len(actions) == 1:
+                acts = actions[0]
+            else:
+                acts = actions
+            actions = [[f.transform_action(o.observation, a, skip_available=skip)
+                        for a in to_list(acts)]]
+        else:
+            actions = [[f.transform_action(o.observation, a, skip_available=skip)
+                        for a in to_list(acts)]
+                       for f, o, acts in zip(self._features, self._obs, actions)]
 
         if not self._realtime:
             actions = self._apply_action_delays(actions)
 
-        self._parallel.run((c.actions, sc_pb.RequestAction(actions=a))
-                           for c, a in zip(self._controllers, actions))
+        if len(self._controllers) == 1:
+            self._controllers[0].actions(sc_pb.RequestAction(actions=actions[0]))
+        else:
+            self._parallel.run((c.actions, sc_pb.RequestAction(actions=a))
+                               for c, a in zip(self._controllers, actions))
 
         self._state = environment.StepType.MID
         return self._step(step_mul)
@@ -605,7 +622,10 @@ class SC2Env(environment.Base):
                     actions.append(delayed_action.action)
                 else:
                     actions.append(None)
-            self._parallel.run((c.act, a) for c, a in zip(self._controllers, actions))
+            if len(self._controllers) == 1:
+                self._controllers[0].act(actions[0])
+            else:
+                self._parallel.run((c.act, a) for c, a in zip(self._controllers, actions))
 
     def _step_to(self, game_loop, current_game_loop):
         step_mul = game_loop - current_game_loop
@@ -614,7 +634,11 @@ class SC2Env(environment.Base):
         if step_mul > 0:
             with self._metrics.measure_step_time(step_mul):
                 if not self._controllers[0].status_ended:  # May already have ended.
-                    self._parallel.run((c.step, step_mul) for c in self._controllers)
+                    if len(self._controllers) == 1:
+                        self._controllers[0].step(step_mul)
+                    else:
+                        self._parallel.run(
+                            (c.step, step_mul) for c in self._controllers)
 
     def _get_observations(self, target_game_loop):
         # Transform in the thread so it runs while waiting for other observations.
@@ -624,9 +648,14 @@ class SC2Env(environment.Base):
             return obs, agent_obs
 
         with self._metrics.measure_observation_time():
-            self._obs, self._agent_obs = zip(*self._parallel.run(
-                (parallel_observe, c, f)
-                for c, f in zip(self._controllers, self._features)))
+            if len(self._controllers) == 1:
+                obs, agent_obs = parallel_observe(self._controllers[0], self._features[0])
+                self._obs = (obs,)
+                self._agent_obs = (agent_obs,)
+            else:
+                self._obs, self._agent_obs = zip(*self._parallel.run(
+                    (parallel_observe, c, f)
+                    for c, f in zip(self._controllers, self._features)))
 
         game_loop = _get_game_loop(self._agent_obs[0])
         if (game_loop < target_game_loop and
