@@ -136,6 +136,26 @@
   3) 单控制器 no-op 动作过滤  
 - `RequestAction` 容器复用与 `unpack_layer` 微调在当前环境下未观察到正收益，暂不纳入主线优化。
 
+### Phase 1 评测口径收敛（固定 race + repeats=7）
+
+为降低近期“全链路同向波动”导致的误判，新增固定口径基线：
+- `tests/profiles/profile_env_step_phase1_baseline_fixed7_smacnt_raw.txt`
+- `tests/profiles/profile_env_step_phase1_baseline_fixed7_smacnt.json`
+- `tests/profiles/profile_env_step_phase1_baseline_fixed7_smacnt.csv`
+
+执行参数：
+- `--agent_race=protoss --bot_race=terran --steps=2000 --repeats=7 --seed=20260227`
+
+聚合结果（当前主线）：
+- `Total Time mean/median/std`: `18.0345 / 18.1362 / 0.4755 s`
+- `SPS mean/median/std`: `110.98 / 110.28 / 2.91`
+- `Latency Mean mean/median/std`: `8.0282 / 7.9608 / 0.3556 ms`
+- `Latency P99 mean/median/std`: `11.2182 / 10.9860 / 0.6257 ms`
+
+执行策略更新：
+- Phase 1 候选优化以该固定口径做 A/B，优先看 **median** 与 `step_env` 子项的同向变化。
+- 若候选优化仅在单次或单 seed 见效、跨 seed 不稳定，则不进入主线。
+
 ## 1. 目标与基线
 
 本阶段目标：以 `smacnt`（Python 3.14 + protobuf `upb`）为主优化目标，对 `pysc2-compat` 的 `env.step` 路径做持续提速，并能稳定对比“最新版 vs 历史版”。
