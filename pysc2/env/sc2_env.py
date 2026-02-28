@@ -546,7 +546,12 @@ class SC2Env(environment.Base):
             actions = self._apply_action_delays(actions)
 
         if len(self._controllers) == 1:
-            self._controllers[0].actions(sc_pb.RequestAction(actions=actions[0]))
+            controller = self._controllers[0]
+            real_actions = [a for a in actions[0] if a and a.ListFields()]
+            if len(real_actions) == 1:
+                controller.act(real_actions[0])
+            elif real_actions:
+                controller.actions(sc_pb.RequestAction(actions=real_actions))
         else:
             self._parallel.run((c.actions, sc_pb.RequestAction(actions=a))
                                for c, a in zip(self._controllers, actions))

@@ -108,6 +108,34 @@
 - feature layer 预分配是有效优化点，且在 `transform_obs` 子项上有稳定收益。
 - 单控制器 fast-path 的收益不够稳定，需继续用更长窗口（建议 `repeats=5~7`）确认其净效应。
 
+### 已落地（Phase 0 - 单控制器 no-op 动作过滤）
+
+在 `pysc2/env/sc2_env.py` 的单控制器路径中新增了 no-op 过滤：
+- 将 `actions[0]` 中 `ListFields()==False` 的空动作剔除
+- 对仅 1 个真实动作的情况走 `controller.act(...)`
+- 对多真实动作走 `controller.actions(RequestAction(...))`
+
+对照口径：
+- 基线：`tests/profiles/profile_env_step_phase0_prealloc_default_smacnt.json`
+- 过滤后：`tests/profiles/profile_env_step_phase0_noopfilter_default_smacnt.json`
+
+结果（no-op filter vs prealloc default）：
+- `Total Time mean`: `-1.97%`（`16.8167 vs 17.1554 s`）
+- `SPS mean`: `+1.99%`（`119.03 vs 116.71`）
+- `Latency Mean mean`: `-2.09%`
+- `Latency P99 mean`: `-3.29%`
+- 热点变化：
+  - `step_env.actions`: `-6.93%`
+  - `step_env.actions.read.read_response`: `-6.10%`
+  - `step_env`: `-2.07%`
+
+阶段结论（截至当前）：
+- 已确认的有效增益点：
+  1) 观测字段按需裁剪  
+  2) feature layer 预分配  
+  3) 单控制器 no-op 动作过滤  
+- `RequestAction` 容器复用与 `unpack_layer` 微调在当前环境下未观察到正收益，暂不纳入主线优化。
+
 ## 1. 目标与基线
 
 本阶段目标：以 `smacnt`（Python 3.14 + protobuf `upb`）为主优化目标，对 `pysc2-compat` 的 `env.step` 路径做持续提速，并能稳定对比“最新版 vs 历史版”。
