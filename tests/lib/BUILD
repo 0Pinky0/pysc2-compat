@@ -82,6 +82,19 @@ py_test(
 )
 
 py_test(
+    name = "test_sc_process",
+    size = "small",
+    srcs = ["test_sc_process.py"],
+    legacy_create_init = False,
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":sc_process",
+        "@absl_py//absl/testing:absltest",
+    ],
+)
+
+py_test(
     name = "test_proto_diff",
     srcs = ["test_proto_diff.py"],
     legacy_create_init = False,

@@ -199,11 +199,11 @@ pytype_library(
     srcs = ["sc_process.py"],
     srcs_version = "PY3",
     deps = [
+        ":portspicker",
         ":remote_controller",
         ":stopwatch",
         "@absl_py//absl/flags",
         "@absl_py//absl/logging",
-        requirement("portpicker"),
     ],
 )
 

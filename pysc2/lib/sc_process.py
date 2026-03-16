@@ -13,16 +13,19 @@
 # limitations under the License.
 """Launch the game and set up communication."""
 
+import contextlib
+import json
 import os
 import platform
-import portpicker
 import shutil
+import socket
 import subprocess
 import tempfile
 import time
 from pysc2.lib import flags
 from pysc2.lib import logging
 
+from pysc2.lib import portspicker
 from pysc2.lib import remote_controller
 from pysc2.lib import stopwatch
 
@@ -39,10 +42,123 @@ FLAGS = flags.FLAGS
 
 sw = stopwatch.sw
 _SC2_SHOW_STDERR = os.environ.get('SC2_SHOW_STDERR', '')
+_LAUNCH_MAX_CONCURRENT_ENV = 'SC2_LAUNCH_MAX_CONCURRENT'
+_LAUNCH_SEMAPHORE_DIR_ENV = 'SC2_LAUNCH_SEMAPHORE_DIR'
+_LAUNCH_TIMEOUT_ENV = 'SC2_LAUNCH_ACQUIRE_TIMEOUT_SECONDS'
+_DEFAULT_LAUNCH_MAX_CONCURRENT = 4
+_DEFAULT_LAUNCH_TIMEOUT_SECONDS = 120
+_DEFAULT_LAUNCH_SEMAPHORE_DIR = os.path.join(
+    tempfile.gettempdir(),
+    'pysc2-launch-semaphore',
+)
 
 
 class SC2LaunchError(Exception):
     pass
+
+
+def _env_int(name, default):
+    raw = str(os.environ.get(name, default)).strip()
+    try:
+        return int(raw)
+    except ValueError:
+        logging.warning('Invalid integer for %s: %r. Using %r.', name, raw, default)
+        return int(default)
+
+
+def _launch_max_concurrent():
+    return max(0, _env_int(_LAUNCH_MAX_CONCURRENT_ENV, _DEFAULT_LAUNCH_MAX_CONCURRENT))
+
+
+def _launch_timeout_seconds():
+    return max(1, _env_int(_LAUNCH_TIMEOUT_ENV, _DEFAULT_LAUNCH_TIMEOUT_SECONDS))
+
+
+def _launch_semaphore_dir():
+    return os.environ.get(_LAUNCH_SEMAPHORE_DIR_ENV, _DEFAULT_LAUNCH_SEMAPHORE_DIR)
+
+
+def _launch_slot_path(slot_idx):
+    return os.path.join(_launch_semaphore_dir(), 'slot-%02d.lock' % int(slot_idx))
+
+
+def _pid_is_alive(pid):
+    try:
+        os.kill(int(pid), 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def _launch_slot_is_stale(path):
+    try:
+        with open(path, 'r', encoding='utf-8') as slot_file:
+            payload = json.load(slot_file)
+    except (OSError, ValueError, TypeError):
+        return True
+    if payload.get('hostname') != socket.gethostname():
+        return False
+    pid = payload.get('pid')
+    if pid is None:
+        return True
+    return not _pid_is_alive(pid)
+
+
+def _write_launch_slot(fd, slot_idx):
+    payload = {
+        'pid': os.getpid(),
+        'hostname': socket.gethostname(),
+        'slot': int(slot_idx),
+        'created_at': time.time(),
+    }
+    with os.fdopen(fd, 'w', encoding='utf-8') as slot_file:
+        json.dump(payload, slot_file, sort_keys=True)
+
+
+@contextlib.contextmanager
+def _launch_slot():
+    max_concurrent = _launch_max_concurrent()
+    if max_concurrent <= 0:
+        yield
+        return
+
+    os.makedirs(_launch_semaphore_dir(), exist_ok=True)
+    deadline = time.time() + _launch_timeout_seconds()
+    slot_path = None
+    while slot_path is None:
+        for slot_idx in range(max_concurrent):
+            candidate = _launch_slot_path(slot_idx)
+            try:
+                fd = os.open(candidate, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+            except FileExistsError:
+                if not _launch_slot_is_stale(candidate):
+                    continue
+                try:
+                    os.remove(candidate)
+                except FileNotFoundError:
+                    pass
+                continue
+            _write_launch_slot(fd, slot_idx)
+            slot_path = candidate
+            break
+        if slot_path is not None:
+            break
+        if time.time() >= deadline:
+            raise SC2LaunchError('Timed out waiting for an SC2 launch slot.')
+        time.sleep(0.25)
+
+    try:
+        yield
+    finally:
+        if slot_path:
+            try:
+                os.remove(slot_path)
+            except FileNotFoundError:
+                pass
 
 
 class StarcraftProcess(object):
@@ -82,7 +198,14 @@ class StarcraftProcess(object):
         self._check_exists(exec_path)
         self._tmp_dir = tempfile.mkdtemp(prefix='sc-', dir=run_config.tmp_dir)
         self._host = host or '127.0.0.1'
-        self._port = FLAGS.sc2_port or port or portpicker.pick_unused_port()
+        self._owns_port = False
+        if FLAGS.sc2_port:
+            self._port = FLAGS.sc2_port
+        elif port is not None:
+            self._port = port
+        else:
+            self._port = portspicker.pick_unused_port()
+            self._owns_port = True
         self._version = version
 
         args = [
@@ -131,11 +254,12 @@ class StarcraftProcess(object):
 
         try:
             with sw('startup'):
-                if not FLAGS.sc2_port:
-                    self._proc = self._launch(run_config, args, **kwargs)
-                if connect:
-                    self._controller = remote_controller.RemoteController(
-                        self._host, self._port, self, timeout_seconds=timeout_seconds)
+                with _launch_slot():
+                    if not FLAGS.sc2_port:
+                        self._proc = self._launch(run_config, args, **kwargs)
+                    if connect:
+                        self._controller = remote_controller.RemoteController(
+                            self._host, self._port, self, timeout_seconds=timeout_seconds)
         except:
             self.close()
             raise
@@ -149,9 +273,10 @@ class StarcraftProcess(object):
             self._controller = None
         self._shutdown()
         if hasattr(self, '_port') and self._port:
-            if not FLAGS.sc2_port:
-                portpicker.return_port(self._port)
+            if self._owns_port:
+                portspicker.return_ports([self._port])
             self._port = None
+            self._owns_port = False
         if hasattr(self, '_tmp_dir') and os.path.exists(self._tmp_dir):
             shutil.rmtree(self._tmp_dir)
 

@@ -19,6 +19,7 @@ import copy
 import random
 import time
 from pysc2.lib import logging
+from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
 from pysc2 import maps
@@ -41,6 +42,10 @@ possible_results = {
     sc_pb.Tie: 0,
     sc_pb.Undecided: 0,
 }
+
+EXPERIMENTAL_SCRIPTED_FAST_RESET_MODES = frozenset(
+    {'disabled', 'kill_and_observe'}
+)
 
 Race = enums.Race
 Difficulty = enums.Difficulty
@@ -117,6 +122,9 @@ class SC2Env(environment.Base):
                  random_seed=None,
                  disable_fog=False,
                  ensure_available_actions=True,
+                 pipeline_actions_and_step=False,
+                 pipeline_step_and_observe=False,
+                 reuse_step_observe_requests=False,
                  version=None):
         """Create a SC2 Env.
 
@@ -174,6 +182,12 @@ class SC2Env(environment.Base):
             disable_fog: Whether to disable fog of war.
             ensure_available_actions: Whether to throw an exception when an
               unavailable action is passed to step().
+            pipeline_actions_and_step: Whether to pipeline RequestAction and
+              RequestStep for single-controller non-realtime steps.
+            pipeline_step_and_observe: Whether to pipeline RequestStep and
+              RequestObservation for single-controller non-realtime steps.
+            reuse_step_observe_requests: Whether to reuse protobuf Request
+              containers for step/observation RPCs.
             version: The version of SC2 to use, defaults to the latest.
 
         Raises:
@@ -228,6 +242,9 @@ class SC2Env(environment.Base):
         self._random_seed = random_seed
         self._disable_fog = disable_fog
         self._ensure_available_actions = ensure_available_actions
+        self._pipeline_actions_and_step = pipeline_actions_and_step
+        self._pipeline_step_and_observe = pipeline_step_and_observe
+        self._reuse_step_observe_requests = reuse_step_observe_requests
         self._discount = discount
         self._discount_zero_after_timeout = discount_zero_after_timeout
         self._default_step_mul = step_mul
@@ -239,6 +256,7 @@ class SC2Env(environment.Base):
         self._parallel = run_parallel.RunParallel()  # Needed for multiplayer.
         self._game_info = None
         self._requested_races = None
+        self._experimental_scripted_fast_reset_mode = 'disabled'
 
         if agent_interface_format is None:
             raise ValueError('Please specify agent_interface_format.')
@@ -337,20 +355,43 @@ class SC2Env(environment.Base):
             self._ports = []
 
         # Actually launch the game processes.
-        self._sc2_procs = [
-            self._run_config.start(extra_ports=self._ports,
-                                   want_rgb=interface.HasField('render'))
-            for interface in self._interface_options]
-        self._controllers = [p.controller for p in self._sc2_procs]
+        sc2_procs = []
+        try:
+            for interface in self._interface_options:
+                sc2_procs.append(
+                    self._run_config.start(
+                        extra_ports=self._ports,
+                        want_rgb=interface.HasField('render'),
+                    )
+                )
+            self._sc2_procs = sc2_procs
+            self._controllers = [p.controller for p in self._sc2_procs]
+            for c in self._controllers:
+                if hasattr(c, 'set_reuse_step_observe_requests'):
+                    c.set_reuse_step_observe_requests(
+                        self._reuse_step_observe_requests)
 
-        if self._battle_net_map:
-            available_maps = self._controllers[0].available_maps()
-            available_maps = set(available_maps.battlenet_map_names)
-            unavailable = [m.name for m in self._maps
-                           if m.battle_net not in available_maps]
-            if unavailable:
-                raise ValueError('Requested map(s) not in the battle.net cache: %s'
-                                 % ','.join(unavailable))
+            if self._battle_net_map:
+                available_maps = self._controllers[0].available_maps()
+                available_maps = set(available_maps.battlenet_map_names)
+                unavailable = [m.name for m in self._maps
+                               if m.battle_net not in available_maps]
+                if unavailable:
+                    raise ValueError(
+                        'Requested map(s) not in the battle.net cache: %s'
+                        % ','.join(unavailable))
+        except Exception:
+            for proc in sc2_procs:
+                try:
+                    proc.close()
+                except Exception:
+                    pass
+            self._sc2_procs = []
+            self._controllers = []
+            if self._ports:
+                portspicker.return_ports(self._ports)
+                self._ports = []
+            raise
 
     def _create_join(self):
         """Create the game, and join it."""
@@ -477,7 +518,102 @@ class SC2Env(environment.Base):
 
         return self._action_delays
 
+    def _experimental_scripted_fast_reset_enabled(self):
+        mode = str(
+            getattr(self, '_experimental_scripted_fast_reset_mode', 'disabled')
+        ).strip().lower()
+        if mode not in EXPERIMENTAL_SCRIPTED_FAST_RESET_MODES:
+            logging.warning(
+                'Ignoring unsupported experimental scripted fast reset mode: %s',
+                mode,
+            )
+            return 'disabled'
+        return mode
+
+    def _can_experimental_scripted_fast_restart(self):
+        if self._experimental_scripted_fast_reset_enabled() != 'kill_and_observe':
+            return False
+        if self._realtime or self._episode_count <= 0:
+            return False
+        if len(self._maps) != 1 or len(self._controllers) != 2 or self._num_agents != 2:
+            return False
+        if len(self._players) != 2 or not all(isinstance(p, Agent) for p in self._players):
+            return False
+        if len(self._interface_options) != 2:
+            return False
+        if not all(getattr(interface, 'raw', False) for interface in self._interface_options):
+            return False
+        if any(c.status_ended for c in self._controllers):
+            return False
+        return bool(self._obs) and not any(obs is None for obs in self._obs)
+
+    def _collect_live_unit_tags(self):
+        unit_tags = set()
+        for obs in self._obs:
+            raw_data = getattr(getattr(obs, 'observation', None), 'raw_data', None)
+            for unit in getattr(raw_data, 'units', ()):
+                if float(getattr(unit, 'health', 0.0)) > 0:
+                    unit_tags.add(int(unit.tag))
+        return sorted(unit_tags)
+
+    def _step_observe_after_fast_restart(self):
+        def step_observe(controller):
+            if hasattr(controller, 'step_observe'):
+                return controller.step_observe(
+                    count=1,
+                    disable_fog=self._disable_fog,
+                    target_game_loop=0,
+                )
+            controller.step(1)
+            return controller.observe(
+                disable_fog=self._disable_fog,
+                target_game_loop=0,
+            )
+
+        if len(self._controllers) == 1:
+            return step_observe(self._controllers[0])
+        return self._parallel.run(
+            (step_observe, controller) for controller in self._controllers
+        )
+
+    def _try_experimental_scripted_fast_restart(self):
+        if not self._can_experimental_scripted_fast_restart():
+            return None
+        unit_tags = self._collect_live_unit_tags()
+        if not unit_tags:
+            return None
+        try:
+            self._controllers[0].debug([
+                d_pb.DebugCommand(kill_unit=d_pb.DebugKillUnit(tag=unit_tags))
+            ])
+            prefetched_obs = self._step_observe_after_fast_restart()
+        except Exception as exc:  # pylint: disable=broad-except
+            logging.warning(
+                'Experimental scripted fast reset failed, falling back to '
+                'leave/join reset: %s',
+                exc,
+            )
+            return None
+        if len(prefetched_obs) != len(self._controllers):
+            logging.warning(
+                'Experimental scripted fast reset returned %d observations for '
+                '%d controllers; falling back to leave/join reset.',
+                len(prefetched_obs),
+                len(self._controllers),
+            )
+            return None
+        if any(obs.player_result for obs in prefetched_obs):
+            logging.warning(
+                'Experimental scripted fast reset produced terminal observations; '
+                'falling back to leave/join reset.',
+            )
+            return None
+        return prefetched_obs
+
     def _restart(self):
+        prefetched_obs = self._try_experimental_scripted_fast_restart()
+        if prefetched_obs is not None:
+            return prefetched_obs
         if (len(self._players) == 1 and len(self._players[0].race) == 1 and
                 len(self._maps) == 1):
             # Need to support restart for fast-restart of mini-games.
@@ -486,14 +622,16 @@ class SC2Env(environment.Base):
             if len(self._controllers) > 1:
                 self._parallel.run(c.leave for c in self._controllers)
             self._create_join()
+        return None
 
     @sw.decorate
     def reset(self):
         """Start a new episode."""
         self._episode_steps = 0
+        prefetched_obs = None
         if self._episode_count:
             # No need to restart for the first episode.
-            self._restart()
+            prefetched_obs = self._restart()
 
         self._episode_count += 1
         races = [Race(r).name for _, r in sorted(self._requested_races.items())]
@@ -508,7 +646,7 @@ class SC2Env(environment.Base):
             self._last_obs_game_loop = None
             self._action_delays = [[0] * NUM_ACTION_DELAY_BUCKETS] * self._num_agents
 
-        return self._observe(target_game_loop=0)
+        return self._observe(target_game_loop=0, prefetched_obs=prefetched_obs)
 
     @sw.decorate('step_env')
     def step(self, actions, step_mul=None):
@@ -545,6 +683,10 @@ class SC2Env(environment.Base):
         if not self._realtime:
             actions = self._apply_action_delays(actions)
 
+        if self._can_pipeline_actions_and_step(step_mul):
+            self._state = environment.StepType.MID
+            return self._step_with_pipelined_actions(actions, step_mul)
+
         if len(self._controllers) == 1:
             controller = self._controllers[0]
             real_actions = [a for a in actions[0] if a and a.ListFields()]
@@ -559,12 +701,53 @@ class SC2Env(environment.Base):
         self._state = environment.StepType.MID
         return self._step(step_mul)
 
+    def _can_pipeline_actions_and_step(self, step_mul):
+        if not self._pipeline_actions_and_step:
+            return False
+        if self._realtime:
+            return False
+        if any(self._action_delay_fns):
+            return False
+        if any(self._delayed_actions):
+            return False
+        return (step_mul or self._step_mul) > 0
+
+    def _step_with_pipelined_actions(self, actions, step_mul):
+        step_mul = step_mul or self._step_mul
+        if step_mul <= 0:
+            raise ValueError('step_mul should be positive, got {}'.format(step_mul))
+
+        target_game_loop = self._episode_steps + step_mul
+
+        def run_actions_step(controller, actions_for_controller):
+            real_actions = [a for a in actions_for_controller if a and a.ListFields()]
+            if real_actions:
+                controller.actions_step(
+                    sc_pb.RequestAction(actions=real_actions), count=step_mul)
+            else:
+                controller.step(step_mul)
+
+        with self._metrics.measure_step_time(step_mul):
+            if not self._controllers[0].status_ended:  # May already have ended.
+                if len(self._controllers) == 1:
+                    run_actions_step(self._controllers[0], actions[0])
+                else:
+                    self._parallel.run(
+                        (run_actions_step, controller, actions_for_controller)
+                        for controller, actions_for_controller in zip(
+                            self._controllers, actions))
+        return self._observe(target_game_loop=target_game_loop)
+
     def _step(self, step_mul=None):
         step_mul = step_mul or self._step_mul
         if step_mul <= 0:
             raise ValueError('step_mul should be positive, got {}'.format(step_mul))
 
         target_game_loop = self._episode_steps + step_mul
+        if self._can_pipeline_step_and_observe(step_mul):
+            return self._step_with_pipelined_step_observe(
+                step_mul=step_mul, target_game_loop=target_game_loop)
+
         if not self._realtime:
             # Send any delayed actions that were scheduled up to the target game loop.
             current_game_loop = self._send_delayed_actions(
@@ -575,6 +758,38 @@ class SC2Env(environment.Base):
                           current_game_loop=current_game_loop)
 
         return self._observe(target_game_loop=target_game_loop)
+
+    def _can_pipeline_step_and_observe(self, step_mul):
+        if not self._pipeline_step_and_observe:
+            return False
+        if self._realtime:
+            return False
+        if any(self._action_delay_fns):
+            return False
+        if any(self._delayed_actions):
+            return False
+        return step_mul > 0
+
+    def _step_with_pipelined_step_observe(self, step_mul, target_game_loop):
+        prefetched_obs = None
+
+        def parallel_step_observe(controller):
+            return controller.step_observe(
+                count=step_mul,
+                disable_fog=self._disable_fog,
+                target_game_loop=target_game_loop)
+
+        with self._metrics.measure_step_time(step_mul):
+            if not self._controllers[0].status_ended:  # May already have ended.
+                if len(self._controllers) == 1:
+                    prefetched_obs = parallel_step_observe(self._controllers[0])
+                else:
+                    prefetched_obs = self._parallel.run(
+                        (parallel_step_observe, controller)
+                        for controller in self._controllers)
+        return self._observe(
+            target_game_loop=target_game_loop,
+            prefetched_obs=prefetched_obs)
 
     def _apply_action_delays(self, actions):
         """Apply action delays to the requested actions, if configured to."""
@@ -645,22 +860,40 @@ class SC2Env(environment.Base):
                         self._parallel.run(
                             (c.step, step_mul) for c in self._controllers)
 
-    def _get_observations(self, target_game_loop):
+    def _get_observations(self, target_game_loop, prefetched_obs=None):
         # Transform in the thread so it runs while waiting for other observations.
         def parallel_observe(c, f):
             obs = c.observe(target_game_loop=target_game_loop)
             agent_obs = f.transform_obs(obs)
             return obs, agent_obs
 
+        def parallel_transform(obs, f):
+            agent_obs = f.transform_obs(obs)
+            return obs, agent_obs
+
         with self._metrics.measure_observation_time():
             if len(self._controllers) == 1:
-                obs, agent_obs = parallel_observe(self._controllers[0], self._features[0])
+                if prefetched_obs is None:
+                    obs, agent_obs = parallel_observe(
+                        self._controllers[0], self._features[0])
+                else:
+                    obs = prefetched_obs
+                    agent_obs = self._features[0].transform_obs(obs)
                 self._obs = (obs,)
                 self._agent_obs = (agent_obs,)
             else:
-                self._obs, self._agent_obs = zip(*self._parallel.run(
-                    (parallel_observe, c, f)
-                    for c, f in zip(self._controllers, self._features)))
+                if prefetched_obs is None:
+                    self._obs, self._agent_obs = zip(*self._parallel.run(
+                        (parallel_observe, c, f)
+                        for c, f in zip(self._controllers, self._features)))
+                else:
+                    if len(prefetched_obs) != len(self._controllers):
+                        raise ValueError(
+                            'Prefetched observation count does not match '
+                            'controller count.')
+                    self._obs, self._agent_obs = zip(*self._parallel.run(
+                        (parallel_transform, obs, f)
+                        for obs, f in zip(prefetched_obs, self._features)))
 
         game_loop = _get_game_loop(self._agent_obs[0])
         if (game_loop < target_game_loop and
@@ -692,8 +925,8 @@ class SC2Env(environment.Base):
                                 break
             self._last_obs_game_loop = game_loop
 
-    def _observe(self, target_game_loop):
-        self._get_observations(target_game_loop)
+    def _observe(self, target_game_loop, prefetched_obs=None):
+        self._get_observations(target_game_loop, prefetched_obs=prefetched_obs)
 
         # TODO(tewalds): How should we handle more than 2 agents and the case where
         # the episode can end early for some agents?
