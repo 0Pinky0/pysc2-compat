@@ -1,0 +1,81 @@
+benchmark_env_step.py profile
+
+Script:
+  pysc2-compat/pysc2/bin/benchmark_env_step.py
+
+Command (same for all envs):
+  python -m pysc2.bin.benchmark_env_step --map=Simple64 --steps=2000 --step_mul=8 --resolution=64
+
+Environment metadata:
+  smact  : Python 3.14.2 (free-threading), protobuf 6.33.5 backend=python
+  smacnt : Python 3.14.2,                protobuf 6.33.5 backend=upb
+  smac   : Python 3.10.15,               protobuf 3.20.3 backend=cpp
+
+Raw logs:
+  tests/profiles/profile_env_step_smact_raw.txt
+  tests/profiles/profile_env_step_smacnt_raw.txt
+  tests/profiles/profile_env_step_smac_raw.txt
+
+Results (high-level):
+
+Python 3.14 free-threading (smact)
+  Total Time:    22.0419 s
+  Average SPS:   90.74 steps/s
+  Latency Mean:  9.8162 ms
+  Latency P50:   9.4883 ms
+  Latency P99:   14.2064 ms
+  Internal hotspot:
+    step_env                               19.6261 s (71.35%)
+    step_env.observe                       15.0541 s (54.73%)
+    step_env.observe.read.parse_response    4.2557 s (15.47%)
+    step_env.observe.read.read_response    10.6154 s (38.59%)
+
+Python 3.14 (smacnt)
+  Total Time:    17.3919 s
+  Average SPS:   115.00 steps/s
+  Latency Mean:  7.5485 ms
+  Latency P50:   7.3493 ms
+  Latency P99:   11.1290 ms
+  Internal hotspot:
+    step_env                               15.0907 s (59.99%)
+    step_env.observe                       11.0923 s (44.09%)
+    step_env.observe.read.parse_response    0.0600 s (0.24%)
+    step_env.observe.read.read_response    10.9385 s (43.48%)
+
+Python 3.10 (smac)
+  Total Time:    17.6985 s
+  Average SPS:   113.00 steps/s
+  Latency Mean:  7.7233 ms
+  Latency P50:   7.6987 ms
+  Latency P99:   10.3332 ms
+  Internal hotspot:
+    step_env                               15.4397 s (66.70%)
+    step_env.observe                       11.5725 s (50.00%)
+    step_env.observe.read.parse_response    0.2269 s (0.98%)
+    step_env.observe.read.read_response    11.2175 s (48.46%)
+
+Relative comparison (baseline = smacnt / Python 3.14 non-free-threading):
+
+smact vs smacnt
+  Total Time:   +26.74%
+  Average SPS:  -21.10%
+  Latency Mean: +30.04%
+  Latency P50:  +29.10%
+  Latency P99:  +27.65%
+
+smac vs smacnt
+  Total Time:   +1.76%
+  Average SPS:  -1.74%
+  Latency Mean: +2.32%
+  Latency P50:  +4.75%
+  Latency P99:  -7.15%
+
+Conclusion:
+  1) Python 3.14 (smacnt, protobuf upb) is the best in this run.
+  2) Python 3.10 (smac, protobuf cpp) is close to Python 3.14 non-free-threading.
+  3) Python 3.14 free-threading (smact) is clearly slower.
+  4) Main slowdown source in smact is protobuf parsing:
+       step_env.observe.read.parse_response = 4.2557 s
+     while smacnt is 0.0600 s and smac is 0.2269 s.
+  5) In this benchmark, env.step latency is dominated by observe/read path, so
+     protobuf backend choice has a first-order impact on performance.

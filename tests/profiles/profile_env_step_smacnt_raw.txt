@@ -1,0 +1,68 @@
+INFO:root:Launching SC2: /home/wjl/StarCraftII/Versions/Base75689/SC2_x64 -listen 127.0.0.1 -port 44740 -dataDir /home/wjl/StarCraftII/ -tempDir /tmp/sc-4z5mri47/
+INFO:root:Connecting to: ws://127.0.0.1:44740/sc2api, attempt: 0, running: True
+INFO:root:Connecting to: ws://127.0.0.1:44740/sc2api, attempt: 1, running: True
+INFO:root:Connecting to: ws://127.0.0.1:44740/sc2api, attempt: 2, running: True
+INFO:root:Environment is ready
+INFO:root:Starting episode 1: [random, random] on Simple64
+INFO:root:Episode 1 finished after 10736 game steps. Outcome: [-1], reward: [-1], score: [np.int32(2725)]
+INFO:root:Starting episode 2: [random, random] on Simple64
+INFO:root:Environment Close
+INFO:root:Shutdown gracefully.
+INFO:root:Shutdown with return code: -15
+INFO:root:Environment Close
+
+pygame-ce 2.5.6 (SDL 2.32.10, Python 3.14.2)
+Starting benchmark on Simple64 with resolution 64 (2 players)...
+
+==============================
+RESULTS (2000 steps)
+==============================
+Total Time:    17.3919 s
+Average SPS:   115.00 steps/s
+Latency Mean:  7.5485 ms
+Latency P50:   7.3493 ms
+Latency P99:   11.1290 ms
+==============================
+
+Internal Stopwatch:
+                                                       % total      sum     avg     dev     min     max    num
+  join_game                                             23.18%   5.8322  5.8322  0.0000  5.8322  5.8322      1
+  join_game.read                                        23.18%   5.8322  5.8322  0.0000  5.8322  5.8322      1
+  join_game.read.read_response                          23.18%   5.8321  5.8321  0.0000  5.8321  5.8321      1
+  reset                                                  8.81%   2.2160  1.1080  1.1038  0.0043  2.2118      2
+  reset.join_game                                        8.75%   2.2003  2.2003  0.0000  2.2003  2.2003      1
+  reset.join_game.read                                   8.75%   2.2003  2.2003  0.0000  2.2003  2.2003      1
+  reset.join_game.read.read_response                     8.75%   2.2002  2.2002  0.0000  2.2002  2.2002      1
+  startup                                                7.99%   2.0110  2.0110  0.0000  2.0110  2.0110      1
+  startup._connect                                       7.97%   2.0060  2.0060  0.0000  2.0060  2.0060      1
+  step_env                                              59.99%  15.0907  0.0075  0.0014  0.0048  0.0247   2000
+  step_env.actions                                       5.29%   1.3307  0.0007  0.0004  0.0003  0.0090   2000
+  step_env.actions.read                                  4.93%   1.2414  0.0006  0.0004  0.0002  0.0090   2000
+  step_env.actions.read.read_response                    4.81%   1.2109  0.0006  0.0004  0.0002  0.0089   2000
+  step_env.actions.write                                 0.27%   0.0691  0.0000  0.0000  0.0000  0.0001   2000
+  step_env.actions.write.write_request                   0.24%   0.0601  0.0000  0.0000  0.0000  0.0001   2000
+  step_env.observe                                      44.09%  11.0923  0.0055  0.0009  0.0034  0.0137   2000
+  step_env.observe.read                                 43.83%  11.0252  0.0055  0.0009  0.0034  0.0137   2000
+  step_env.observe.read.parse_response                   0.24%   0.0600  0.0000  0.0000  0.0000  0.0002   2000
+  step_env.observe.read.read_response                   43.48%  10.9385  0.0055  0.0009  0.0033  0.0136   2000
+  step_env.observe.write                                 0.17%   0.0416  0.0000  0.0000  0.0000  0.0001   2000
+  step_env.observe.write.write_request                   0.13%   0.0339  0.0000  0.0000  0.0000  0.0001   2000
+  step_env.step                                          3.16%   0.7950  0.0004  0.0002  0.0002  0.0020   2000
+  step_env.step.read                                     2.87%   0.7229  0.0004  0.0002  0.0001  0.0015   2000
+  step_env.step.read.read_response                       2.78%   0.7004  0.0004  0.0002  0.0001  0.0015   2000
+  step_env.step.write                                    0.20%   0.0504  0.0000  0.0000  0.0000  0.0001   2000
+  step_env.step.write.write_request                      0.17%   0.0424  0.0000  0.0000  0.0000  0.0001   2000
+  step_env.transform_action                              0.44%   0.1095  0.0001  0.0000  0.0000  0.0009   2000
+  step_env.transform_action.available_actions            0.11%   0.0284  0.0000  0.0000  0.0000  0.0001   2000
+  step_env.transform_obs                                 6.44%   1.6201  0.0008  0.0004  0.0004  0.0149   2000
+  step_env.transform_obs.available_actions               0.15%   0.0381  0.0000  0.0000  0.0000  0.0002   2000
+  step_env.transform_obs.feature_minimap                 0.74%   0.1857  0.0001  0.0000  0.0001  0.0009   2000
+  step_env.transform_obs.feature_minimap.unpack_layer    0.21%   0.0522  0.0000  0.0000  0.0000  0.0001  22000
+  step_env.transform_obs.feature_screen                  3.45%   0.8677  0.0004  0.0001  0.0002  0.0013   2000
+  step_env.transform_obs.feature_screen.unpack_layer     0.55%   0.1384  0.0000  0.0000  0.0000  0.0003  54000
+  step_env.transform_obs.feature_units                   0.93%   0.2328  0.0001  0.0003  0.0000  0.0139   2000
+  step_env.transform_obs.last_actions                    0.16%   0.0397  0.0000  0.0000  0.0000  0.0001   2000
+  step_env.transform_obs.score                           0.44%   0.1109  0.0001  0.0000  0.0000  0.0002   2000
+  step_env.transform_obs.ui                              0.11%   0.0278  0.0000  0.0000  0.0000  0.0001   2000
+
+

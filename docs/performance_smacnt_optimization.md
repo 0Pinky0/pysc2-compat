@@ -156,6 +156,558 @@
 - Phase 1 候选优化以该固定口径做 A/B，优先看 **median** 与 `step_env` 子项的同向变化。
 - 若候选优化仅在单次或单 seed 见效、跨 seed 不稳定，则不进入主线。
 
+### 已落地（Phase 1 - feature_units 坐标变换降对象化）
+
+本轮在 `pysc2/lib/features.py` 为 `feature_units/feature_effects/cargo_units` 增加了标量坐标快路径：
+- 缓存 `world_camera_rel_to_feature_screen` 的 `scale/offset`
+- 新增 `_world_to_feature_screen_xy()` 与 `_world_to_feature_screen_radius()`
+- 在 `feature_screen` 相关路径中，跳过 `Point.build -> Chain.fwd_pt -> PixelToCoord` 的多层对象构造，直接做等价标量计算（保留 `floor` 语义）
+
+对照口径（固定 race + `repeats=7`）：
+- 基线：`tests/profiles/profile_env_step_phase1_baseline_fixed7_smacnt.json`
+- 本轮：`tests/profiles/profile_env_step_phase1_featurecoords_fixed7_smacnt.json`
+
+结果（new vs baseline）：
+- `Total Time mean/median`: `-0.68% / -0.81%`
+- `SPS mean/median`: `+0.65% / +0.81%`
+- `Latency Mean mean/median`: `-0.77% / -1.04%`
+- `Latency P99 mean/median`: `-1.25% / +0.38%`
+
+热点变化（按 run 平均）：
+- `step_env`: `-0.77%`
+- `step_env.transform_obs.feature_units`: `-11.70%`
+- `step_env.actions`: `-1.68%`
+- `step_env.step`: `-2.88%`
+
+结论：
+- 该改动在固定口径下呈现小幅正收益，且 `feature_units` 子项有明显下降，可纳入 Phase 1 主线。
+- 尾延迟 `P99` 的 median 仍有轻微波动，后续与下一项优化合并验证时继续观察。
+
+### 已落地（Phase 1 - feature_units/raw_units 预分配写入）
+
+本轮继续在 `pysc2/lib/features.py` 降低中间对象分配：
+- `feature_units`：由 `list` 收集改为先计数、再预分配 `np.empty((N, len(FeatureUnit)))` 并逐行写入
+- `raw_units`：由 `list -> numpy` 改为直接预分配并逐行写入（保留原 `to_list/to_numpy` stopwatch 分段）
+
+对照口径（固定 race + `repeats=7`）：
+- 上一版（featurecoords）：`tests/profiles/profile_env_step_phase1_featurecoords_fixed7_smacnt.json`
+- 本轮：`tests/profiles/profile_env_step_phase1_unitarray_fixed7_smacnt.json`
+
+结果（new vs featurecoords）：
+- `Total Time mean/median`: `-1.61% / -2.36%`
+- `SPS mean/median`: `+1.63% / +2.42%`
+- `Latency Mean mean/median`: `-1.65% / -2.97%`
+- `Latency P99 mean/median`: `-1.43% / -1.04%`
+
+热点变化（按 run 平均）：
+- `step_env`: `-1.66%`
+- `step_env.transform_obs`: `-2.28%`
+- `step_env.transform_obs.feature_units`: `-2.65%`
+- `step_env.actions`: `-3.97%`
+- `step_env.step`: `-8.90%`
+
+累计效果（vs `phase1_baseline_fixed7`）：
+- `Total Time mean/median`: `-2.28% / -3.15%`
+- `SPS mean/median`: `+2.29% / +3.25%`
+- `Latency Mean mean/median`: `-2.41% / -3.99%`
+- `step_env.transform_obs.feature_units`: `-14.04%`
+
+结论：
+- 该优化在固定口径下显示稳定正收益，可作为 Phase 1 的第二个主线增益点。
+
+### 已落地（Phase 1 - full_unit_vec 字段写入去重复计算）
+
+本轮继续在 `pysc2/lib/features.py` 优化 `full_unit_vec` 热路径：
+- 预绑定 `RAW_ABILITY_ID_TO_FUNC_ID` 映射与 `FeatureUnit` 长度，减少循环内全局查找
+- 将 `orders/buff_ids` 读取改为一次性局部缓存，去掉重复 `len(...)` 和重复索引
+- 复用已有预分配路径：`feature_units` 改为单次遍历填充 + 末尾切片（避免额外计数遍历）
+
+对照口径（固定 race + `repeats=7`）：
+- 上一版（unitarray）：`tests/profiles/profile_env_step_phase1_unitarray_fixed7_smacnt.json`
+- 本轮：`tests/profiles/profile_env_step_phase1_unitvecopt_fixed7_smacnt.json`
+
+结果（new vs unitarray）：
+- `Total Time mean/median`: `-0.92% / -1.42%`
+- `SPS mean/median`: `+0.95% / +1.44%`
+- `Latency Mean mean/median`: `-0.99% / +0.69%`
+- `Latency P99 mean/median`: `-1.53% / -1.57%`
+
+热点变化（按 run 平均）：
+- `step_env`: `-0.99%`
+- `step_env.transform_obs`: `-3.14%`
+- `step_env.transform_obs.feature_units`: `-21.59%`
+- `step_env.actions`: `-3.67%`
+
+累计效果（vs `phase1_baseline_fixed7`）：
+- `Total Time mean/median`: `-3.18% / -4.53%`
+- `SPS mean/median`: `+3.26% / +4.74%`
+- `Latency Mean mean/median`: `-3.37% / -3.33%`
+- `Latency P99 mean/median`: `-4.15% / -2.23%`
+- `step_env.transform_obs.feature_units`: `-32.60%`
+
+结论：
+- 该优化在固定口径下进一步拉低 `feature_units` 子项，且整链路指标继续同向改善，可纳入主线。
+
+### 已落地（Phase 1 - NamedNumpyArray 名称索引缓存）
+
+本轮在 `pysc2/lib/named_array.py` 增加了构造期缓存：
+- 新增 `_INDEX_NAMES_CACHE` 与 `_names_cache_key(...)`
+- 对重复形状与重复 names 组合复用索引映射构建结果，减少 `NamedNumpyArray` 每步重复校验与重建
+- 兼容性校验：`tests/lib/test_named_array.py` 全量通过（27/27）
+
+对照口径（固定 race + `repeats=7`）：
+- 上一版（unitvecopt）：`tests/profiles/profile_env_step_phase1_unitvecopt_fixed7_smacnt.json`
+- 本轮：`tests/profiles/profile_env_step_phase1_namedcache_fixed7_smacnt.json`
+
+结果（new vs unitvecopt）：
+- `Total Time mean/median`: `-0.96% / +0.08%`
+- `SPS mean/median`: `+1.04% / -0.08%`
+- `Latency Mean mean/median`: `-1.16% / -1.84%`
+- `Latency P99 mean/median`: `-0.83% / -1.43%`
+
+结论：
+- 该项单独收益较弱、mean/median 存在轻微分歧；后续通过“缓存开/关”与叠加优化一起复核。
+
+### 已落地（Phase 1 - _update_camera 标量快路径）
+
+在 `pysc2/lib/features.py` 中将 `_update_camera()` 改为标量计算，避免每步 `Point` 链式运算：
+- 将 `self._update_camera(point.Point.build(raw.player.camera))` 改为直接传 `raw.player.camera`
+- 用 `map_size_y` 与标量表达式直接构建 `offset`，减少临时对象
+
+对照口径（固定 race + `repeats=7`）：
+- 上一版（namedcache）：`tests/profiles/profile_env_step_phase1_namedcache_fixed7_smacnt.json`
+- 本轮：`tests/profiles/profile_env_step_phase1_camera_fixed7_smacnt.json`
+
+结果（new vs namedcache）：
+- `Total Time mean/median`: `-0.07% / -0.57%`
+- `SPS mean/median`: `+0.02% / +0.57%`
+- `Latency Mean mean/median`: `-0.07% / -0.76%`
+- `step_env.transform_obs.feature_units`: `-3.23%`
+
+补充判断（缓存开/关复核）：
+- 在相同代码下做 `named_array` 缓存开/关隔离对照后，缓存开启的 **median** 更优（`Total Time/SPS/Latency Mean` 同向），因此保留缓存版本进入主线。
+
+累计效果（vs `phase1_baseline_fixed7`，当前主线）：
+- `Total Time mean/median`: `-4.18% / -4.99%`
+- `SPS mean/median`: `+4.35% / +5.25%`
+- `Latency Mean mean/median`: `-4.57% / -5.83%`
+- `Latency P99 mean/median`: `-5.60% / -2.63%`
+
+### 已落地（Phase 1 - available_actions 能力映射缓存实验，默认关闭）
+
+本轮在 `pysc2/lib/features.py` 增加了 `available_actions` 的能力映射缓存机制：
+- 对 `obs.abilities` 构造 canonical key（`ability_id + requires_point`）
+- 使用有界 `OrderedDict` 复用映射结果，减少重复遍历 `actions.ABILITY_IDS`
+- 为保持可控性，新增 `available_actions_cache_size`（`0` 表示关闭）
+
+同时在 `pysc2/bin/benchmark_env_step.py` 新增评测参数：
+- `--obs_available_actions_cache_size`（默认 `0`，用于 A/B 隔离）
+
+对照口径（固定 race，`steps=2000`）：
+- fixed7（same seed，先 off 后 on）：
+  - `tests/profiles/profile_env_step_phase1_availcache_off_fixed7_smacnt.json`
+  - `tests/profiles/profile_env_step_phase1_availcache_on_fixed7_smacnt.json`
+- fixed3（same seed，反向顺序先 on 后 off）：
+  - `tests/profiles/profile_env_step_phase1_availcache_on_fixed3_smacnt.json`
+  - `tests/profiles/profile_env_step_phase1_availcache_off_fixed3_smacnt.json`
+
+结果摘要（on vs off）：
+- **fixed7**：全链路退化  
+  - `Total Time mean/median`: `+2.91% / +1.64%`  
+  - `SPS mean/median`: `-2.83% / -1.61%`
+- **fixed3（反向顺序）**：全链路改善  
+  - `Total Time mean/median`: `-2.30% / -2.03%`  
+  - `SPS mean/median`: `+2.36% / +2.07%`
+- 两组中 `step_env.transform_obs.available_actions` 子项均明显下降（约 `-20% ~ -27%`）。
+- **fixed8 + ABBA 交错（同进程）**：
+  - `tests/profiles/profile_env_step_phase1_availcache_abba_fixed8_smacnt.json`
+  - `Total Time mean/median`: `+0.78% / +0.82%`
+  - `SPS mean/median`: `-0.76% / -0.81%`
+  - `Latency Mean mean/median`: `+0.81% / +0.78%`
+  - `Latency P99 mean/median`: `+1.20% / +2.16%`
+  - 子项：`step_env.transform_obs.available_actions` `-17.91%`，但 `step_env.observe.read.read_response` `+2.94%`
+
+结论：
+- 该优化对子项有稳定收益，但全链路净效应不稳定；在 ABBA 交错口径下仍呈小幅负收益。
+- 按 Phase 1 收敛规则，暂不作为默认主线增益；保留实现并通过参数开关继续观测（默认关闭）。
+
+### 已落地（Phase 1 - benchmark A/B 交错模式）
+
+为减少“先后顺序 + 系统负载”导致的误判，本轮在 `pysc2/bin/benchmark_env_step.py` 增加同进程 A/B 交错能力：
+- `--obs_available_actions_cache_size_ab=A,B`：启用 A/B 模式（例如 `0,256`）
+- `--obs_include_available_actions_ab=true,false`：可对观测开关做同口径 A/B
+- `--obs_reuse_available_actions_result_ab=true,false`：可对“同帧可用动作复用”做同口径 A/B
+- `--pipeline_actions_and_step_ab=true,false`：可对 action+step 管线化做同口径 A/B
+- `--pipeline_step_and_observe_ab=true,false`：可对 step+observe 管线化做同口径 A/B
+- `--reuse_step_observe_requests_ab=true,false`：可对 step/observe 请求对象复用做同口径 A/B
+- `--ab_pattern=abab|abba`：控制运行顺序（推荐 `abba` 做镜像抵消）
+- 输出 JSON 新增：
+  - `config.run_cache_size_schedule`（每个 run 的 cache size 序列）
+  - `config.run_include_available_actions_schedule`（每个 run 的 include 开关序列）
+  - `config.run_reuse_available_actions_result_schedule`（每个 run 的 reuse 开关序列）
+  - `config.run_pipeline_actions_and_step_schedule`（每个 run 的 pipeline 开关序列）
+  - `config.run_pipeline_step_and_observe_schedule`（每个 run 的 step+observe pipeline 开关序列）
+  - `config.run_reuse_step_observe_requests_schedule`（每个 run 的 request 复用开关序列）
+  - `ab_test`（A/B 分组聚合 + `delta_pct_b_vs_a`）
+
+示例命令（短烟测）：
+- `conda run -n smacnt env PYTHONPATH=. python pysc2/bin/benchmark_env_step.py --agent_race=protoss --bot_race=terran --steps=200 --repeats=4 --seed=20260227 --obs_available_actions_cache_size_ab=0,256 --ab_pattern=abba --output_prefix=tests/profiles/profile_env_step_phase1_abtest_smoke_smacnt`
+
+烟测产物：
+- `tests/profiles/profile_env_step_phase1_abtest_smoke_smacnt.json`
+- `tests/profiles/profile_env_step_phase1_abtest_smoke_smacnt.csv`
+
+### 已落地（Phase 1 - available_actions 按需输出开关）
+
+本轮在 `pysc2/lib/features.py` 增加了观测字段开关：
+- `include_available_actions`（默认 `True`，保持兼容）
+- 在 `observation_spec()` 与 `transform_obs()` 中按开关控制 `available_actions` 字段生成
+
+同时在 `pysc2/bin/benchmark_env_step.py` 增加了：
+- `--agent_type=random|noop`（`noop` 使用 `BaseAgent`，避免随机策略依赖 `available_actions` 字段）
+- `--obs_include_available_actions=true|false`
+- 兼容性保护：`agent_type=random` 且关闭 `available_actions` 时直接报错
+
+对照口径（固定 race + `repeats=7`，`agent_type=noop`）：
+- on：`tests/profiles/profile_env_step_phase1_availobs_on_noop_fixed7_smacnt.json`
+- off：`tests/profiles/profile_env_step_phase1_availobs_off_noop_fixed7_smacnt.json`
+
+结果（off vs on）：
+- `Total Time mean/median`: `+0.44% / +2.44%`
+- `SPS mean/median`: `-0.52% / -2.38%`
+- `Latency Mean mean/median`: `+0.48% / +2.13%`
+- `Latency P99 mean/median`: `-0.18% / -0.77%`
+- 热点变化（按 run 平均）：
+  - `step_env.transform_obs`: `-4.38%`
+  - `step_env`: `+0.48%`
+- **fixed8 + ABBA 交错（同进程，`agent_type=noop`）**：
+  - `tests/profiles/profile_env_step_phase1_availobs_abba_noop_fixed8_smacnt.json`
+  - `Total Time mean/median`: `+0.09% / +0.60%`（off 相对 on）
+  - `SPS mean/median`: `-0.16% / -0.59%`
+  - `Latency Mean mean/median`: `+0.03% / +0.27%`
+  - `Latency P99 mean/median`: `-1.15% / -1.38%`
+  - 热点：`step_env.transform_obs` `-6.85%`
+
+结论：
+- 关闭 `available_actions` 输出可稳定降低 `transform_obs` 子项耗时，但在 ABBA 交错口径下全链路仍未得到稳定正收益。
+- 该开关保留（面向定制观测场景），主线默认仍保持 `include_available_actions=True`。
+
+### 已落地（Phase 1 - benchmark 暴露 ensure_available_actions）
+
+为验证“信任动作”路径在当前链路的收益，本轮将 `SC2Env` 的 `ensure_available_actions` 显式暴露到 benchmark：
+- 新增参数：`--ensure_available_actions=true|false`（默认 `true`）
+- 仅影响 `transform_action` 的可用性校验，不改变环境默认行为
+
+对照口径（固定 race + random agent + `repeats=7`）：
+- on：`tests/profiles/profile_env_step_phase1_ensureavail_on_fixed7_smacnt.json`
+- off：`tests/profiles/profile_env_step_phase1_ensureavail_off_fixed7_smacnt.json`
+
+结果（off vs on）：
+- `Total Time mean/median`: `-0.10% / -0.79%`
+- `SPS mean/median`: `+0.11% / +0.80%`
+- `Latency Mean mean/median`: `-0.20% / -1.03%`
+- `Latency P99 mean/median`: `+1.10% / +1.00%`
+- 热点变化（按 run 平均）：
+  - `step_env.transform_action`: `-51.82%`
+  - `step_env.actions`: `-2.39%`
+  - `step_env.observe.read.read_response`: `+0.51%`
+
+结论：
+- 关闭可用性校验可显著降低 `transform_action` 子项，但全链路净收益较弱且尾延迟略回退。
+- 该项可作为受控训练场景的可选参数，不作为当前主线默认配置调整。
+
+### 已落地（Phase 1 - available_actions 同帧结果复用实验，默认关闭）
+
+本轮在 `pysc2/lib/features.py` 增加了“同一 observation 复用 `available_actions` 结果”的实验开关：
+- `reuse_available_actions_result`（新增到 `AgentInterfaceFormat`，默认 `False`）
+- 当开启时：`transform_obs()` 与 `transform_action()` 在同帧共享一次 `available_actions` 计算结果（按 observation 对象缓存）
+- 保持安全回退：关闭时完全走原路径
+
+同时在 `pysc2/bin/benchmark_env_step.py` 增加了评测参数：
+- `--obs_reuse_available_actions_result=true|false`（默认 `false`）
+- `--obs_reuse_available_actions_result_ab=true,false`
+
+验证口径：
+- 烟测：`tests/profiles/profile_env_step_phase1_availreuse_ab_smoke_smacnt.json`
+- 正式：`fixed8 + ABBA`（同进程，random agent）
+  - `tests/profiles/profile_env_step_phase1_availreuse_ab_fixed8_v2_smacnt.json`
+
+AB 结果（B=false vs A=true，即关闭 vs 开启）：
+- `Total Time mean/median`: `-0.08% / -0.34%`
+- `SPS mean/median`: `+0.15% / +0.37%`
+- `Latency Mean mean/median`: `+0.03% / -0.32%`
+- `Latency P99 mean/median`: `+0.50% / +0.65%`
+
+热点观察（按 run 平均）：
+- `step_env.transform_action.available_actions`：关闭后恢复该子项（开启时为复用路径）
+- `step_env.transform_obs`：关闭相对开启 `-14.14%`
+- `step_env` 全链路：`+0.01%` 量级（接近持平）
+
+结论：
+- 子项层面呈现“此消彼长”，全链路净收益未形成稳定正向。
+- 该开关保留用于后续联动实验（例如与 `ensure_available_actions` 组合），主线默认保持 `reuse_available_actions_result=False`。
+
+### 已落地（Phase 1 - 单控 `action+step` 管线化实验，默认关闭）
+
+本轮在 `pysc2/lib/protocol.py`、`pysc2/lib/remote_controller.py`、`pysc2/env/sc2_env.py` 增加了“单控制器 action+step 管线化”的实验路径：
+- `StarcraftProtocol.send_multi(...)`：支持多请求背靠背发送并按 id 归并响应
+- `RemoteController.actions_step(...)`：将 `RequestAction` 与 `RequestStep` 在一次调用内串行管线化
+- `SC2Env` 新增 `pipeline_actions_and_step`（默认 `False`），仅在以下条件启用快路径：
+  - 单控制器
+  - 非 realtime
+  - 无 action delay 配置、无延迟动作队列
+
+同时在 benchmark 新增参数：
+- `--pipeline_actions_and_step=true|false`（默认 `false`）
+- `--pipeline_actions_and_step_ab=true,false`
+
+验证口径：
+- 烟测：`tests/profiles/profile_env_step_phase1_pipeactstep_ab_smoke_smacnt.json`
+- 正式：`fixed8 + ABBA`（同进程，random agent）
+  - `tests/profiles/profile_env_step_phase1_pipeactstep_ab_fixed8_smacnt.json`
+
+AB 结果（B=true vs A=false，即开启 vs 关闭）：
+- `Total Time mean/median`: `-3.94% / -3.85%`
+- `SPS mean/median`: `+4.02% / +3.97%`
+- `Latency Mean mean/median`: `-4.49% / -4.37%`
+- `Latency P99 mean/median`: `-0.85% / -2.32%`
+
+热点观察（按 run 平均）：
+- `step_env`: `-4.54%`
+- `step_env.actions + step_env.step` 组合耗时显著下降（合并到 `actions_step` 路径后整体更低）
+- `step_env.observe.read.read_response`: `+1.05%`（小幅回升）
+
+结论：
+- 在 fixed8 + ABBA 口径下，该实验显示稳定正收益，且量级达到当前 Phase 1 中高价值候选。
+- 由于调用路径有协议层改动，先保持环境默认 `pipeline_actions_and_step=False`，后续再做跨地图/多场景复验后决定是否提升为默认主线。
+
+可迁移性复验（fixed8 + ABBA，同参数）：
+- `AbyssalReef`：
+  - `tests/profiles/profile_env_step_phase1_pipeactstep_ab_fixed8_abyssalreef_smacnt.json`
+  - `Total Time mean/median`: `-2.36% / -2.18%`
+  - `SPS mean/median`: `+2.18% / +2.14%`
+  - `Latency Mean mean/median`: `-2.63% / -2.36%`
+  - `Latency P99 mean/median`: `-0.93% / -0.51%`
+- `Flat64`：
+  - `tests/profiles/profile_env_step_phase1_pipeactstep_ab_fixed8_flat64_smacnt.json`
+  - `Total Time mean/median`: `-2.61% / -3.07%`
+  - `SPS mean/median`: `+2.75% / +3.31%`
+  - `Latency Mean mean/median`: `-2.93% / -3.50%`
+  - `Latency P99 mean/median`: `-2.10% / -2.59%`
+- `CollectMineralShards`：
+  - `tests/profiles/profile_env_step_phase1_pipeactstep_ab_fixed8_collectmineralshards_smacnt.json`
+  - `Total Time mean/median`: `-7.43% / -7.53%`
+  - `SPS mean/median`: `+8.05% / +8.17%`
+  - `Latency Mean mean/median`: `-7.54% / -7.61%`
+  - `Latency P99 mean/median`: `-15.10% / -16.24%`
+
+复验结论：
+- 在 3 个新增地图上，`pipeline_actions_and_step` 的全链路指标与 `Simple64` 一致为正向，未出现反向样本，具备可迁移性。
+- `step_env.observe.read.read_response` 在各图均小幅上升（约 `+1% ~ +2%`），但被 `actions+step` 路径显著下降所覆盖，净效应稳定为正。
+
+组合实验（`pipeline_actions_and_step` × `ensure_available_actions`）：
+- `Simple64`，`ensure=false`：
+  - `tests/profiles/profile_env_step_phase1_pipeactstep_ab_fixed8_ensureoff_smacnt.json`
+  - `Total Time mean/median`: `-0.39% / +0.85%`
+  - `SPS mean/median`: `+0.41% / -0.84%`
+  - `Latency Mean mean/median`: `-0.42% / +0.98%`
+  - `Latency P99 mean/median`: `-1.17% / +0.71%`
+- `AbyssalReef`，`ensure=false`：
+  - `tests/profiles/profile_env_step_phase1_pipeactstep_ab_fixed8_abyssalreef_ensureoff_smacnt.json`
+  - `Total Time mean/median`: `+0.29% / -0.11%`
+  - `SPS mean/median`: `-0.24% / +0.15%`
+  - `Latency Mean mean/median`: `+0.40% / +0.04%`
+  - `Latency P99 mean/median`: `-1.32% / -0.64%`
+- `CollectMineralShards`，`ensure=false`：
+  - `tests/profiles/profile_env_step_phase1_pipeactstep_ab_fixed8_collectmineralshards_ensureoff_smacnt.json`
+  - `Total Time mean/median`: `-6.84% / -6.68%`
+  - `SPS mean/median`: `+7.33% / +7.16%`
+  - `Latency Mean mean/median`: `-6.96% / -6.82%`
+  - `Latency P99 mean/median`: `-11.15% / -10.69%`
+
+组合结论：
+- `ensure_available_actions=false` 下，pipeline 收益呈**地图依赖**：在 `Simple64/AbyssalReef` 收敛到近 0，而在 `CollectMineralShards` 仍保持显著正收益。
+- 在 `Simple64/AbyssalReef`，相较 `ensure=true`，`step_env.observe.read.read_response` 的回升幅度由约 `+1%` 扩大到约 `+3% ~ +4%`，抵消了部分 action/step 路径收益；但在 `CollectMineralShards` 该回升不明显（约 `+0.83%`）。
+- 最终建议：若考虑将 pipeline 作为通用默认能力，仍应以 `ensure_available_actions=true` 作为主评估口径；`ensure=false` 场景按地图特性单独启用。
+
+准入复核（正确性 + 长稳）：
+- 正确性单测（已通过）：
+  - `tests/env/test_sc2_env.py`：新增 `PipelineActionsAndStepTest`，覆盖启用条件门控与 `step()` 分发路径
+  - `tests/lib/test_protocol.py`：覆盖 `send_multi` 的按 id 归并、无 id 回退、异常 id 报错
+  - `tests/lib/test_remote_controller_pipeline.py`：覆盖 `actions_step` 在有/无 actions 下的分支行为
+- 长稳压测（`Simple64`, `steps=5000`）：
+  - `random`, `repeats=6`：`tests/profiles/profile_env_step_phase1_pipeactstep_ab_long6_smacnt.json`
+    - `Total Time mean/median`: `+3.95% / +4.78%`（B=true vs A=false）
+  - `random`, `repeats=8`（严格 ABBA 镜像）：`tests/profiles/profile_env_step_phase1_pipeactstep_ab_long8_smacnt.json`
+    - `Total Time mean/median`: `+0.92% / +2.79%`
+  - `noop`, `repeats=8`：`tests/profiles/profile_env_step_phase1_pipeactstep_ab_long8_noop_smacnt.json`
+    - `Total Time mean/median`: `+0.56% / +0.21%`
+    - `step_env` 子项：`-0.85%`（但全链路未体现同向收益）
+
+最终准入结论：
+- `pipeline_actions_and_step` 在短程 fixed8 口径下可观，但长程（5000 steps）稳定性不足，暂不满足“通用默认开启”准入条件。
+- 当前状态保持为：实现保留、默认关闭、按场景启用（特别是 `ensure=false` 需按地图评估）。
+
+### 已落地（Phase 2 候选 - 单控 `step+observe` 管线化实验，默认关闭）
+
+本轮针对 `read_response` 路径继续推进候选，新增“step+observe 管线化”实验能力：
+- `RemoteController.step_observe(...)`：通过 `send_multi` 将 `RequestStep` 与 `RequestObservation` 串行管线化。
+- `RemoteController.observe(...)`：抽取 `_postprocess_observation(...)`，与 `step_observe` 共享观测后处理语义。
+- `SC2Env` 新增 `pipeline_step_and_observe`（默认 `False`），仅在以下条件启用快路径：
+  - 单控制器
+  - 非 realtime
+  - 无 action delay 配置、无延迟动作队列
+- `SC2Env._step(...)` 支持 `prefetched_obs` 直传，避免管线化后再次调用 `observe` RPC。
+
+benchmark 新增参数：
+- `--pipeline_step_and_observe=true|false`（默认 `false`）
+- `--pipeline_step_and_observe_ab=true,false`
+
+正确性单测（已通过）：
+- `tests/lib/test_remote_controller_pipeline.py`
+  - 新增 `test_step_observe_uses_send_multi`
+- `tests/env/test_sc2_env.py`
+  - 新增 `PipelineStepAndObserveTest`，覆盖启用条件门控与 `_step()` 分发
+
+验证口径：
+- 烟测：`tests/profiles/profile_env_step_phase2_stepobs_ab_smoke_smacnt.json`
+- 正式：`fixed8 + ABBA`
+  - `noop`：`tests/profiles/profile_env_step_phase2_stepobs_ab_fixed8_noop_smacnt.json`
+  - `random`：`tests/profiles/profile_env_step_phase2_stepobs_ab_fixed8_random_smacnt.json`
+
+AB 结果（B=false vs A=true，即关闭 vs 开启）：
+- `noop`：
+  - `Total Time mean/median`: `+3.92% / +3.24%`
+  - `SPS mean/median`: `-3.89% / -3.16%`
+  - `Latency Mean mean/median`: `+4.53% / +3.86%`
+  - `Latency P99 mean/median`: `+5.89% / +5.61%`
+- `random`：
+  - `Total Time mean/median`: `+0.64% / +0.73%`
+  - `SPS mean/median`: `-0.52% / -0.70%`
+  - `Latency Mean mean/median`: `+0.82% / +0.72%`
+  - `Latency P99 mean/median`: `+1.16% / +3.98%`
+
+结论：
+- 在 `fixed8 + ABBA` 口径下，该候选未形成正收益；`noop` 口径为稳定负向，`random` 口径也为轻微负向。
+- 当前不进入跨地图与长稳准入复核，保持“实现保留、默认关闭”（`pipeline_step_and_observe=False`）。
+- 后续若继续推进 `read_response`，优先转向“协议对象复用/解析路径减分配”类候选。
+
+### 已落地（Phase 2 候选 - `step/observe` 请求对象复用实验，默认关闭）
+
+本轮在 `protocol + remote_controller + sc2_env` 增加了“请求对象复用”候选，目标是减少热路径 protobuf 对象分配：
+- `StarcraftProtocol`：
+  - 新增 `send_prebuilt(name, req)`，支持发送预构建 `sc_pb.Request`（保留 id 分配与响应 id 校验）
+  - `send_multi(...)` 扩展为同时支持 payload 是 `Request*` 或预构建 `Request`
+- `RemoteController`：
+  - 新增 `set_reuse_step_observe_requests(enabled)`
+  - 维护可复用的 `Request(step=...)` 与 `Request(observation=...)` 容器
+  - 在 `step/observe/step_observe/actions_step` 中接入复用路径
+- `SC2Env`：
+  - 新增 `reuse_step_observe_requests`（默认 `False`）
+  - 在 `_launch_game()` 阶段将开关同步到 controller
+- benchmark 新增参数：
+  - `--reuse_step_observe_requests=true|false`（默认 `false`）
+  - `--reuse_step_observe_requests_ab=true,false`
+
+正确性单测（已通过）：
+- `tests/lib/test_protocol.py`
+  - 新增 `send_prebuilt` 与 `send_multi(预构建 Request)` 覆盖
+- `tests/lib/test_remote_controller_pipeline.py`
+  - 覆盖 request reuse 打开时 `step/step_observe` 的预构建请求分支
+
+验证口径：
+- 烟测：`tests/profiles/profile_env_step_phase2_reqreuse_ab_smoke_smacnt.json`
+- 正式：`fixed8 + ABBA`
+  - `noop`：`tests/profiles/profile_env_step_phase2_reqreuse_ab_fixed8_noop_smacnt.json`
+  - `random`：`tests/profiles/profile_env_step_phase2_reqreuse_ab_fixed8_random_smacnt.json`
+- 可迁移性复验（`random`, `fixed8 + ABBA`）：
+  - `AbyssalReef`：`tests/profiles/profile_env_step_phase2_reqreuse_ab_fixed8_abyssalreef_smacnt.json`
+  - `Flat64`：`tests/profiles/profile_env_step_phase2_reqreuse_ab_fixed8_flat64_smacnt.json`
+  - `CollectMineralShards`：`tests/profiles/profile_env_step_phase2_reqreuse_ab_fixed8_collectmineralshards_smacnt.json`
+- 长稳复核（`Simple64`, `steps=5000`, `ABBA`）：
+  - `random`：`tests/profiles/profile_env_step_phase2_reqreuse_ab_long8_smacnt.json`
+  - `noop`：`tests/profiles/profile_env_step_phase2_reqreuse_ab_long8_noop_smacnt.json`
+
+AB 结果（`B=false vs A=true`，即关闭 vs 开启）：
+- `fixed8`, `noop`：
+  - `Total Time mean/median`: `-2.58% / -2.92%`
+  - `SPS mean/median`: `+2.49% / +3.01%`
+  - `Latency Mean mean/median`: `-2.90% / -3.24%`
+  - `Latency P99 mean/median`: `-4.09% / -3.82%`
+- `fixed8`, `random`：
+  - `Total Time mean/median`: `-2.98% / -2.82%`
+  - `SPS mean/median`: `+3.14% / +2.91%`
+  - `Latency Mean mean/median`: `-3.25% / -3.43%`
+  - `Latency P99 mean/median`: `-0.68% / -1.04%`
+- 可迁移性（`random`）：
+  - `AbyssalReef` `Total Time mean/median`: `-3.82% / -6.07%`
+  - `Flat64` `Total Time mean/median`: `-2.38% / -4.36%`
+  - `CollectMineralShards` `Total Time mean/median`: `-2.59% / -2.43%`
+- 长稳（`Simple64`, `steps=5000`）：
+  - `random` `Total Time mean/median`: `-3.62% / -6.33%`
+  - `noop` `Total Time mean/median`: `-0.75% / -0.16%`
+
+封板复核（默认开启试运行回归包）：
+- 产物：
+  - `fixed8`：`profile_env_step_phase2_reqreuse_defaulton_pack_ab_fixed8_{random,noop}_smacnt.json`
+  - 跨图：`profile_env_step_phase2_reqreuse_defaulton_pack_ab_fixed8_{abyssalreef,flat64,collectmineralshards}_smacnt.json`
+  - 长稳：`profile_env_step_phase2_reqreuse_defaulton_pack_ab_long8_{random,noop}_smacnt.json`
+- 结果（仍是 `B=false vs A=true`，**`Total Time` 负值表示“关闭更快”**）：
+  - `fixed8 random`: `+1.27% / +2.36%`（开启略优）
+  - `fixed8 noop`: `-5.49% / -7.09%`（关闭显著更优）
+  - `AbyssalReef random`: `-4.75% / -5.33%`
+  - `Flat64 random`: `-1.98% / -4.95%`
+  - `CollectMineralShards random`: `-0.61% / -1.25%`
+  - `long8 random`: `-2.05% / -1.86%`
+  - `long8 noop`: `-0.76% / +0.72%`（接近持平、方向不稳定）
+
+阶段结论（更新）：
+- 在封板回归口径下，`reuse_step_observe_requests` 的收益方向与量级不稳定，且多数关键口径显示“关闭更快”。
+- **不满足通用默认开启准入条件**：当前状态回退为“实现保留、默认关闭、按场景手动启用”。
+- 默认值回退验证：`tests/profiles/profile_env_step_phase2_reqreuse_defaultoff_smoke_smacnt.json`（不显式传参时，run 配置显示 `reuse_step_observe_requests=false`）。
+- 默认开启试运行冒烟记录保留：`tests/profiles/profile_env_step_phase2_reqreuse_defaulton_smoke_smacnt.json`（仅用于执行链路验证，不作为准入依据）。
+
+执行稳定性备注（`spawn aborted` 分析与修复建议）：
+- 现象：长命令偶发 `Command failed to spawn: Aborted`，并非 benchmark 脚本内部异常（脚本未实际进入运行）。
+- 取证：
+  - 无 OOM / 无内核 killed process 记录
+  - 系统资源与进程上限充足
+  - 同命令重跑可成功，且 `--no-capture-output + PYTHONUNBUFFERED=1` 下稳定完成
+- 推断：更可能是命令启动层（IDE/命令包装层）偶发性失败，而非 `pysc2-compat` 业务代码缺陷。
+- 建议修复（执行层）：
+  1. 长跑命令统一使用 `conda run --no-capture-output`
+  2. 增加 `PYTHONUNBUFFERED=1` + `python -u`，避免长时间无输出
+  3. 对长跑命令做“一次自动重试”策略（若 spawn 失败立即重跑）
+
+准入后回归建议命令块（默认关闭基线）：
+- 统一入口（带重试）：`tests/profiles/run_benchmark_env_step_retry.py`
+  - 可通过 `SMACNT_ENV_NAME` 覆盖环境名（默认 `smacnt`）
+  - 可通过 `BENCH_RETRY_ATTEMPTS` 配置重试次数（默认 `2`）
+- 快速冒烟（默认关闭路径）：
+  - `python tests/profiles/run_benchmark_env_step_retry.py --map=Simple64 --agent_type=noop --repeats=2 --warmup_steps=20 --steps=80 --output_prefix=tests/profiles/profile_env_step_phase2_reqreuse_defaultoff_smoke_smacnt`
+- 固定口径 A/B（防漂移）：
+  - `python tests/profiles/run_benchmark_env_step_retry.py --map=Simple64 --agent_type=random --repeats=8 --warmup_steps=200 --steps=2000 --ab_pattern=abba --reuse_step_observe_requests_ab=true,false --output_prefix=tests/profiles/profile_env_step_phase2_reqreuse_ab_fixed8_random_smacnt`
+- 长稳口径（准入守门）：
+  - `python tests/profiles/run_benchmark_env_step_retry.py --map=Simple64 --agent_type=random --repeats=8 --warmup_steps=200 --steps=5000 --ab_pattern=abba --reuse_step_observe_requests_ab=true,false --output_prefix=tests/profiles/profile_env_step_phase2_reqreuse_ab_long8_smacnt`
+- 自动门禁（PASS/FAIL）：
+  - `python tests/profiles/check_reqreuse_gate.py --fixed8-random tests/profiles/profile_env_step_phase2_reqreuse_ab_fixed8_random_smacnt.json --fixed8-noop tests/profiles/profile_env_step_phase2_reqreuse_ab_fixed8_noop_smacnt.json --long8-random tests/profiles/profile_env_step_phase2_reqreuse_ab_long8_smacnt.json`
+
+`reuse_step_observe_requests` 手动启用策略（当前版本）：
+- 默认策略：**保持关闭**（`reuse_step_observe_requests=false`）；当前无“通用白名单地图”。
+- 启用前必须完成同配置 A/B（`true,false`，`abba`）并同时满足：
+  1. `fixed8 random`：`Total Time mean >= +1.0%` 且 `median >= +1.0%`
+  2. `fixed8 noop`：`Total Time mean >= -0.5%`（不允许明显反向）
+  3. `long8 random`：`Total Time mean >= +0.5%`
+  4. `long8 random`：`Latency P99 mean >= -2.0%`（允许轻微抖动，但不接受明显回归）
+  说明：以上阈值使用 A/B 口径 `B=false vs A=true`；正值表示“关闭更慢/开启更快”，负值表示“关闭更快/开启更慢”。
+- 生产启用方式（通过上述门槛后）：
+  - 训练/评测命令显式传 `--reuse_step_observe_requests=true`
+  - 每次升级依赖（Python/protobuf/SC2）后重新做一轮 A/B 复验
+- 回退触发条件（任一满足即关闭）：
+  - `Total Time mean` 回归 `> +1.0%`
+  - `Latency P99 mean` 回归 `> +2.0%`
+  - 同一 map 在 `random/noop` 方向持续分裂（一个正向、一个显著负向）
+
 ## 1. 目标与基线
 
 本阶段目标：以 `smacnt`（Python 3.14 + protobuf `upb`）为主优化目标，对 `pysc2-compat` 的 `env.step` 路径做持续提速，并能稳定对比“最新版 vs 历史版”。

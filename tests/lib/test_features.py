@@ -59,10 +59,16 @@ class AvailableActionsTest(absltest.TestCase):
         self.obs = text_format.Parse(observation_text_proto, sc_pb.Observation())
         self.hideSpecificActions(True)
 
-    def hideSpecificActions(self, hide_specific_actions):  # pylint: disable=invalid-name
+    def hideSpecificActions(
+            self,
+            hide_specific_actions,
+            available_actions_cache_size=0,
+            reuse_available_actions_result=False):  # pylint: disable=invalid-name
         self.features = features.Features(features.AgentInterfaceFormat(
             feature_dimensions=RECTANGULAR_DIMENSIONS,
-            hide_specific_actions=hide_specific_actions))
+            hide_specific_actions=hide_specific_actions,
+            available_actions_cache_size=available_actions_cache_size,
+            reuse_available_actions_result=reuse_available_actions_result))
 
     def assertAvail(self, expected):
         actual = self.features.available_actions(self.obs)
@@ -200,6 +206,39 @@ class AvailableActionsTest(absltest.TestCase):
             'Patrol_screen',
             'Stop_quick',
         ])
+
+    def testAvailableActionsCacheKeyCanonicalized(self):
+        self.hideSpecificActions(True, available_actions_cache_size=8)
+        self.obs.abilities.add(ability_id=23, requires_point=True)
+        self.obs.abilities.add(ability_id=17, requires_point=True)
+        first = set(self.features.available_actions(self.obs))
+        self.assertLen(self.features._available_actions_cache, 1)
+
+        reordered_obs = text_format.Parse(observation_text_proto, sc_pb.Observation())
+        reordered_obs.abilities.add(ability_id=17, requires_point=True)
+        reordered_obs.abilities.add(ability_id=23, requires_point=True)
+        second = set(self.features.available_actions(reordered_obs))
+        self.assertEqual(first, second)
+        self.assertLen(self.features._available_actions_cache, 1)
+
+    def testAvailableActionsResultReusedForSameObservation(self):
+        self.hideSpecificActions(True, reuse_available_actions_result=True)
+        self.obs.abilities.add(ability_id=23, requires_point=True)
+        first_actions = self.features._get_available_actions_cached(self.obs)
+        second_actions = self.features._get_available_actions_cached(self.obs)
+        self.assertIs(first_actions, second_actions)
+
+        next_obs = text_format.Parse(observation_text_proto, sc_pb.Observation())
+        next_obs.abilities.add(ability_id=23, requires_point=True)
+        next_actions = self.features._get_available_actions_cached(next_obs)
+        self.assertIsNot(first_actions, next_actions)
+
+    def testAvailableActionsResultReuseCanBeDisabled(self):
+        self.hideSpecificActions(True, reuse_available_actions_result=False)
+        self.obs.abilities.add(ability_id=23, requires_point=True)
+        first_actions = self.features._get_available_actions_cached(self.obs)
+        second_actions = self.features._get_available_actions_cached(self.obs)
+        self.assertIsNot(first_actions, second_actions)
 
 
 class ToPointTest(absltest.TestCase):
@@ -582,6 +621,16 @@ class FeaturesTest(absltest.TestCase):
                          (len(features.MINIMAP_FEATURES), 67, 64))
         self.assertEqual(obs_spec['rgb_screen'], (132, 128, 3))
         self.assertEqual(obs_spec['rgb_minimap'], (77, 74, 3))
+
+    def testObservationSpecAvailableActionsCanBeDisabled(self):
+        feats_default = features.Features(features.AgentInterfaceFormat(
+            feature_dimensions=RECTANGULAR_DIMENSIONS))
+        self.assertIn('available_actions', feats_default.observation_spec())
+
+        feats_no_avail = features.Features(features.AgentInterfaceFormat(
+            feature_dimensions=RECTANGULAR_DIMENSIONS,
+            include_available_actions=False))
+        self.assertNotIn('available_actions', feats_no_avail.observation_spec())
 
 
 if __name__ == '__main__':

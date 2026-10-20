@@ -32,6 +32,28 @@ class NamedDict(dict):
 
 
 _NULL_SLICE = slice(None, None, None)
+_INDEX_NAMES_CACHE = {}
+
+
+def _names_cache_key(shape, names):
+    key = []
+    for o in names:
+        if o is None:
+            key.append((None,))
+        elif isinstance(o, enum.EnumMeta):
+            key.append(('enum', o))
+        elif isinstance(o, type):
+            if not hasattr(o, '_fields'):
+                return None
+            key.append(('namedtuple', o))
+        elif isinstance(o, (list, tuple)):
+            try:
+                key.append(('seq', tuple(o)))
+            except TypeError:
+                return None
+        else:
+            return None
+    return shape, tuple(key)
 
 
 # pylint: disable=protected-access
@@ -84,39 +106,49 @@ class NamedNumpyArray(np.ndarray):
             raise ValueError(
                 'Names must be a list of length equal to the array shape: %s != %s.' %
                 (len(names), len(obj.shape)))
-        index_names = []
-        only_none = obj.shape[0] > 0
-        for i, o in enumerate(names):
-            if o is None:
-                index_names.append(o)
-            else:
-                only_none = False
-                if isinstance(o, enum.EnumMeta):
-                    for j, n in enumerate(o._member_names_):
-                        if j != o[n]:
-                            raise ValueError("Enum has holes or doesn't start from 0.")
-                    o = o._member_names_
-                elif isinstance(o, type):  # Assume namedtuple
-                    try:
-                        o = o._fields
-                    except AttributeError:
+        cache_key = _names_cache_key(obj.shape, names)
+        cached_index_names = (_INDEX_NAMES_CACHE.get(cache_key)
+                              if cache_key is not None else None)
+        if cached_index_names is not None:
+            index_names = [n.copy() if n is not None else None
+                           for n in cached_index_names]
+        else:
+            index_names = []
+            only_none = obj.shape[0] > 0
+            for i, o in enumerate(names):
+                if o is None:
+                    index_names.append(o)
+                else:
+                    only_none = False
+                    if isinstance(o, enum.EnumMeta):
+                        for j, n in enumerate(o._member_names_):
+                            if j != o[n]:
+                                raise ValueError("Enum has holes or doesn't start from 0.")
+                        o = o._member_names_
+                    elif isinstance(o, type):  # Assume namedtuple
+                        try:
+                            o = o._fields
+                        except AttributeError:
+                            raise ValueError('Bad names. Must be None, a list of strings, '
+                                             'a namedtuple, or IntEnum.')
+                    elif isinstance(o, (list, tuple)):
+                        for n in o:
+                            if not isinstance(n, str):
+                                raise ValueError(
+                                    'Bad name, must be a list of strings, not %s' % type(n))
+                    else:
                         raise ValueError('Bad names. Must be None, a list of strings, '
                                          'a namedtuple, or IntEnum.')
-                elif isinstance(o, (list, tuple)):
-                    for n in o:
-                        if not isinstance(n, str):
-                            raise ValueError(
-                                'Bad name, must be a list of strings, not %s' % type(n))
-                else:
-                    raise ValueError('Bad names. Must be None, a list of strings, '
-                                     'a namedtuple, or IntEnum.')
-                if obj.shape[i] != len(o):
-                    raise ValueError(
-                        'Wrong number of names in dimension %s. Got %s, expected %s.' % (
-                            i, len(o), obj.shape[i]))
-                index_names.append({n: j for j, n in enumerate(o)})
-        if only_none:
-            raise ValueError('No names given. Use a normal numpy.ndarray instead.')
+                    if obj.shape[i] != len(o):
+                        raise ValueError(
+                            'Wrong number of names in dimension %s. Got %s, expected %s.' % (
+                                i, len(o), obj.shape[i]))
+                    index_names.append({n: j for j, n in enumerate(o)})
+            if only_none:
+                raise ValueError('No names given. Use a normal numpy.ndarray instead.')
+            if cache_key is not None:
+                _INDEX_NAMES_CACHE[cache_key] = tuple(
+                    n.copy() if n is not None else None for n in index_names)
 
         # Finally convert to a NamedNumpyArray.
         obj = obj.view(cls)

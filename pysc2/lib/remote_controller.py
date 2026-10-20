@@ -151,6 +151,10 @@ class RemoteController(object):
         sock = self._connect(host, port, proc, timeout_seconds)
         self._client = protocol.StarcraftProtocol(sock)
         self._last_obs = None
+        self._reuse_step_observe_requests = False
+        self._step_request = sc_pb.Request(step=sc_pb.RequestStep())
+        self._observation_request = sc_pb.Request(
+            observation=sc_pb.RequestObservation())
         self.ping()
 
     @sw.decorate
@@ -189,6 +193,20 @@ class RemoteController(object):
 
     def close(self):
         self._client.close()
+
+    def set_reuse_step_observe_requests(self, enabled):
+        self._reuse_step_observe_requests = bool(enabled)
+
+    def _build_reusable_step_request(self, count):
+        req = self._step_request
+        req.step.count = count
+        return req
+
+    def _build_reusable_observation_request(self, disable_fog, target_game_loop):
+        req = self._observation_request
+        req.observation.game_loop = target_game_loop
+        req.observation.disable_fog = disable_fog
+        return req
 
     @property
     def status_ended(self):
@@ -263,10 +281,19 @@ class RemoteController(object):
     @sw.decorate
     def observe(self, disable_fog=False, target_game_loop=0):
         """Get a current observation."""
-        obs = self._client.send(observation=sc_pb.RequestObservation(
-            game_loop=target_game_loop,
-            disable_fog=disable_fog))
+        if self._reuse_step_observe_requests:
+            obs = self._client.send_prebuilt(
+                'observation',
+                self._build_reusable_observation_request(
+                    disable_fog=disable_fog,
+                    target_game_loop=target_game_loop))
+        else:
+            obs = self._client.send(observation=sc_pb.RequestObservation(
+                game_loop=target_game_loop,
+                disable_fog=disable_fog))
+        return self._postprocess_observation(obs)
 
+    def _postprocess_observation(self, obs):
         if obs.observation.game_loop == 2 ** 32 - 1:
             logging.info('Received stub observation.')
 
@@ -302,7 +329,31 @@ class RemoteController(object):
     @sw.decorate
     def step(self, count=1):
         """Step the engine forward by one (or more) step."""
+        if self._reuse_step_observe_requests:
+            return self._client.send_prebuilt(
+                'step', self._build_reusable_step_request(count))
         return self._client.send(step=sc_pb.RequestStep(count=count))
+
+    @valid_status(Status.in_game, Status.in_replay)
+    @catch_game_end
+    @sw.decorate
+    def step_observe(self, count=1, disable_fog=False, target_game_loop=0):
+        """Pipeline `RequestStep` and `RequestObservation` and return observation."""
+        if self._reuse_step_observe_requests:
+            _, obs = self._client.send_multi([
+                ('step', self._build_reusable_step_request(count)),
+                ('observation', self._build_reusable_observation_request(
+                    disable_fog=disable_fog,
+                    target_game_loop=target_game_loop)),
+            ])
+        else:
+            _, obs = self._client.send_multi([
+                ('step', sc_pb.RequestStep(count=count)),
+                ('observation', sc_pb.RequestObservation(
+                    game_loop=target_game_loop,
+                    disable_fog=disable_fog)),
+            ])
+        return self._postprocess_observation(obs)
 
     @skip_status(Status.in_replay)
     @valid_status(Status.in_game)
@@ -317,6 +368,35 @@ class RemoteController(object):
             sys.stderr.flush()
 
         return self._client.send(action=req_action)
+
+    @skip_status(Status.in_replay)
+    @valid_status(Status.in_game)
+    @catch_game_end
+    @sw.decorate
+    def actions_step(self, req_action, count=1):
+        """Pipeline `RequestAction` and `RequestStep` in one round trip sequence."""
+        if FLAGS.sc2_log_actions and req_action.actions:
+            sys.stderr.write(' Sending actions '.center(60, '>') + '\n')
+            for action in req_action.actions:
+                sys.stderr.write(str(action))
+            sys.stderr.flush()
+
+        if req_action.actions:
+            if self._reuse_step_observe_requests:
+                _, step_res = self._client.send_multi([
+                    ('action', req_action),
+                    ('step', self._build_reusable_step_request(count)),
+                ])
+            else:
+                _, step_res = self._client.send_multi([
+                    ('action', req_action),
+                    ('step', sc_pb.RequestStep(count=count)),
+                ])
+            return step_res
+        if self._reuse_step_observe_requests:
+            return self._client.send_prebuilt(
+                'step', self._build_reusable_step_request(count))
+        return self._client.send(step=sc_pb.RequestStep(count=count))
 
     def act(self, action):
         """Send a single action.

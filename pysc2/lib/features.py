@@ -16,6 +16,7 @@
 
 import collections
 import enum
+import math
 import numpy as np
 import random
 from pysc2.lib import logging
@@ -492,7 +493,10 @@ class AgentInterfaceFormat(object):
             add_cargo_to_units=False,
             include_ui_data=True,
             include_score_details=True,
-            include_last_actions=True):
+            include_last_actions=True,
+            include_available_actions=True,
+            reuse_available_actions_result=False,
+            available_actions_cache_size=0):
         """Initializer.
 
         Args:
@@ -562,6 +566,13 @@ class AgentInterfaceFormat(object):
               compatibility with score-based rewards.
             include_last_actions: Whether to include the `last_actions` observation
               field.
+            include_available_actions: Whether to include the `available_actions`
+              observation field for non-raw interfaces.
+            reuse_available_actions_result: Whether to reuse available-actions
+              computation between `transform_obs` and `transform_action` for the
+              same observation proto.
+            available_actions_cache_size: Size of the per-process cache used by
+              `available_actions` ability mapping. Set to 0 to disable.
 
         Raises:
             ValueError: if the parameters are inconsistent.
@@ -614,6 +625,8 @@ class AgentInterfaceFormat(object):
             raise ValueError(
                 "RGB Screen (%s) can't be smaller than the minimap (%s)." % (
                     rgb_dimensions.screen, rgb_dimensions.minimap))
+        if available_actions_cache_size < 0:
+            raise ValueError('available_actions_cache_size must be >= 0.')
 
         self._feature_dimensions = feature_dimensions
         self._rgb_dimensions = rgb_dimensions
@@ -640,6 +653,9 @@ class AgentInterfaceFormat(object):
         self._include_ui_data = include_ui_data
         self._include_score_details = include_score_details
         self._include_last_actions = include_last_actions
+        self._include_available_actions = include_available_actions
+        self._reuse_available_actions_result = reuse_available_actions_result
+        self._available_actions_cache_size = int(available_actions_cache_size)
 
         if action_space == actions.ActionSpace.FEATURES:
             self._action_dimensions = feature_dimensions
@@ -753,6 +769,18 @@ class AgentInterfaceFormat(object):
     @property
     def include_last_actions(self):
         return self._include_last_actions
+
+    @property
+    def include_available_actions(self):
+        return self._include_available_actions
+
+    @property
+    def reuse_available_actions_result(self):
+        return self._reuse_available_actions_result
+
+    @property
+    def available_actions_cache_size(self):
+        return self._available_actions_cache_size
 
 
 def parse_agent_interface_format(
@@ -980,6 +1008,8 @@ class Features(object):
             raise ValueError('Please specify agent_interface_format')
 
         self._agent_interface_format = agent_interface_format
+        self._feature_screen_scale = None
+        self._feature_screen_offset = None
         aif = self._agent_interface_format
         if not aif.raw_resolution and map_size:
             aif.raw_resolution = point.Point.build(map_size)
@@ -1006,6 +1036,11 @@ class Features(object):
         self._requested_races = requested_races
         if requested_races is not None:
             assert len(requested_races) <= 2
+        self._available_actions_cache = collections.OrderedDict()
+        self._available_actions_cache_max_size = aif.available_actions_cache_size
+        self._reuse_available_actions_result = aif.reuse_available_actions_result
+        self._available_actions_obs_cache = None
+        self._available_actions_list_cache = None
 
     def init_camera(
             self, feature_dimensions, map_size, camera_width_world_units,
@@ -1044,6 +1079,8 @@ class Features(object):
                 self._world_tl_to_world_camera_rel,
                 world_camera_rel_to_feature_screen,
                 transform.PixelToCoord())
+            self._feature_screen_scale = world_camera_rel_to_feature_screen.scale
+            self._feature_screen_offset = world_camera_rel_to_feature_screen.offset
 
         # If we don't have a specified raw resolution, we do no transform.
         world_tl_to_feature_minimap = transform.Linear(
@@ -1057,9 +1094,23 @@ class Features(object):
 
     def _update_camera(self, camera_center):
         """Update the camera transform based on the new camera center."""
-        self._world_tl_to_world_camera_rel.offset = (
-                -self._world_to_world_tl.fwd_pt(camera_center) *
-                self._world_tl_to_world_camera_rel.scale)
+        map_size_y = self._world_to_world_tl.offset.y
+        self._world_tl_to_world_camera_rel.offset = point.Point(
+            -camera_center.x, camera_center.y - map_size_y)
+
+    def _world_to_feature_screen_xy(self, pos):
+        """Fast scalar world->feature-screen point transform."""
+        camera_offset = self._world_tl_to_world_camera_rel.offset
+        scale = self._feature_screen_scale
+        offset = self._feature_screen_offset
+        world_tl_y = self._world_to_world_tl.offset.y - pos.y
+        x = int(math.floor((pos.x + camera_offset.x) * scale.x + offset.x))
+        y = int(math.floor((world_tl_y + camera_offset.y) * scale.y + offset.y))
+        return x, y
+
+    def _world_to_feature_screen_radius(self, radius):
+        """Fast scalar world->feature-screen distance transform."""
+        return radius * self._feature_screen_scale.x
 
     def observation_spec(self):
         """The observation spec for the SC2 environment.
@@ -1084,7 +1135,7 @@ class Features(object):
         })
         # pytype: enable=wrong-arg-types
 
-        if not self._raw:
+        if not self._raw and self._agent_interface_format.include_available_actions:
             obs_spec['available_actions'] = (0,)
 
         aif = self._agent_interface_format
@@ -1324,6 +1375,8 @@ class Features(object):
                             [None, ProductionQueue], dtype=np.int32)
 
         tag_types = {}  # Only populate the cache if it's needed.
+        raw_ability_to_func = actions.RAW_ABILITY_ID_TO_FUNC_ID
+        feature_unit_len = len(FeatureUnit)
 
         def get_addon_type(tag):
             if not tag_types:
@@ -1333,16 +1386,25 @@ class Features(object):
 
         def full_unit_vec(u, pos_transform, is_raw=False):
             """Compute unit features."""
-            screen_pos = pos_transform.fwd_pt(
-                point.Point.build(u.pos))
-            screen_radius = pos_transform.fwd_dist(u.radius)
+            if pos_transform is self._world_to_feature_screen_px:
+                screen_x, screen_y = self._world_to_feature_screen_xy(u.pos)
+                screen_radius = self._world_to_feature_screen_radius(u.radius)
+            else:
+                screen_pos = pos_transform.fwd_pt(point.Point.build(u.pos))
+                screen_x = screen_pos.x
+                screen_y = screen_pos.y
+                screen_radius = pos_transform.fwd_dist(u.radius)
 
-            def raw_order(i):
-                if len(u.orders) > i:
-                    # TODO(tewalds): Return a generalized func id.
-                    return actions.RAW_ABILITY_ID_TO_FUNC_ID.get(
-                        u.orders[i].ability_id, 0)
-                return 0
+            orders = u.orders
+            order_len = len(orders)
+            order_0 = raw_ability_to_func.get(orders[0].ability_id, 0) if order_len >= 1 else 0
+            order_1 = raw_ability_to_func.get(orders[1].ability_id, 0) if order_len >= 2 else 0
+            order_2 = raw_ability_to_func.get(orders[2].ability_id, 0) if order_len >= 3 else 0
+            order_3 = raw_ability_to_func.get(orders[3].ability_id, 0) if order_len >= 4 else 0
+            order_0_progress = int(orders[0].progress * 100) if order_len >= 1 else 0
+            order_1_progress = int(orders[1].progress * 100) if order_len >= 2 else 0
+            buff_ids = u.buff_ids
+            buff_len = len(buff_ids)
 
             features = [
                 # Match unit_vec order
@@ -1360,8 +1422,8 @@ class Features(object):
                 int(u.energy / u.energy_max * 255) if u.energy_max > 0 else 0,
                 u.display_type,  # Visible = 1, Snapshot = 2, Hidden = 3
                 u.owner,  # 1-15, 16 = neutral
-                screen_pos.x,
-                screen_pos.y,
+                screen_x,
+                screen_y,
                 u.facing,
                 screen_radius,
                 u.cloak,  # Cloaked = 1, CloakedDetected = 2, NotCloaked = 3
@@ -1376,20 +1438,20 @@ class Features(object):
                 u.assigned_harvesters,
                 u.ideal_harvesters,
                 u.weapon_cooldown,
-                len(u.orders),
-                raw_order(0),
-                raw_order(1),
+                order_len,
+                order_0,
+                order_1,
                 u.tag if is_raw else 0,
                 u.is_hallucination,
-                u.buff_ids[0] if len(u.buff_ids) >= 1 else 0,
-                u.buff_ids[1] if len(u.buff_ids) >= 2 else 0,
+                buff_ids[0] if buff_len >= 1 else 0,
+                buff_ids[1] if buff_len >= 2 else 0,
                 get_addon_type(u.add_on_tag) if u.add_on_tag else 0,
                 u.is_active,
                 u.is_on_screen,
-                int(u.orders[0].progress * 100) if len(u.orders) >= 1 else 0,
-                int(u.orders[1].progress * 100) if len(u.orders) >= 2 else 0,
-                raw_order(2),
-                raw_order(3),
+                order_0_progress,
+                order_1_progress,
+                order_2,
+                order_3,
                 0,
                 u.buff_duration_remain,
                 u.buff_duration_max,
@@ -1404,9 +1466,16 @@ class Features(object):
         if aif.use_feature_units:
             with sw('feature_units'):
                 # Update the camera location so we can calculate world to screen pos
-                self._update_camera(point.Point.build(raw.player.camera))
-                feature_units = [full_unit_vec(u, self._world_to_feature_screen_px)
-                                 for u in raw.units if u.is_on_screen]
+                self._update_camera(raw.player.camera)
+                feature_units = np.empty(
+                    (len(raw.units), feature_unit_len), dtype=np.int64)
+                i = 0
+                for u in raw.units:
+                    if u.is_on_screen:
+                        feature_units[i] = full_unit_vec(
+                            u, self._world_to_feature_screen_px)
+                        i += 1
+                feature_units = feature_units[:i]
                 out['feature_units'] = named_array.NamedNumpyArray(
                     feature_units, [None, FeatureUnit], dtype=np.int64)
 
@@ -1414,17 +1483,16 @@ class Features(object):
                 feature_screen_size = aif.feature_dimensions.screen
                 for effect in raw.effects:
                     for pos in effect.pos:
-                        screen_pos = self._world_to_feature_screen_px.fwd_pt(
-                            point.Point.build(pos))
-                        if (0 <= screen_pos.x < feature_screen_size.x and
-                                0 <= screen_pos.y < feature_screen_size.y):
+                        screen_x, screen_y = self._world_to_feature_screen_xy(pos)
+                        if (0 <= screen_x < feature_screen_size.x and
+                                0 <= screen_y < feature_screen_size.y):
                             feature_effects.append([
                                 effect.effect_id,
                                 effect.alliance,
                                 effect.owner,
                                 effect.radius,
-                                screen_pos.x,
-                                screen_pos.y,
+                                screen_x,
+                                screen_y,
                             ])
                 out['feature_effects'] = named_array.NamedNumpyArray(
                     feature_effects, [None, EffectPos], dtype=np.int32)
@@ -1432,12 +1500,16 @@ class Features(object):
         if aif.use_raw_units:
             with sw('raw_units'):
                 with sw('to_list'):
-                    raw_units = [full_unit_vec(u, self._world_to_minimap_px, is_raw=True)
-                                 for u in raw.units]
+                    raw_unit_count = len(raw.units)
+                    raw_units = np.empty(
+                        (raw_unit_count, feature_unit_len), dtype=np.int64)
+                    for i, u in enumerate(raw.units):
+                        raw_units[i] = full_unit_vec(
+                            u, self._world_to_minimap_px, is_raw=True)
                 with sw('to_numpy'):
                     out['raw_units'] = named_array.NamedNumpyArray(
                         raw_units, [None, FeatureUnit], dtype=np.int64)
-                if raw_units:
+                if raw_unit_count:
                     self._raw_tags = out['raw_units'][:, FeatureUnit.tag]
                 else:
                     self._raw_tags = np.array([])
@@ -1461,8 +1533,12 @@ class Features(object):
 
         def cargo_units(u, pos_transform, is_raw=False):
             """Compute unit features."""
-            screen_pos = pos_transform.fwd_pt(
-                point.Point.build(u.pos))
+            if pos_transform is self._world_to_feature_screen_px:
+                screen_x, screen_y = self._world_to_feature_screen_xy(u.pos)
+            else:
+                screen_pos = pos_transform.fwd_pt(point.Point.build(u.pos))
+                screen_x = screen_pos.x
+                screen_y = screen_pos.y
             features = []
             for v in u.passengers:
                 features.append([
@@ -1478,8 +1554,8 @@ class Features(object):
                     int(v.energy / v.energy_max * 255) if v.energy_max > 0 else 0,
                     0,  # display_type
                     u.owner,  # 1-15, 16 = neutral
-                    screen_pos.x,
-                    screen_pos.y,
+                    screen_x,
+                    screen_y,
                     0,  # facing
                     0,  # screen_radius
                     0,  # cloak
@@ -1566,9 +1642,10 @@ class Features(object):
             out['camera_size'] = np.array((self._camera_size.x, self._camera_size.y),
                                           dtype=np.int32)
 
-        if not self._raw:
+        if not self._raw and aif.include_available_actions:
+            available_actions = self._get_available_actions_cached(obs.observation)
             out['available_actions'] = np.array(
-                self.available_actions(obs.observation), dtype=np.int32)
+                available_actions, dtype=np.int32)
 
         if self._requested_races is not None:
             out['home_race_requested'] = np.array(
@@ -1600,27 +1677,61 @@ class Features(object):
         for i, func in actions.FUNCTIONS_AVAILABLE.items():
             if func.avail_fn(obs):
                 available_actions.add(i)
-        for a in obs.abilities:
-            if a.ability_id not in actions.ABILITY_IDS:
-                logging.warning('Unknown ability %s seen as available.', a.ability_id)
-                continue
-            found_applicable = False
-            for func in actions.ABILITY_IDS[a.ability_id]:
-                if func.function_type in actions.POINT_REQUIRED_FUNCS[a.requires_point]:
-                    if func.general_id == 0 or not hide_specific_actions:
-                        available_actions.add(func.id)
-                        found_applicable = True
-                    if func.general_id != 0:  # Always offer generic actions.
-                        for general_func in actions.ABILITY_IDS[func.general_id]:
-                            if general_func.function_type is func.function_type:
-                                # Only the right type. Don't want to expose the general action
-                                # to minimap if only the screen version is available.
-                                available_actions.add(general_func.id)
+        if obs.abilities:
+            cache_enabled = self._available_actions_cache_max_size > 0
+            if cache_enabled:
+                cache_key = (
+                    hide_specific_actions,
+                    tuple(sorted(
+                        (a.ability_id, bool(a.requires_point)) for a in obs.abilities)))
+                cached_actions = self._available_actions_cache.get(cache_key)
+            else:
+                cached_actions = None
+            if cached_actions is None:
+                cacheable = True
+                ability_actions = set()
+                for a in obs.abilities:
+                    if a.ability_id not in actions.ABILITY_IDS:
+                        logging.warning('Unknown ability %s seen as available.', a.ability_id)
+                        cacheable = False
+                        continue
+                    found_applicable = False
+                    for func in actions.ABILITY_IDS[a.ability_id]:
+                        if func.function_type in actions.POINT_REQUIRED_FUNCS[a.requires_point]:
+                            if func.general_id == 0 or not hide_specific_actions:
+                                ability_actions.add(func.id)
                                 found_applicable = True
-                                break
-            if not found_applicable:
-                raise ValueError('Failed to find applicable action for {}'.format(a))
+                            if func.general_id != 0:  # Always offer generic actions.
+                                for general_func in actions.ABILITY_IDS[func.general_id]:
+                                    if general_func.function_type is func.function_type:
+                                        # Only the right type. Don't want to expose the general
+                                        # action to minimap if only the screen version is
+                                        # available.
+                                        ability_actions.add(general_func.id)
+                                        found_applicable = True
+                                        break
+                    if not found_applicable:
+                        raise ValueError('Failed to find applicable action for {}'.format(a))
+
+                cached_actions = tuple(ability_actions)
+                if cache_enabled and cacheable:
+                    self._available_actions_cache[cache_key] = cached_actions
+                    if len(self._available_actions_cache) > self._available_actions_cache_max_size:
+                        self._available_actions_cache.popitem(last=False)
+            elif cache_enabled:
+                self._available_actions_cache.move_to_end(cache_key)
+            available_actions.update(cached_actions)
         return list(available_actions)
+
+    def _get_available_actions_cached(self, obs):
+        if not self._reuse_available_actions_result:
+            return self.available_actions(obs)
+        if self._available_actions_obs_cache is obs:
+            return self._available_actions_list_cache
+        available_actions = self.available_actions(obs)
+        self._available_actions_obs_cache = obs
+        self._available_actions_list_cache = available_actions
+        return available_actions
 
     @sw.decorate
     def transform_action(self, obs, func_call, skip_available=False):
@@ -1653,10 +1764,11 @@ class Features(object):
             raise ValueError('Invalid function id: %s.' % func_id)
 
         # Available?
-        if not (skip_available or self._raw or
-                func_id in self.available_actions(obs)):
-            raise ValueError('Function %s/%s is currently not available' % (
-                func_id, func.name))
+        if not (skip_available or self._raw):
+            available_actions = self._get_available_actions_cached(obs)
+            if func_id not in available_actions:
+                raise ValueError('Function %s/%s is currently not available' % (
+                    func_id, func.name))
 
         # Right number of args?
         if len(func_call.arguments) != len(func.args):

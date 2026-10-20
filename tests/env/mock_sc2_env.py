@@ -175,6 +175,9 @@ class SC2TestEnv(_TestEnvironment):
                  random_seed=None,
                  disable_fog=False,
                  ensure_available_actions=True,
+                 pipeline_actions_and_step=False,
+                 pipeline_step_and_observe=False,
+                 reuse_step_observe_requests=False,
                  version=None):
         """Initializes an SC2TestEnv.
 
@@ -204,6 +207,9 @@ class SC2TestEnv(_TestEnvironment):
             disable_fog: Unused.
             ensure_available_actions: Whether to throw an exception when an
               unavailable action is passed to step().
+            pipeline_actions_and_step: Unused.
+            pipeline_step_and_observe: Unused.
+            reuse_step_observe_requests: Unused.
             version: Unused.
         Raises:
             ValueError: if args are passed.
@@ -221,6 +227,9 @@ class SC2TestEnv(_TestEnvironment):
         del random_seed  # Unused.
         del disable_fog  # Unused.
         del ensure_available_actions  # Unused.
+        del pipeline_actions_and_step  # Unused.
+        del pipeline_step_and_observe  # Unused.
+        del reuse_step_observe_requests  # Unused.
         del version  # Unused.
 
         if realtime:

@@ -124,6 +124,17 @@ class StarcraftProtocol(object):
         self.write(request)
         return self.read()
 
+    def _send_named_request(self, name, req):
+        req.id = next(self._count)
+        try:
+            res = self.send_req(req)
+        except ConnectionError as e:
+            raise ConnectionError('Error during %s: %s' % (name, e)) from e
+        if res.HasField('id') and res.id != req.id:
+            raise ConnectionError(
+                'Error during %s: Got a response with a different id' % name)
+        return getattr(res, name)
+
     def send(self, **kwargs):
         """Create and send a specific request, and return the response.
 
@@ -140,15 +151,83 @@ class StarcraftProtocol(object):
         assert len(kwargs) == 1, 'Must make a single request.'
         name = list(kwargs.keys())[0]
         req = sc_pb.Request(**kwargs)
-        req.id = next(self._count)
+        return self._send_named_request(name, req)
+
+    def send_prebuilt(self, name, req):
+        """Send a prebuilt Request, with id assignment and response validation."""
+        if not isinstance(req, sc_pb.Request):
+            raise TypeError('send_prebuilt expects sc_pb.Request, got %r' % type(req))
+        if req.WhichOneof('request') != name:
+            raise ValueError(
+                "send_prebuilt expected request '%s', got '%s'" % (
+                    name, req.WhichOneof('request')))
+        return self._send_named_request(name, req)
+
+    def send_multi(self, named_requests):
+        """Send multiple requests back-to-back and return responses in order.
+
+        Args:
+            named_requests: Iterable[(name, request_message)], where `name` is the
+              Request/Response oneof field name, and `request_message` is the
+              corresponding Request* proto payload.
+
+        Returns:
+            A list of Response* payloads in the same order as input requests.
+
+        Raises:
+            ConnectionError: If communication fails or response ids don't match.
+        """
+        named_requests = list(named_requests)
+        if not named_requests:
+            return []
+
+        reqs = []
+        request_ids = set()
+        for name, payload in named_requests:
+            if isinstance(payload, sc_pb.Request):
+                req = payload
+                if req.WhichOneof('request') != name:
+                    raise ValueError(
+                        "send_multi expected request '%s', got '%s'" % (
+                            name, req.WhichOneof('request')))
+            else:
+                req = sc_pb.Request(**{name: payload})
+            req.id = next(self._count)
+            reqs.append((name, req))
+            request_ids.add(req.id)
+
         try:
-            res = self.send_req(req)
+            for _, req in reqs:
+                self.write(req)
+            responses = [self.read() for _ in reqs]
         except ConnectionError as e:
-            raise ConnectionError('Error during %s: %s' % (name, e)) from e
-        if res.HasField('id') and res.id != req.id:
+            names = ','.join(name for name, _ in reqs)
             raise ConnectionError(
-                'Error during %s: Got a response with a different id' % name)
-        return getattr(res, name)
+                'Error during multi request (%s): %s' % (names, e)) from e
+
+        response_by_id = {}
+        all_have_id = True
+        for res in responses:
+            if not res.HasField('id'):
+                all_have_id = False
+                break
+            if res.id not in request_ids:
+                raise ConnectionError(
+                    'Error during multi request: Got a response with a different id')
+            response_by_id[res.id] = res
+
+        if all_have_id:
+            ordered_responses = []
+            for name, req in reqs:
+                res = response_by_id.get(req.id)
+                if res is None:
+                    raise ConnectionError(
+                        'Error during multi request: Missing response for %s' % name)
+                ordered_responses.append(getattr(res, name))
+            return ordered_responses
+
+        # Fallback for servers that don't echo ids on some responses.
+        return [getattr(res, name) for (name, _), res in zip(reqs, responses)]
 
     def _packet_str(self, packet):
         """Return a string form of this packet."""
